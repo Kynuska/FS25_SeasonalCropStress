@@ -62,4 +62,22 @@
     <text name="input_CS_TOGGLE_HUD"      text="Toggle Moisture HUD"/>
     <text name="input_CS_OPEN_IRRIGATION" text="Open Irrigation Manager"/>
     <text name="input_CS_OPEN_CONSULTANT" text="Open Crop Consultant"/>
+
+        <!-- Placeable shop names -->
+    <e k="cs_pivot_name"     v="Center Pivot Irrigator"/>
+    <e k="cs_pump_name"      v="Water Pump"/>
+
+    <!-- E-key interaction -->
+    <e k="cs_irr_open_schedule"  v="Open Irrigation Schedule"/>
+
+    <!-- IrrigationScheduleDialog — labels added in bug-fix session -->
+    <e k="cs_irr_start_time"     v="Start Time"/>
+    <e k="cs_irr_end_time"       v="End Time"/>
+    <e k="cs_irr_performance"    v="Performance"/>
+    <e k="cs_irr_flow_rate"      v="Flow Rate"/>
+    <e k="cs_irr_efficiency"     v="Efficiency"/>
+    <e k="cs_irr_cost"           v="Est. Cost"/>
+    <e k="cs_irr_wear"           v="Wear Level"/>
+    <e k="cs_close"              v="Close"/>
+    <e k="cs_no_irrigation_systems" v="No irrigation systems placed yet"/>
 </l10n>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    centerPivot.i3d — PLACEHOLDER
+    Minimal valid i3d so the placeable can be loaded and tested in-game.
+    Replace with final art asset before release.
+
+    Node structure expected by centerPivot.lua:
+        root          (transform, id=1) — placeable root / self.nodeId
+        └── armNode   (transform, id=2) — rotated by onUpdate when isActive
+        └── colMesh   (shape, id=3)     — collision / visual placeholder box
+-->
+<i3d name="centerPivot" version="1.6"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://i3d.giants.ch/schema/i3d-1.6.xsd">
+
+    <Asset>
+        <Export program="GIANTS Editor 64bit" version="8.2.2"/>
+    </Asset>
+
+    <Files>
+        <!-- No external files for placeholder -->
+    </Files>
+
+    <Materials>
+        <Material name="placeholder_mat" materialId="1" ambientColor="0.3 0.3 0.3"
+                  diffuseColor="0.6 0.6 0.6 1" specularColor="0.2 0.2 0.2"
+                  cosPower="10" alphaBlending="false" castsShadows="true"
+                  receiveShadows="true">
+        </Material>
+    </Materials>
+
+    <Shapes>
+        <!-- Simple unit box as placeholder geometry -->
+        <IndexedTriangleSet name="pivotBox_shape" shapeId="1" materialIds="1"
+                            castsShadows="true" receiveShadows="true">
+            <Vertices count="8" normal="true" uv0="true">
+                <v p="-0.5 0 -0.5" n="0 1 0" t0="0 0"/>
+                <v p=" 0.5 0 -0.5" n="0 1 0" t0="1 0"/>
+                <v p=" 0.5 0  0.5" n="0 1 0" t0="1 1"/>
+                <v p="-0.5 0  0.5" n="0 1 0" t0="0 1"/>
+                <v p="-0.5 4 -0.5" n="0 1 0" t0="0 0"/>
+                <v p=" 0.5 4 -0.5" n="0 1 0" t0="1 0"/>
+                <v p=" 0.5 4  0.5" n="0 1 0" t0="1 1"/>
+                <v p="-0.5 4  0.5" n="0 1 0" t0="0 1"/>
+            </Vertices>
+            <Triangles count="12">
+                <!-- bottom -->  <t vi="0 2 1"/>  <t vi="0 3 2"/>
+                <!-- top -->     <t vi="4 5 6"/>  <t vi="4 6 7"/>
+                <!-- front -->   <t vi="0 1 5"/>  <t vi="0 5 4"/>
+                <!-- back -->    <t vi="2 3 7"/>  <t vi="2 7 6"/>
+                <!-- left -->    <t vi="0 4 7"/>  <t vi="0 7 3"/>
+                <!-- right -->   <t vi="1 2 6"/>  <t vi="1 6 5"/>
+            </Triangles>
+        </IndexedTriangleSet>
+    </Shapes>
+
+    <Dynamics/>
+
+    <Scene>
+        <!-- Root node — self.nodeId in Lua -->
+        <TransformGroup name="root" nodeId="1" translation="0 0 0" rotation="0 0 0" scale="1 1 1">
+
+            <!-- Arm node — rotated by onUpdate animation when pivot is active -->
+            <TransformGroup name="armNode" nodeId="2" translation="0 4 0" rotation="0 0 0" scale="1 1 1"/>
+
+            <!-- Placeholder visual/collision box -->
+            <Shape name="colMesh" nodeId="3" shapeId="1" translation="0 0 0"
+                   rigid="true" static="true" collision="true"
+                   collisionMask="1" kinematic="false"/>
+
+        </TransformGroup>
+    </Scene>
+
+</i3d>
