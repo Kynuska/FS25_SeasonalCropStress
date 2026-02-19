@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+    <text name="cs_hud_title"         text="HUMIDITÉ DU SOL"/>
+    <text name="cs_hud_healthy"       text="Sain"/>
+    <text name="cs_hud_warning"       text="Stress hydrique"/>
+    <text name="cs_hud_critical"      text="CRITIQUE — Irriguer maintenant !"/>
+    <text name="cs_hud_no_crop"       text="Pas de culture"/>
+    <text name="cs_hud_forecast"      text="Prévisions 5 jours"/>
+    <text name="cs_hud_first_run"     text="Moniteur d'humidité actif. Maj+M pour afficher/masquer."/>
+    <text name="cs_field_moisture"    text="Humidité"/>
+    <text name="cs_field_soil_type"   text="Type de sol"/>
+    <text name="cs_field_stress"      text="Stress accumulé"/>
+    <text name="cs_field_yield_impact" text="Impact rendement estimé"/>
+    <text name="cs_soil_sandy"        text="Sableux"/>
+    <text name="cs_soil_loamy"        text="Limoneux"/>
+    <text name="cs_soil_clay"         text="Argileux"/>
+    <text name="cs_alert_info"        text="Champ %d : %s humidité baisse — surveiller."/>
+    <text name="cs_alert_warning"     text="Champ %d : %s humidité faible — irrigation recommandée."/>
+    <text name="cs_alert_critical"    text="Champ %d : %s seuil de stress hydrique — irriguer !"/>
+    <text name="cs_irr_irrigate_now"  text="Irriguer maintenant"/>
+    <text name="cs_irr_save_schedule" text="Enregistrer le programme"/>
+    <text name="cs_consultant_name"   text="Alex Chen, Agronome"/>
+    <text name="input_CS_TOGGLE_HUD"      text="Afficher/masquer HUD humidité"/>
+    <text name="input_CS_OPEN_IRRIGATION" text="Ouvrir gestionnaire d'irrigation"/>
+</l10n>

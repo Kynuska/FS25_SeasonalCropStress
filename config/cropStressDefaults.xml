@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    cropStressDefaults.xml
+    Default configuration for FS25_SeasonalCropStress.
+    This file ships with the mod and is read-only.
+    Player preferences are saved to: {savegameDirectory}/cropStressConfig.xml
+-->
+<cropStressConfig version="1">
+
+    <!-- Simulation settings -->
+    <simulation
+        enableMoistureSystem="true"
+        enableStressModifier="true"
+        enableConsultantAlerts="true"
+        updateIntervalHours="1"
+    />
+
+    <!-- HUD settings -->
+    <hud
+        visible="true"
+        showForecast="false"
+        maxFieldsShown="6"
+        autoShowOnCritical="true"
+        firstRunShown="false"
+        positionX="0.01"
+        positionY="0.20"
+    />
+
+    <!-- Gameplay difficulty multipliers (1.0 = normal) -->
+    <difficulty
+        maxYieldLoss="0.60"
+        stressMultiplier="1.0"
+        evaporationMultiplier="1.0"
+        rainAbsorptionMultiplier="1.0"
+    />
+
+    <!-- Alert thresholds (0.0-1.0 scale matching moisture values) -->
+    <alerts
+        warningThreshold="0.35"
+        criticalThreshold="0.20"
+        consultantCooldownHours="12"
+    />
+
+    <!--
+        Evapotranspiration base rates per soil type (moisture fraction lost per in-game hour).
+        Sandy = drains fast, Clay = holds moisture, Loamy = balanced.
+    -->
+    <soilTypes>
+        <soilType name="sandy" evapModifier="1.40" rainAbsorption="0.90"/>
+        <soilType name="loamy" evapModifier="1.00" rainAbsorption="1.00"/>
+        <soilType name="clay"  evapModifier="0.70" rainAbsorption="0.80"/>
+    </soilTypes>
+
+    <!--
+        Season evaporation modifiers.
+        0=spring, 1=summer, 2=autumn, 3=winter
+    -->
+    <seasonModifiers>
+        <season index="0" evapModifier="0.80" startMoisture="0.60"/>
+        <season index="1" evapModifier="1.40" startMoisture="0.40"/>
+        <season index="2" evapModifier="0.90" startMoisture="0.55"/>
+        <season index="3" evapModifier="0.20" startMoisture="0.70"/>
+    </seasonModifiers>
+
+    <!--
+        Crop-specific stress windows.
+        stages: growth stages where moisture deficit causes stress (comma-separated).
+        criticalMoisture: moisture fraction below which stress accumulates.
+        stressRatePerHour: stress accumulated per hour of deficit (0.0-1.0 scale).
+    -->
+    <cropStressWindows>
+        <crop name="wheat"     stages="3,4"   criticalMoisture="0.35" stressRatePerHour="0.003"/>
+        <crop name="barley"    stages="3,4"   criticalMoisture="0.30" stressRatePerHour="0.003"/>
+        <crop name="corn"      stages="4,5"   criticalMoisture="0.40" stressRatePerHour="0.004"/>
+        <crop name="canola"    stages="2,3"   criticalMoisture="0.45" stressRatePerHour="0.005"/>
+        <crop name="sunflower" stages="3,4"   criticalMoisture="0.30" stressRatePerHour="0.002"/>
+        <crop name="soybeans"  stages="3,4"   criticalMoisture="0.40" stressRatePerHour="0.004"/>
+        <crop name="sugarbeet" stages="2,3,4" criticalMoisture="0.50" stressRatePerHour="0.005"/>
+        <crop name="potato"    stages="2,3,4" criticalMoisture="0.55" stressRatePerHour="0.006"/>
+    </cropStressWindows>
+
+</cropStressConfig>

@@ -1,0 +1,37 @@
+-- ============================================================
+-- IrrigationScheduleDialog.lua
+-- PHASE 2 STUB — not yet implemented.
+--
+-- When implemented, this dialog will:
+--   • Open when player presses E near a placed irrigation system
+--     OR presses Shift+I globally (shows all irrigation systems)
+--   • Display: system name, water source status, schedule (days + hours),
+--     performance stats (flow rate, efficiency, wear), covered fields with moisture
+--   • Buttons: [Irrigate Now], [Save Schedule], [Close]
+--   • Use TakeLoanDialog.xml pattern for layout
+--   • Use 3-layer button pattern for all interactive buttons
+--
+-- Layout sketch (see Section 7.1 of ModPlan.md):
+--   ┌──────────────────────────────────────────────┐
+--   │  CENTER PIVOT — Field 3, 5, 7               │
+--   │  Water Source: River (✅ Connected)          │
+--   ├──────────────────────────────────────────────┤
+--   │  SCHEDULE                                    │
+--   │  Active Days: [M✓][T✓][W✓][T✓][F✓][S ][S ]│
+--   │  Start Time:  [06:00 ▼]                     │
+--   │  End Time:    [10:00 ▼]                     │
+--   │                                              │
+--   │  PERFORMANCE                                 │
+--   │  Flow Rate: 18mm/hr   Efficiency: 94%        │
+--   │  Est. Cost: $15/hr    ($120/cycle)           │
+--   │  Wear Level: ████░░░░░ 45%                  │
+--   │                                              │
+--   │  COVERED FIELDS                              │
+--   │  Field 3 (Wheat, Stage 4) — 62% moisture    │
+--   │  Field 5 (Corn, Stage 5)  — 28% moisture ⚠  │
+--   │                                              │
+--   │       [IRRIGATE NOW]    [SAVE SCHEDULE]      │
+--   └──────────────────────────────────────────────┘
+-- ============================================================
+
+-- Phase 2 stub — no implementation yet

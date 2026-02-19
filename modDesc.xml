@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<modDesc descVersion="105">
+    <author>TisonK</author>
+    <version>1.0.0.0</version>
+
+    <title>
+        <en>Seasonal Crop Stress &amp; Irrigation Manager</en>
+        <de>Saisonaler Pflanzenstress &amp; Bewässerungsmanager</de>
+        <fr>Stress saisonnier des cultures &amp; gestionnaire d'irrigation</fr>
+        <nl>Seizoensgebonden gewassstress &amp; irrigatiebeheer</nl>
+    </title>
+
+    <description>
+        <en><![CDATA[Adds soil moisture tracking and crop stress simulation to Farming Simulator 25.
+
+Each field tracks a soil moisture percentage (0-100%) that rises with rain and falls through evapotranspiration driven by temperature, season, and soil type. When moisture drops below crop-specific thresholds during critical growth windows, yield stress accumulates and reduces your harvest at season's end.
+
+PHASE 1 FEATURES:
+• Per-field soil moisture simulation driven by real weather
+• Seasonal & temperature-adjusted evapotranspiration
+• Soil type modifiers: sandy drains fast, clay holds moisture
+• Crop-specific critical growth windows (wheat, corn, barley, canola, and more)
+• Yield reduction at harvest — up to 60% loss at maximum stress
+• Field moisture HUD overlay (press Shift+M to toggle)
+• Full save/load persistence of all field state
+• Debug console commands (type csHelp in developer console)
+
+COMING SOON: Center-pivot & drip irrigation systems, scheduling UI, Crop Consultant NPC, optional FS25_NPCFavor and FS25_UsedPlus integration.
+        ]]></en>
+        <de><![CDATA[Fügt Bodenfeuchteverfolgung und Pflanzenstresssimulation zu FS25 hinzu.
+
+Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Evapotranspiration (Temperatur, Jahreszeit, Bodentyp) sinkt. Wenn die Feuchte in kritischen Wachstumsphasen zu niedrig ist, akkumuliert sich Stress und reduziert den Ernteertrag.
+        ]]></de>
+    </description>
+
+    <multiplayer supported="true"/>
+
+    <!-- Phase 1: no 3D assets yet. Replace with real icon before publishing. -->
+    <!-- <iconFilename>icon.dds</iconFilename> -->
+
+    <!--
+        All source files are loaded by main.lua via source() calls in strict
+        dependency order. Only main.lua is listed here.
+    -->
+    <extraSourceFiles>
+        <sourceFile filename="main.lua"/>
+    </extraSourceFiles>
+
+    <!--
+        Phase 1 input: HUD toggle only.
+        Phase 2 will add CS_OPEN_IRRIGATION (Shift+I).
+        Phase 3 will add CS_OPEN_CONSULTANT.
+    -->
+    <inputBinding>
+        <actionBinding action="CS_TOGGLE_HUD">
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_m"
+                     axisComponent="+" index="1" isInverted="false" isTurnAxis="false"/>
+        </actionBinding>
+    </inputBinding>
+
+    <actions>
+        <action name="CS_TOGGLE_HUD" axisType="HALF_POSITIVE_AXIS" isSink="true"/>
+    </actions>
+
+    <l10n filenamePrefix="translations/translation"/>
+</modDesc>
