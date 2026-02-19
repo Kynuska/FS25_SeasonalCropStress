@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+    <text name="cs_hud_title"         text="BODEMVOCHTIGHEID"/>
+    <text name="cs_hud_healthy"       text="Gezond"/>
+    <text name="cs_hud_warning"       text="Droogtestress"/>
+    <text name="cs_hud_critical"      text="KRITIEK — Irrigeer nu!"/>
+    <text name="cs_hud_no_crop"       text="Geen gewas"/>
+    <text name="cs_hud_forecast"      text="5-dagenprognose"/>
+    <text name="cs_hud_first_run"     text="Bodemvochtmonitor actief. Shift+M om te schakelen."/>
+    <text name="cs_field_moisture"    text="Vochtigheid"/>
+    <text name="cs_field_soil_type"   text="Bodemtype"/>
+    <text name="cs_field_stress"      text="Geaccumuleerde stress"/>
+    <text name="cs_field_yield_impact" text="Geschatte opbrengstderving"/>
+    <text name="cs_soil_sandy"        text="Zandig"/>
+    <text name="cs_soil_loamy"        text="Lemig"/>
+    <text name="cs_soil_clay"         text="Kleiig"/>
+    <text name="cs_alert_info"        text="Veld %d: %s vochtigheid daalt — situatie volgen."/>
+    <text name="cs_alert_warning"     text="Veld %d: %s vochtigheid laag — irrigatie aanbevolen."/>
+    <text name="cs_alert_critical"    text="Veld %d: %s droogtestress-drempel — irrigeer nu!"/>
+    <text name="cs_irr_irrigate_now"  text="Nu irrigeren"/>
+    <text name="cs_irr_save_schedule" text="Schema opslaan"/>
+    <text name="cs_consultant_name"   text="Alex Chen, Agronoom"/>
+    <text name="input_CS_TOGGLE_HUD"      text="HUD vochtigheid in-/uitschakelen"/>
+    <text name="input_CS_OPEN_IRRIGATION" text="Irrigatiebeheer openen"/>
+</l10n>

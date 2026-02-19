@@ -1,0 +1,19 @@
+-- ============================================================
+-- FieldMoisturePanel.lua
+-- Phase 1: This file is intentionally minimal.
+-- The HUD rendering is handled entirely by src/HUDOverlay.lua
+-- using direct immediate-mode draw calls (renderText, drawFilledRect).
+--
+-- Phase 2 upgrade path:
+-- Replace HUDOverlay's direct rendering with a proper GuiElement
+-- panel loaded from FieldMoisturePanel.xml. The GuiElement approach
+-- gives better resolution independence, theming, and animation.
+--
+-- When upgrading:
+--   1. Create FieldMoisturePanel.xml following TakeLoanDialog.xml pattern
+--   2. Register with DialogLoader: DialogLoader.register("FieldMoisturePanel", ...)
+--   3. In HUDOverlay:initialize(), use DialogLoader.show() instead of draw hooks
+--   4. Remove the drawFilledRect/renderText calls from HUDOverlay:draw()
+-- ============================================================
+
+-- No-op for Phase 1 — HUDOverlay.lua handles all rendering

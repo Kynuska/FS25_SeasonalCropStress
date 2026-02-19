@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+    <!-- ========== HUD OVERLAY ========== -->
+    <text name="cs_hud_title"         text="CROP MOISTURE"/>
+    <text name="cs_hud_healthy"       text="Healthy"/>
+    <text name="cs_hud_warning"       text="Drought Stress"/>
+    <text name="cs_hud_critical"      text="CRITICAL — Irrigate Now!"/>
+    <text name="cs_hud_no_crop"       text="No crop"/>
+    <text name="cs_hud_forecast"      text="5-Day Forecast"/>
+    <text name="cs_hud_first_run"     text="Crop Moisture Monitor is now active. Press Shift+M to toggle the field status panel."/>
+
+    <!-- ========== FIELD STATUS ========== -->
+    <text name="cs_field_moisture"    text="Moisture"/>
+    <text name="cs_field_soil_type"   text="Soil Type"/>
+    <text name="cs_field_stress"      text="Stress Accumulated"/>
+    <text name="cs_field_yield_impact" text="Est. Yield Impact"/>
+    <text name="cs_field_critical_window" text="Critical Window: NOW"/>
+    <text name="cs_field_nearest_water"   text="Nearest Water"/>
+
+    <!-- ========== SOIL TYPES ========== -->
+    <text name="cs_soil_sandy"        text="Sandy"/>
+    <text name="cs_soil_loamy"        text="Loamy"/>
+    <text name="cs_soil_clay"         text="Clay"/>
+
+    <!-- ========== ALERTS ========== -->
+    <text name="cs_alert_info"        text="Field %d: %s moisture dropping — monitor conditions."/>
+    <text name="cs_alert_warning"     text="Field %d: %s moisture low — irrigation recommended."/>
+    <text name="cs_alert_critical"    text="Field %d: %s at drought stress threshold — irrigate NOW!"/>
+
+    <!-- ========== IRRIGATION (Phase 2) ========== -->
+    <text name="cs_irr_title"         text="Irrigation System — %s"/>
+    <text name="cs_irr_water_source"  text="Water Source"/>
+    <text name="cs_irr_connected"     text="Connected"/>
+    <text name="cs_irr_disconnected"  text="Disconnected"/>
+    <text name="cs_irr_schedule"      text="Schedule"/>
+    <text name="cs_irr_flow_rate"     text="Flow Rate"/>
+    <text name="cs_irr_efficiency"    text="Efficiency"/>
+    <text name="cs_irr_cost"          text="Est. Cost"/>
+    <text name="cs_irr_wear"          text="Wear Level"/>
+    <text name="cs_irr_covered_fields" text="Covered Fields"/>
+    <text name="cs_irr_irrigate_now"  text="Irrigate Now"/>
+    <text name="cs_irr_save_schedule" text="Save Schedule"/>
+    <text name="cs_irr_pivot"         text="Center Pivot"/>
+    <text name="cs_irr_drip"          text="Drip Line"/>
+    <text name="cs_irr_pump"          text="Water Pump"/>
+
+    <!-- ========== CONSULTANT (Phase 3) ========== -->
+    <text name="cs_consultant_name"   text="Alex Chen, Agronomist"/>
+    <text name="cs_favor_soil_sample"     text="Take a soil sample from Field %d"/>
+    <text name="cs_favor_irr_check"       text="Inspect the irrigation system near Field %d"/>
+    <text name="cs_favor_emergency_water" text="Irrigate Field %d before sundown!"/>
+    <text name="cs_favor_seasonal_plan"   text="Review the seasonal irrigation plan"/>
+
+    <!-- ========== INPUT ACTIONS ========== -->
+    <text name="input_CS_TOGGLE_HUD"      text="Toggle Moisture HUD"/>
+    <text name="input_CS_OPEN_IRRIGATION" text="Open Irrigation Manager"/>
+</l10n>

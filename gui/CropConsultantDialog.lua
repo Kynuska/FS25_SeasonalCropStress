@@ -1,0 +1,21 @@
+-- ============================================================
+-- CropConsultantDialog.lua
+-- PHASE 3 STUB — not yet implemented.
+--
+-- When implemented (Phase 3), this dialog will:
+--   • Open when player interacts with the Crop Consultant NPC
+--     (or triggers via favor system if FS25_NPCFavor is active)
+--   • Show: current field status summary, active alerts, consultant advice
+--   • If NPCFavor is active: display relationship level and available favors
+--   • Buttons vary by mode: [Accept Favor], [Dismiss], [View Field Map]
+--
+-- In standalone mode (no NPCFavor):
+--   Shows a simple "agronomist report" panel with top-5 fields by risk
+--   and recommended irrigation schedule for the next 3 days.
+--
+-- In NPCFavor mode:
+--   Integrates with NPCDialog via NPCIntegration:registerConsultantNPC()
+--   The consultant uses the standard NPCFavor dialog flow.
+-- ============================================================
+
+-- Phase 3 stub — no implementation yet

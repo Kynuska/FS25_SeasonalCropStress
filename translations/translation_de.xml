@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+    <text name="cs_hud_title"         text="BODENFEUCHTE"/>
+    <text name="cs_hud_healthy"       text="Gesund"/>
+    <text name="cs_hud_warning"       text="Trockenstress"/>
+    <text name="cs_hud_critical"      text="KRITISCH — Jetzt bewässern!"/>
+    <text name="cs_hud_no_crop"       text="Keine Frucht"/>
+    <text name="cs_hud_forecast"      text="5-Tage-Prognose"/>
+    <text name="cs_hud_first_run"     text="Bodenfeuchte-Monitor ist jetzt aktiv. Shift+M zum Ein-/Ausblenden."/>
+    <text name="cs_field_moisture"    text="Feuchte"/>
+    <text name="cs_field_soil_type"   text="Bodentyp"/>
+    <text name="cs_field_stress"      text="Akkumulierter Stress"/>
+    <text name="cs_field_yield_impact" text="Gesch. Ertragseinbuße"/>
+    <text name="cs_soil_sandy"        text="Sandig"/>
+    <text name="cs_soil_loamy"        text="Lehmig"/>
+    <text name="cs_soil_clay"         text="Tonig"/>
+    <text name="cs_alert_info"        text="Feld %d: %s Feuchte sinkt — Lage beobachten."/>
+    <text name="cs_alert_warning"     text="Feld %d: %s Feuchte niedrig — Bewässerung empfohlen."/>
+    <text name="cs_alert_critical"    text="Feld %d: %s Trockenstress-Grenzwert — jetzt bewässern!"/>
+    <text name="cs_irr_irrigate_now"  text="Jetzt bewässern"/>
+    <text name="cs_irr_save_schedule" text="Zeitplan speichern"/>
+    <text name="cs_consultant_name"   text="Alex Chen, Agronom"/>
+    <text name="input_CS_TOGGLE_HUD"      text="Feuchte-HUD umschalten"/>
+    <text name="input_CS_OPEN_IRRIGATION" text="Bewässerungsmanager öffnen"/>
+</l10n>
