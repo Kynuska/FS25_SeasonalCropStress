@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GUI onCreate="onCreate" onOpen="onDialogOpen" onClose="onDialogClose">
+<GUI onCreate="onCreate" onOpen="onIrrigationDialogOpen" onClose="onIrrigationDialogClose">
     <GuiElement profile="newLayer" />
     <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
     <GuiElement profile="dialogBg" id="dialogElement" size="780px 580px">
@@ -7,44 +7,51 @@
         <ThreePartBitmap profile="fs25_dialogBgTop" />
         <ThreePartBitmap profile="fs25_dialogBgBottom" />
         <GuiElement profile="fs25_dialogContentContainer" id="content">
-            <Text id="title" profile="fs25_dialogTitle" text="Irrigation System" />
+            <Text id="title" profile="fs25_dialogTitle" text="$l10n_cs_irr_title" />
 
             <!-- Water source status -->
-            <Text id="waterSourceLabel" profile="fs25_dialogText" position="-350px 0px" text="%cs_irr_water_source%" />
-            <Text id="waterSourceValue" profile="fs25_dialogText" position="-250px 0px" text="%cs_irr_connected%" />
+            <Text profile="fs25_dialogText" position="-350px 0px" text="$l10n_cs_irr_water_source" />
+            <Text id="waterSourceValue" profile="fs25_dialogText" position="-100px 0px" text="$l10n_cs_irr_connected" />
 
             <!-- Schedule section -->
-            <Text profile="fs25_dialogSubtitle" position="-350px -40px" text="%cs_irr_schedule%" />
-            <!-- Day buttons will be created in Lua, but we need a container -->
-            <GuiElement id="dayButtonsContainer" position="-350px -70px" size="280px 30px" />
+            <Text profile="fs25_dialogSubtitle" position="-350px -40px" text="$l10n_cs_irr_schedule" />
+
+            <!-- Day toggle buttons — looked up in Lua as btn_day_1 .. btn_day_7 -->
+            <Button id="btn_day_1" profile="buttonActivate" position="-350px -75px" size="35px 30px" text="$l10n_cs_day_mon" onClick="onDayToggle" onClickSoundDisabled="true" />
+            <Button id="btn_day_2" profile="buttonActivate" position="-310px -75px" size="35px 30px" text="$l10n_cs_day_tue" onClick="onDayToggle" onClickSoundDisabled="true" />
+            <Button id="btn_day_3" profile="buttonActivate" position="-270px -75px" size="35px 30px" text="$l10n_cs_day_wed" onClick="onDayToggle" onClickSoundDisabled="true" />
+            <Button id="btn_day_4" profile="buttonActivate" position="-230px -75px" size="35px 30px" text="$l10n_cs_day_thu" onClick="onDayToggle" onClickSoundDisabled="true" />
+            <Button id="btn_day_5" profile="buttonActivate" position="-190px -75px" size="35px 30px" text="$l10n_cs_day_fri" onClick="onDayToggle" onClickSoundDisabled="true" />
+            <Button id="btn_day_6" profile="buttonActivate" position="-150px -75px" size="35px 30px" text="$l10n_cs_day_sat" onClick="onDayToggle" onClickSoundDisabled="true" />
+            <Button id="btn_day_7" profile="buttonActivate" position="-110px -75px" size="35px 30px" text="$l10n_cs_day_sun" onClick="onDayToggle" onClickSoundDisabled="true" />
 
             <!-- Start time -->
-            <Text profile="fs25_dialogText" position="-350px -120px" text="Start Time:" />
-            <MultiTextOption id="startHour" profile="fs25_multiTextOption" position="-250px -120px" onOptionSelected="onStartHourChanged" />
+            <Text profile="fs25_dialogText" position="-350px -120px" text="$l10n_cs_irr_start_time" />
+            <MultiTextOption id="startHour" profile="fs25_multiTextOption" position="-150px -120px" onOptionSelected="onStartHourChanged" />
 
             <!-- End time -->
-            <Text profile="fs25_dialogText" position="-350px -160px" text="End Time:" />
-            <MultiTextOption id="endHour" profile="fs25_multiTextOption" position="-250px -160px" onOptionSelected="onEndHourChanged" />
+            <Text profile="fs25_dialogText" position="-350px -160px" text="$l10n_cs_irr_end_time" />
+            <MultiTextOption id="endHour" profile="fs25_multiTextOption" position="-150px -160px" onOptionSelected="onEndHourChanged" />
 
             <!-- Performance section -->
-            <Text profile="fs25_dialogSubtitle" position="-350px -220px" text="Performance" />
-            <Text id="flowRate" profile="fs25_dialogText" position="-350px -250px" text="Flow Rate: 0.018/hr" />
-            <Text id="efficiency" profile="fs25_dialogText" position="-350px -280px" text="Efficiency: 100%" />
-            <Text id="cost" profile="fs25_dialogText" position="-350px -310px" text="Est. Cost: $15/hr" />
-            <Text id="wear" profile="fs25_dialogText" position="-350px -340px" text="Wear Level: 0%" />
+            <Text profile="fs25_dialogSubtitle" position="-350px -220px" text="$l10n_cs_irr_performance" />
+            <Text id="flowRate"   profile="fs25_dialogText" position="-350px -255px" text="$l10n_cs_irr_flow_rate" />
+            <Text id="efficiency" profile="fs25_dialogText" position="-350px -285px" text="$l10n_cs_irr_efficiency" />
+            <Text id="cost"       profile="fs25_dialogText" position="-350px -315px" text="$l10n_cs_irr_cost" />
+            <Text id="wear"       profile="fs25_dialogText" position="-350px -345px" text="$l10n_cs_irr_wear" />
 
             <!-- Covered fields list -->
-            <Text profile="fs25_dialogSubtitle" position="-350px -380px" text="%cs_irr_covered_fields%" />
-            <GuiElement id="coveredFieldsContainer" profile="fs25_listBox" position="-350px -410px" size="300px 120px">
-                <!-- Items added dynamically -->
+            <Text profile="fs25_dialogSubtitle" position="-350px -385px" text="$l10n_cs_irr_covered_fields" />
+            <GuiElement id="coveredFieldsContainer" position="-350px -415px" size="300px 120px">
+                <!-- Items added dynamically in Lua -->
             </GuiElement>
         </GuiElement>
 
         <!-- Button box at bottom -->
         <BoxLayout profile="fs25_dialogButtonBox" id="buttonBox">
-            <Button profile="buttonOK" id="btnIrrigateNow" text="%cs_irr_irrigate_now%" onClick="onIrrigateNow"/>
-            <Button profile="buttonOK" id="btnSave" text="%cs_irr_save_schedule%" onClick="onSaveSchedule"/>
-            <Button profile="buttonCancel" id="btnClose" text="Close" onClick="onDialogClose"/>
+            <Button profile="buttonActivate" id="btnIrrigateNow" text="$l10n_cs_irr_irrigate_now"  onClick="onIrrigateNow" />
+            <Button profile="buttonActivate" id="btnSave"        text="$l10n_cs_irr_save_schedule" onClick="onSaveSchedule" />
+            <Button profile="buttonOK"       id="btnClose"       text="$l10n_cs_close"             onClick="onIrrigationDialogClose" />
         </BoxLayout>
     </GuiElement>
 </GUI>

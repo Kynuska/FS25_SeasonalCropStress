@@ -49,6 +49,17 @@ HUDOverlay.COLOR_STRESS_IND = {0.90, 0.35, 0.10, 1.00}  -- orange stress indicat
 -- First-run auto-show: show panel automatically when a field first hits warning
 HUDOverlay.FIRST_RUN_MOISTURE_TRIGGER = 0.50
 
+-- ============================================================
+-- LOGGING HELPER
+-- ============================================================
+local function csLog(msg)
+    if g_logManager ~= nil then
+        g_logManager:devInfo("[CropStress]", msg)
+    else
+        print("[CropStress] " .. tostring(msg))
+    end
+end
+
 function HUDOverlay.new(manager)
     local self = setmetatable({}, HUDOverlay)
     self.manager = manager
@@ -69,12 +80,12 @@ end
 function HUDOverlay:initialize()
     -- Subscribe to events via CropEventBus
     if self.manager ~= nil and self.manager.eventBus ~= nil then
-        self.manager.eventBus.subscribe("CS_MOISTURE_UPDATED", self.onMoistureUpdated, self)
+        self.manager.eventBus.subscribe("CS_MOISTURE_UPDATED",   self.onMoistureUpdated,   self)
         self.manager.eventBus.subscribe("CS_CRITICAL_THRESHOLD", self.onCriticalThreshold, self)
     end
 
     self.isInitialized = true
-    g_logManager:devInfo("[CropStress]", "HUDOverlay initialized")
+    csLog("HUDOverlay initialized")
 end
 
 -- Called per frame by CropStressManager:update()
@@ -176,8 +187,8 @@ function HUDOverlay:drawFieldRow(row, px, rowY)
     setTextColor(unpack(HUDOverlay.COLOR_BAR_BG))
     drawFilledRect(barX, barY, HUDOverlay.BAR_W, HUDOverlay.BAR_H)
 
-    -- Moisture bar fill
-    local barColor = HUDOverlay:getMoistureColor(moisture)
+    -- Moisture bar fill — call on self, not on the class table
+    local barColor = self:getMoistureColor(moisture)
     setTextColor(unpack(barColor))
     drawFilledRect(barX, barY, HUDOverlay.BAR_W * moisture, HUDOverlay.BAR_H)
 
@@ -213,8 +224,8 @@ function HUDOverlay:rebuildDisplayRows()
     for _, entry in ipairs(sortedFields) do
         if #self.displayRows >= HUDOverlay.MAX_FIELDS then break end
 
-        local stress = 0
-        local cropName = "?"
+        local stress      = 0
+        local cropName    = "?"
         local growthStage = nil
 
         if self.manager.stressModifier ~= nil then
@@ -230,7 +241,6 @@ function HUDOverlay:rebuildDisplayRows()
             if field ~= nil then
                 local ft = type(field.getFruitType) == "function" and field:getFruitType() or field.fruitType
                 if ft ~= nil and ft.name ~= nil then
-                    -- Capitalize first letter
                     cropName = ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
                 end
                 if type(field.getGrowthState) == "function" then
@@ -261,14 +271,14 @@ function HUDOverlay:toggle()
         self.firstRunShown = true
     end
 
-    g_logManager:devInfo("[CropStress]", "HUD toggled: " .. tostring(self.isVisible))
+    csLog("HUD toggled: " .. tostring(self.isVisible))
 end
 
 -- Auto-show when a critical threshold fires (if not already visible)
 function HUDOverlay:onCriticalThreshold(data)
     if not self.isInitialized then return end
     if not self.isVisible then
-        self.isVisible = true
+        self.isVisible      = true
         self.autoShowActive = true
         self.autoHideTimer  = 120  -- auto-hide after 120 real seconds if not interacted with
     end
@@ -276,11 +286,13 @@ function HUDOverlay:onCriticalThreshold(data)
     -- First-run explanation (show once)
     if not self.firstRunShown then
         self.firstRunShown = true
-        g_currentMission:showBlinkingWarning(
-            (g_i18n:getText("cs_hud_first_run") or
-             "Crop Moisture Monitor active. Press Shift+M to toggle the HUD."),
-            6000
-        )
+        if g_currentMission ~= nil then
+            g_currentMission:showBlinkingWarning(
+                (g_i18n:getText("cs_hud_first_run") or
+                 "Crop Moisture Monitor active. Press Shift+M to toggle the HUD."),
+                6000
+            )
+        end
     end
 end
 

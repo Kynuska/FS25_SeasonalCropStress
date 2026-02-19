@@ -1,23 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<placeable type="irrigationPivot" descVersion="105">
-    <name>
-        <en>Center Pivot</en>
-    </name>
+<!--
+    centerPivot.xml
+    Placeable type declaration for the center pivot irrigation system.
+    The Lua class (IrrigationPivot) is registered via modDesc.xml <placeableTypes>.
+    This file is referenced by modDesc.xml storeItem filename.
+-->
+<placeable type="fs25_seasonalcropstress_irrigationPivot" descVersion="105">
+
+    <storeData>
+        <name>$l10n_cs_pivot_name</name>
+        <specs>
+            <spec name="price" value="85000"/>
+            <spec name="dailyUpkeep" value="25"/>
+        </specs>
+        <category>PLACEABLE</category>
+        <image>placeables/centerPivot/centerPivot_shop.dds</image>
+    </storeData>
+
     <filename>placeables/centerPivot/centerPivot.i3d</filename>
+
     <price value="85000"/>
     <dailyUpkeep value="25"/>
-    <rotationSpeed value="5"/>
-    <motorStartSpeed value="0.5"/>
-    <motorStopSpeed value="0.1"/>
-    <wearDuration value="720"/>
-    <workArea>
-        <area type="CYLINDER" x="0" y="0.5" z="0" radius="2.5" height="1"/>
-    </workArea>
-    <specializations>
-        <specialization name="irrigationPivot" className="IrrigationPivot" filename="placeables/centerPivot/centerPivot.lua"/>
-    </specializations>
-    <!-- Custom parameters -->
-    <irrigationConfig radius="200" flowRatePerHour="0.018" operationalCostPerHour="15"
-                      defaultStartHour="6" defaultEndHour="10"
-                      defaultActiveDays="1,1,1,1,1,0,0"/>
+
+    <!-- Custom irrigation parameters — read by IrrigationPivot:onLoad() via getXMLFloat/getXMLInt/getXMLString -->
+    <irrigationConfig
+        radius="200"
+        flowRatePerHour="0.018"
+        operationalCostPerHour="15"
+        defaultStartHour="6"
+        defaultEndHour="10"
+        defaultActiveDays="1,1,1,1,1,0,0"
+    />
+
 </placeable>

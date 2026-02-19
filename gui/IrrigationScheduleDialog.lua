@@ -4,39 +4,49 @@
 -- ============================================================
 
 IrrigationScheduleDialog = {}
-local IrrigationScheduleDialog_mt = Class(IrrigationScheduleDialog, MessageDialog)
+local IrrigationScheduleDialog_mt = Class(IrrigationScheduleDialog, DialogElement)
 
 function IrrigationScheduleDialog.new(target, customMt)
-    local self = MessageDialog.new(target, customMt or IrrigationScheduleDialog_mt)
+    local self = DialogElement.new(target, customMt or IrrigationScheduleDialog_mt)
     self.systemId = nil
+    self.daySelected = {false, false, false, false, false, false, false}  -- local state, not Button.getSelected()
     return self
 end
 
 function IrrigationScheduleDialog:onCreate()
-    -- Find UI elements
-    self.titleElement = self:getElement("title")
-    self.waterSourceValue = self:getElement("waterSourceValue")
-    self.startHourDropdown = self:getElement("startHour")
-    self.endHourDropdown = self:getElement("endHour")
-    self.flowRateText = self:getElement("flowRate")
-    self.efficiencyText = self:getElement("efficiency")
-    self.costText = self:getElement("cost")
-    self.wearText = self:getElement("wear")
-    self.coveredFieldsContainer = self:getElement("coveredFieldsContainer")
-    self.btnIrrigateNow = self:getElement("btnIrrigateNow")
-    self.btnSave = self:getElement("btnSave")
-    self.btnClose = self:getElement("btnClose")
-    self.dayButtonsContainer = self:getElement("dayButtonsContainer")
+    -- FS25: elements wired by name via getDescendantByName()
+    self.titleElement          = self:getDescendantByName("title")
+    self.waterSourceValue      = self:getDescendantByName("waterSourceValue")
+    self.startHourDropdown     = self:getDescendantByName("startHour")
+    self.endHourDropdown       = self:getDescendantByName("endHour")
+    self.flowRateText          = self:getDescendantByName("flowRate")
+    self.efficiencyText        = self:getDescendantByName("efficiency")
+    self.costText              = self:getDescendantByName("cost")
+    self.wearText              = self:getDescendantByName("wear")
+    self.coveredFieldsContainer = self:getDescendantByName("coveredFieldsContainer")
+    self.btnIrrigateNow        = self:getDescendantByName("btnIrrigateNow")
+    self.btnSave               = self:getDescendantByName("btnSave")
+    self.btnClose              = self:getDescendantByName("btnClose")
+    self.dayButtonsContainer   = self:getDescendantByName("dayButtonsContainer")
+
+    -- Day toggle buttons looked up by name (declared in XML as btn_day_1 .. btn_day_7)
+    self.dayButtons = {}
+    for i = 1, 7 do
+        local btn = self:getDescendantByName("btn_day_" .. i)
+        if btn ~= nil then
+            self.dayButtons[i] = btn
+        end
+    end
 
     -- Initialize time dropdowns with hours 0-23
     local hours = {}
     for h = 0, 23 do
         table.insert(hours, string.format("%02d:00", h))
     end
-    if self.startHourDropdown then
+    if self.startHourDropdown ~= nil then
         self.startHourDropdown:setTexts(hours)
     end
-    if self.endHourDropdown then
+    if self.endHourDropdown ~= nil then
         self.endHourDropdown:setTexts(hours)
     end
 end
@@ -44,31 +54,35 @@ end
 function IrrigationScheduleDialog:onDialogOpen(systemId)
     self.systemId = systemId
     local system = self:getCurrentSystem()
-    if not system then
+    if system == nil then
         self:onDialogClose()
         return
     end
 
     -- Set title
     local typeName = system.type == "pivot" and g_i18n:getText("cs_irr_pivot") or g_i18n:getText("cs_irr_drip")
-    self.titleElement:setText(string.format(g_i18n:getText("cs_irr_title"), typeName))
+    if self.titleElement ~= nil then
+        self.titleElement:setText(string.format(g_i18n:getText("cs_irr_title"), typeName))
+    end
 
     -- Water source status
-    if system.waterSourceId then
-        self.waterSourceValue:setText(g_i18n:getText("cs_irr_connected"))
-    else
-        self.waterSourceValue:setText(g_i18n:getText("cs_irr_disconnected"))
+    if self.waterSourceValue ~= nil then
+        if system.waterSourceId ~= nil then
+            self.waterSourceValue:setText(g_i18n:getText("cs_irr_connected"))
+        else
+            self.waterSourceValue:setText(g_i18n:getText("cs_irr_disconnected"))
+        end
     end
 
-    -- Create day buttons (if not already created)
-    self:createDayButtons(system)
+    -- Sync day button visual state from schedule
+    self:syncDayButtons(system)
 
-    -- Set time dropdowns
-    if self.startHourDropdown then
-        self.startHourDropdown:setState(system.schedule.startHour)
+    -- Set time dropdowns (setState takes index + silent flag)
+    if self.startHourDropdown ~= nil then
+        self.startHourDropdown:setState(system.schedule.startHour, true)
     end
-    if self.endHourDropdown then
-        self.endHourDropdown:setState(system.schedule.endHour)
+    if self.endHourDropdown ~= nil then
+        self.endHourDropdown:setState(system.schedule.endHour, true)
     end
 
     -- Update performance texts
@@ -78,100 +92,106 @@ function IrrigationScheduleDialog:onDialogOpen(systemId)
     self:updateCoveredFields(system)
 end
 
-function IrrigationScheduleDialog:createDayButtons(system)
-    -- Clear any existing buttons
-    self.dayButtonsContainer:removeAllChildren()
-    self.dayButtons = {}
-
-    local dayNames = {g_i18n:getText("cs_day_mon"), g_i18n:getText("cs_day_tue"),
-                      g_i18n:getText("cs_day_wed"), g_i18n:getText("cs_day_thu"),
-                      g_i18n:getText("cs_day_fri"), g_i18n:getText("cs_day_sat"),
-                      g_i18n:getText("cs_day_sun")}
-    local x = 0
+-- Sync day button selected state from system schedule (no Button.getSelected needed)
+function IrrigationScheduleDialog:syncDayButtons(system)
     for i = 1, 7 do
-        local bg = Overlay:new("fs25_buttonBg", self.dayButtonsContainer)
-        bg:setPosition(x, 0)
-        bg:setSize(30, 30)
-        bg:setVisible(true)
-
-        local hit = Button:new(self.dayButtonsContainer)
-        hit:setProfile("fs25_buttonHit")
-        hit:setPosition(x, 0)
-        hit:setSize(30, 30)
-        hit:setVisible(true)
-        hit:setCallback("onClick", function()
-            self:onDayToggle(i, not hit:getSelected())
-        end)
-
-        local text = Text:new(self.dayButtonsContainer)
-        text:setProfile("fs25_buttonText")
-        text:setPosition(x + 5, 5)
-        text:setText(dayNames[i])
-        text:setVisible(true)
-
-        hit:setSelected(system.schedule.activeDays[i])
-        table.insert(self.dayButtons, {hit = hit, text = text, bg = bg})
-        x = x + 35
+        self.daySelected[i] = system.schedule.activeDays[i] == true
+        if self.dayButtons[i] ~= nil then
+            self.dayButtons[i]:setSelected(self.daySelected[i])
+        end
     end
 end
 
-function IrrigationScheduleDialog:onDayToggle(dayIndex, state)
+-- Called from XML onClick on each day button (pass day index as arg in XML)
+function IrrigationScheduleDialog:onDayToggle(dayIndex)
+    local idx = tonumber(dayIndex)
+    if idx == nil or idx < 1 or idx > 7 then return end
+
     local system = self:getCurrentSystem()
-    if system then
-        system.schedule.activeDays[dayIndex] = state
-        self.dayButtons[dayIndex].hit:setSelected(state)
+    if system == nil then return end
+
+    self.daySelected[idx] = not self.daySelected[idx]
+    system.schedule.activeDays[idx] = self.daySelected[idx]
+
+    if self.dayButtons[idx] ~= nil then
+        self.dayButtons[idx]:setSelected(self.daySelected[idx])
     end
 end
 
 function IrrigationScheduleDialog:onStartHourChanged(state)
     local system = self:getCurrentSystem()
-    if system then
+    if system ~= nil then
         system.schedule.startHour = state
     end
 end
 
 function IrrigationScheduleDialog:onEndHourChanged(state)
     local system = self:getCurrentSystem()
-    if system then
+    if system ~= nil then
         system.schedule.endHour = state
     end
 end
 
 function IrrigationScheduleDialog:updatePerformance(system)
     local effectiveRate = system.flowRatePerHour * system.pressureMultiplier * (1.0 - system.wearLevel * 0.3)
-    local efficiency = math.floor(system.pressureMultiplier * 100)
-    self.flowRateText:setText(string.format("Flow Rate: %.3f/hr", effectiveRate))
-    self.efficiencyText:setText(string.format("Efficiency: %d%%", efficiency))
-    self.costText:setText(string.format("Est. Cost: $%d/hr", system.operationalCostPerHour))
-    self.wearText:setText(string.format("Wear Level: %d%%", math.floor(system.wearLevel * 100)))
+    local efficiency    = math.floor(system.pressureMultiplier * 100)
+    if self.flowRateText  ~= nil then self.flowRateText:setText(string.format("Flow Rate: %.3f/hr", effectiveRate)) end
+    if self.efficiencyText ~= nil then self.efficiencyText:setText(string.format("Efficiency: %d%%", efficiency)) end
+    if self.costText      ~= nil then self.costText:setText(string.format("Est. Cost: $%d/hr", system.operationalCostPerHour)) end
+    if self.wearText      ~= nil then self.wearText:setText(string.format("Wear Level: %d%%", math.floor(system.wearLevel * 100))) end
 end
 
 function IrrigationScheduleDialog:updateCoveredFields(system)
-    self.coveredFieldsContainer:removeAllChildren()
+    -- Remove existing dynamic children
+    if self.coveredFieldsContainer ~= nil then
+        local children = self.coveredFieldsContainer.elements
+        if children ~= nil then
+            for i = #children, 1, -1 do
+                self.coveredFieldsContainer:removeElement(children[i])
+            end
+        end
+    end
+
+    if self.coveredFieldsContainer == nil then return end
+
     local y = 0
     for _, fieldId in ipairs(system.coveredFields) do
-        local moisture = g_cropStressManager.soilSystem:getMoisture(fieldId) or 0
-        local stress = g_cropStressManager.stressModifier:getStress(fieldId) or 0
-        local cropName = self:getCropName(fieldId)
-        local text = string.format("Field %d · %s  %d%%", fieldId, cropName, math.floor(moisture * 100))
-        if stress > 0.2 then
-            text = text .. " ⚠"
+        local moisture = 0
+        local stress   = 0
+        if g_cropStressManager ~= nil then
+            if g_cropStressManager.soilSystem   ~= nil then moisture = g_cropStressManager.soilSystem:getMoisture(fieldId) or 0 end
+            if g_cropStressManager.stressModifier ~= nil then stress = g_cropStressManager.stressModifier:getStress(fieldId) or 0 end
         end
-        local label = Text:new(self.coveredFieldsContainer)
+
+        local cropName = self:getCropName(fieldId)
+        local labelStr = string.format("Field %d · %s  %d%%", fieldId, cropName, math.floor(moisture * 100))
+        if stress > 0.2 then
+            labelStr = labelStr .. " !"  -- unicode warning char can be unreliable in FS25 font atlas
+        end
+
+        local label = GuiElement.new(self.coveredFieldsContainer)
         label:setProfile("fs25_dialogText")
         label:setPosition(5, y)
-        label:setText(text)
+        label:setText(labelStr)
+        self.coveredFieldsContainer:addElement(label)
         y = y - 20
     end
 end
 
 function IrrigationScheduleDialog:getCropName(fieldId)
-    -- Simplified: try to get from field object
-    if g_currentMission and g_currentMission.fieldManager then
-        local field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
-        if field then
-            local ft = field:getFruitType()
-            if ft and ft.name then
+    if g_currentMission ~= nil and g_currentMission.fieldManager ~= nil then
+        local field = nil
+        if g_currentMission.fieldManager.getFieldByIndex ~= nil then
+            field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
+        end
+        if field ~= nil then
+            local ft = nil
+            if type(field.getFruitType) == "function" then
+                ft = field:getFruitType()
+            elseif field.fruitType ~= nil then
+                ft = field.fruitType
+            end
+            if ft ~= nil and ft.name ~= nil then
                 return ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
             end
         end
@@ -181,24 +201,31 @@ end
 
 function IrrigationScheduleDialog:onIrrigateNow()
     local system = self:getCurrentSystem()
-    if system and not system.isActive then
-        g_cropStressManager.irrigationManager:activateSystem(self.systemId)
-        g_currentMission:showBlinkingWarning("Irrigation started", 3000)
+    if system ~= nil and not system.isActive then
+        if g_cropStressManager ~= nil and g_cropStressManager.irrigationManager ~= nil then
+            g_cropStressManager.irrigationManager:activateSystem(self.systemId)
+        end
+        if g_currentMission ~= nil then
+            g_currentMission:showBlinkingWarning(g_i18n:getText("cs_irr_started"), 3000)
+        end
     end
     self:onDialogClose()
 end
 
 function IrrigationScheduleDialog:onSaveSchedule()
     -- Schedule is already live in IrrigationManager; it persists on the next game save.
-    g_currentMission:showBlinkingWarning("Schedule saved", 2000)
+    if g_currentMission ~= nil then
+        g_currentMission:showBlinkingWarning(g_i18n:getText("cs_schedule_saved"), 2000)
+    end
     self:onDialogClose()
 end
 
 function IrrigationScheduleDialog:getCurrentSystem()
-    return g_cropStressManager and g_cropStressManager.irrigationManager and
-           g_cropStressManager.irrigationManager.systems[self.systemId]
+    if g_cropStressManager == nil then return nil end
+    if g_cropStressManager.irrigationManager == nil then return nil end
+    return g_cropStressManager.irrigationManager.systems[self.systemId]
 end
 
 function IrrigationScheduleDialog:onDialogClose()
-    self:close()
+    g_gui:closeDialog(self)
 end

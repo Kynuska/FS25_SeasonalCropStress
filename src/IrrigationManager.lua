@@ -10,7 +10,32 @@ IrrigationManager.__index = IrrigationManager
 
 -- Constants
 IrrigationManager.MAX_PUMP_DISTANCE = 500  -- meters
-IrrigationManager.PRESSURE_FALLOFF = 0.3   -- 30% loss at max distance
+IrrigationManager.PRESSURE_FALLOFF  = 0.3  -- 30% loss at max distance
+
+-- ============================================================
+-- LOGGING HELPER
+-- ============================================================
+local function csLog(msg)
+    if g_logManager ~= nil then
+        g_logManager:devInfo("[CropStress]", msg)
+    else
+        print("[CropStress] " .. tostring(msg))
+    end
+end
+
+-- ============================================================
+-- POSITION HELPER
+-- FS25 placeables have no getPosition() method.
+-- Position is read via Giants engine getWorldTranslation() on the root node.
+-- ============================================================
+local function getPlaceablePosition(placeable)
+    local node = placeable.rootNode or placeable.nodeId
+    if node ~= nil then
+        return getWorldTranslation(node)
+    end
+    -- Final fallback — placeable may store position directly on some versions
+    return placeable.posX or 0, 0, placeable.posZ or 0
+end
 
 function IrrigationManager.new(manager)
     local self = setmetatable({}, IrrigationManager)
@@ -27,27 +52,27 @@ end
 
 function IrrigationManager:initialize()
     self.isInitialized = true
-    g_logManager:devInfo("[CropStress]", "IrrigationManager initialized")
+    csLog("IrrigationManager initialized")
 end
 
 -- ============================================================
 -- Water Source Registration
 -- ============================================================
 function IrrigationManager:registerWaterSource(placeable)
-    local x, _, z = placeable:getPosition()
+    local x, _, z = getPlaceablePosition(placeable)
     self.waterSources[placeable.id] = {
-        id = placeable.id,
-        x = x,
-        z = z,
-        hasWater = true,  -- Phase 2: always true; Phase 4: could be finite
-        flowCapacity = placeable.waterFlowCapacity or 1000, -- not used yet
+        id           = placeable.id,
+        x            = x,
+        z            = z,
+        hasWater     = true,  -- Phase 2: always true; Phase 4: could be finite
+        flowCapacity = placeable.waterFlowCapacity or 1000,
     }
-    g_logManager:devInfo("[CropStress]", string.format("Water source %d registered at (%.1f, %.1f)", placeable.id, x, z))
+    csLog(string.format("Water source %d registered at (%.1f, %.1f)", placeable.id, x, z))
 end
 
 function IrrigationManager:deregisterWaterSource(placeableId)
     self.waterSources[placeableId] = nil
-    -- Any irrigation systems that depended on this source should be deactivated
+    -- Deactivate any irrigation systems that depended on this source
     for sysId, sys in pairs(self.systems) do
         if sys.waterSourceId == placeableId then
             self:deactivateSystem(sysId)
@@ -60,50 +85,49 @@ end
 -- Irrigation System Registration
 -- ============================================================
 function IrrigationManager:registerIrrigationSystem(placeable)
-    local x, _, z = placeable:getPosition()
+    local x, _, z = getPlaceablePosition(placeable)
     local coveredFields = self:detectCoveredFields(placeable, x, z)
 
     -- Find nearest water source within range
     local waterSourceId, distance = self:findNearestWaterSource(x, z)
     local pressureMultiplier = 0
-    if waterSourceId then
+    if waterSourceId ~= nil then
         pressureMultiplier = self:calculatePressureMultiplier(distance)
     end
 
     local system = {
-        id = placeable.id,
-        type = placeable.irrigationType or "pivot",  -- "pivot" or "drip"
-        x = x,
-        z = z,
-        coveredFields = coveredFields,
-        waterSourceId = waterSourceId,
-        distanceToSource = distance,
-        pressureMultiplier = pressureMultiplier,
-        flowRatePerHour = placeable.flowRatePerHour or 0.018,  -- moisture fraction per hour
+        id                     = placeable.id,
+        type                   = placeable.irrigationType or "pivot",
+        x                      = x,
+        z                      = z,
+        coveredFields          = coveredFields,
+        waterSourceId          = waterSourceId,
+        distanceToSource       = distance,
+        pressureMultiplier     = pressureMultiplier,
+        flowRatePerHour        = placeable.flowRatePerHour or 0.018,
         operationalCostPerHour = placeable.operationalCostPerHour or 15,
-        wearLevel = 0,  -- Phase 4
+        wearLevel              = 0,  -- Phase 4
         schedule = {
-            startHour = placeable.defaultStartHour or 6,
-            endHour = placeable.defaultEndHour or 10,
-            activeDays = placeable.defaultActiveDays or {true, true, true, true, true, false, false}
+            startHour  = placeable.defaultStartHour or 6,
+            endHour    = placeable.defaultEndHour   or 10,
+            activeDays = placeable.defaultActiveDays or {true, true, true, true, true, false, false},
         },
-        isActive = false,
-        effectiveRatePerField = {},  -- fieldId -> rate
+        isActive             = false,
+        effectiveRatePerField = {},
     }
 
     self.systems[placeable.id] = system
 
-    g_logManager:devInfo("[CropStress]", string.format(
+    csLog(string.format(
         "Irrigation system %d (%s) registered, covers %d fields, water source %s (distance %.1f m, pressure %.0f%%)",
         placeable.id, system.type, #coveredFields,
-        waterSourceId and tostring(waterSourceId) or "none",
+        waterSourceId ~= nil and tostring(waterSourceId) or "none",
         distance or 0, (pressureMultiplier or 0) * 100
     ))
 end
 
 function IrrigationManager:deregisterIrrigationSystem(placeableId)
-    -- Deactivate first to clean up events
-    if self.systems[placeableId] and self.systems[placeableId].isActive then
+    if self.systems[placeableId] ~= nil and self.systems[placeableId].isActive then
         self:deactivateSystem(placeableId)
     end
     self.systems[placeableId] = nil
@@ -113,15 +137,15 @@ end
 -- Field Coverage Detection
 -- ============================================================
 function IrrigationManager:detectCoveredFields(placeable, cx, cz)
-    local radius = placeable.radius or 200  -- default for pivot; drip lines will override
+    local radius  = placeable.radius or 200
     local covered = {}
 
-    -- For drip lines, we'd use a different method (line-polygon intersection)
-    -- For Phase 2, we support only circular coverage (pivot)
     if placeable.irrigationType ~= "pivot" then
-        -- Stub for other types
+        -- Drip line coverage stubbed for Phase 4
         return covered
     end
+
+    if g_currentMission == nil or g_currentMission.fieldManager == nil then return covered end
 
     local fields = g_currentMission.fieldManager:getFields()
     for _, field in pairs(fields) do
@@ -132,28 +156,24 @@ function IrrigationManager:detectCoveredFields(placeable, cx, cz)
     return covered
 end
 
--- Circle vs. field polygon intersection (simplified bounding box check)
+-- Circle vs. field polygon intersection (simplified AABB check)
 function IrrigationManager:fieldIntersectsCircle(field, cx, cz, radius)
-    -- Get field bounding box (assume field has minX, maxX, minZ, maxZ)
-    -- If not, we can approximate from field dimensions.
     local minX, maxX, minZ, maxZ
-    if field.minX then
+    if field.minX ~= nil then
         minX, maxX, minZ, maxZ = field.minX, field.maxX, field.minZ, field.maxZ
     else
-        -- Fallback: use field center and radius
-        local fx = field.posX or (field.startX and (field.startX + (field.widthX or 0) * 0.5)) or cx
+        local fx = field.posX or (field.startX and (field.startX + (field.widthX  or 0) * 0.5)) or cx
         local fz = field.posZ or (field.startZ and (field.startZ + (field.heightZ or 0) * 0.5)) or cz
         local fr = field.fieldRadius or 50
         minX, maxX = fx - fr, fx + fr
         minZ, maxZ = fz - fr, fz + fr
     end
 
-    -- Find closest point on AABB to circle center
     local closestX = math.max(minX, math.min(cx, maxX))
     local closestZ = math.max(minZ, math.min(cz, maxZ))
     local dx = cx - closestX
     local dz = cz - closestZ
-    return (dx*dx + dz*dz) <= radius*radius
+    return (dx * dx + dz * dz) <= (radius * radius)
 end
 
 -- ============================================================
@@ -161,30 +181,28 @@ end
 -- ============================================================
 function IrrigationManager:findNearestWaterSource(x, z)
     local nearestId = nil
-    local minDist = math.huge
+    local minDist   = math.huge
 
     for id, source in pairs(self.waterSources) do
         if source.hasWater then
-            local dx = source.x - x
-            local dz = source.z - z
-            local dist = math.sqrt(dx*dx + dz*dz)
+            local dx   = source.x - x
+            local dz   = source.z - z
+            local dist = math.sqrt(dx * dx + dz * dz)
             if dist <= IrrigationManager.MAX_PUMP_DISTANCE and dist < minDist then
-                minDist = dist
+                minDist   = dist
                 nearestId = id
             end
         end
     end
 
-    if nearestId then
+    if nearestId ~= nil then
         return nearestId, minDist
-    else
-        return nil, nil
     end
+    return nil, nil
 end
 
 function IrrigationManager:calculatePressureMultiplier(distance)
     if distance > IrrigationManager.MAX_PUMP_DISTANCE then return 0 end
-    -- Linear: 1.0 at 0m, (1 - PRESSURE_FALLOFF) at max distance
     return 1.0 - (distance / IrrigationManager.MAX_PUMP_DISTANCE) * IrrigationManager.PRESSURE_FALLOFF
 end
 
@@ -193,27 +211,30 @@ end
 -- ============================================================
 function IrrigationManager:hourlyScheduleCheck()
     if not self.isInitialized then return end
-    local env = g_currentMission.environment
-    if not env then return end
+    if g_currentMission == nil then return end
 
-    local hour = env:getHour() or 0
-    local dayOfWeek = env:getDayOfWeek() or 1  -- 1..7
+    local env = g_currentMission.environment
+    if env == nil then return end
+
+    -- env.currentHour and env.currentDayInPeriod are direct properties in FS25.
+    -- currentDayInPeriod is 1–7 within the current growth period (matches schedule activeDays).
+    local hour      = env.currentHour         or 0
+    local dayOfWeek = env.currentDayInPeriod   or 1
 
     for id, system in pairs(self.systems) do
         -- Check if water source is still valid
-        if system.waterSourceId and not self.waterSources[system.waterSourceId] then
-            -- Source disappeared; deactivate
+        if system.waterSourceId ~= nil and self.waterSources[system.waterSourceId] == nil then
             if system.isActive then self:deactivateSystem(id) end
-            system.waterSourceId = nil
+            system.waterSourceId      = nil
             system.pressureMultiplier = 0
         end
 
         local shouldBeActive = false
-        if system.waterSourceId and system.pressureMultiplier > 0 then
+        if system.waterSourceId ~= nil and system.pressureMultiplier > 0 then
             local sched = system.schedule
-            shouldBeActive = sched.activeDays[dayOfWeek] and
-                             hour >= sched.startHour and
-                             hour < sched.endHour
+            shouldBeActive = sched.activeDays[dayOfWeek] == true
+                and hour >= sched.startHour
+                and hour <  sched.endHour
         end
 
         if shouldBeActive and not system.isActive then
@@ -229,56 +250,53 @@ end
 -- ============================================================
 function IrrigationManager:activateSystem(id)
     local system = self.systems[id]
-    if not system or system.isActive then return end
+    if system == nil or system.isActive then return end
 
-    -- Recalculate effective rate based on current pressure and wear
-    local wearFactor = 1.0 - system.wearLevel * 0.3  -- worn pump reduces flow
+    local wearFactor    = 1.0 - system.wearLevel * 0.3
     local effectiveRate = system.flowRatePerHour * system.pressureMultiplier * wearFactor
 
     system.effectiveRatePerField = {}
     for _, fieldId in ipairs(system.coveredFields) do
         system.effectiveRatePerField[fieldId] = effectiveRate
-        -- Publish event
-        if self.manager and self.manager.eventBus then
+        if self.manager ~= nil and self.manager.eventBus ~= nil then
             self.manager.eventBus.publish("CS_IRRIGATION_STARTED", {
                 placeableId = id,
-                fieldId = fieldId,
+                fieldId     = fieldId,
                 ratePerHour = effectiveRate,
             })
         end
     end
 
     system.isActive = true
-    g_logManager:devInfo("[CropStress]", string.format("Irrigation system %d activated, rate=%.4f", id, effectiveRate))
+    csLog(string.format("Irrigation system %d activated, rate=%.4f", id, effectiveRate))
 end
 
 function IrrigationManager:deactivateSystem(id)
     local system = self.systems[id]
-    if not system or not system.isActive then return end
+    if system == nil or not system.isActive then return end
 
     for _, fieldId in ipairs(system.coveredFields) do
-        local rate = system.effectiveRatePerField[fieldId] or 0
-        if self.manager and self.manager.eventBus then
+        if self.manager ~= nil and self.manager.eventBus ~= nil then
             self.manager.eventBus.publish("CS_IRRIGATION_STOPPED", {
                 placeableId = id,
-                fieldId = fieldId,
-                ratePerHour = rate,
+                fieldId     = fieldId,
+                ratePerHour = system.effectiveRatePerField[fieldId] or 0,
             })
         end
     end
 
     system.effectiveRatePerField = {}
     system.isActive = false
-    g_logManager:devInfo("[CropStress]", string.format("Irrigation system %d deactivated", id))
+    csLog(string.format("Irrigation system %d deactivated", id))
 end
 
 -- ============================================================
--- Get Irrigation Rate for a Field (sum of active systems)
+-- Get Irrigation Rate for a Field (sum of all active systems)
 -- ============================================================
 function IrrigationManager:getIrrigationRateForField(fieldId)
     local total = 0
     for _, system in pairs(self.systems) do
-        if system.isActive and system.effectiveRatePerField[fieldId] then
+        if system.isActive and system.effectiveRatePerField[fieldId] ~= nil then
             total = total + system.effectiveRatePerField[fieldId]
         end
     end
@@ -289,12 +307,12 @@ end
 -- Cleanup
 -- ============================================================
 function IrrigationManager:delete()
-    for id, _ in pairs(self.systems) do
-        if self.systems[id].isActive then
+    for id, system in pairs(self.systems) do
+        if system.isActive then
             self:deactivateSystem(id)
         end
     end
-    self.systems = {}
+    self.systems      = {}
     self.waterSources = {}
     self.isInitialized = false
 end

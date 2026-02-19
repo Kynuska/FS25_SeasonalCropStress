@@ -48,7 +48,6 @@ source(modDir .. "src/CropStressManager.lua")
 -- before any vehicles are created — correct timing for function patching)
 -- ============================================================
 CropStressModifier.installHarvestHook()
-DialogLoader.register("IrrigationScheduleDialog", nil, "gui/IrrigationScheduleDialog", IrrigationScheduleDialog)
 
 -- ============================================================
 -- Lifecycle reference — set in Mission00.load, cleared in FSBaseMission.delete
@@ -59,7 +58,7 @@ local g_csManager = nil
 Mission00.load = Utils.appendedFunction(Mission00.load, function(self, ...)
     g_csManager = CropStressManager.new()
     getfenv(0)["g_cropStressManager"] = g_csManager
-    g_logManager:devInfo("[CropStress]", "CropStressManager created (v1.0.0.0)")
+    print("[CropStress] CropStressManager created (v1.0.0.0)")
 end)
 
 -- 2. Mission fully loaded: initialize all systems
@@ -67,6 +66,18 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
     if g_csManager == nil then return end
 
     g_csManager:initialize()
+
+    -- Register the irrigation schedule dialog now that g_gui is ready.
+    -- g_gui:loadGui() expects: xmlFilename, profilesFilename, target, isRoot
+    -- We pass nil for profiles (uses defaults) and false for isRoot (it's a dialog).
+    if g_gui ~= nil then
+        g_gui:loadGui(
+            modDir .. "gui/IrrigationScheduleDialog.xml",
+            nil,
+            IrrigationScheduleDialog.new(),
+            false
+        )
+    end
 
     -- Register HUD toggle input after mission is ready
     if g_inputBinding ~= nil and InputAction ~= nil and InputAction.CS_TOGGLE_HUD ~= nil then

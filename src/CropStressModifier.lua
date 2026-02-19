@@ -39,6 +39,18 @@ CropStressModifier.CROP_WINDOWS = {
 -- Whether the harvest hook has been installed (static flag, module-level)
 CropStressModifier.harvestHookInstalled = false
 
+-- ============================================================
+-- LOGGING HELPER
+-- g_logManager may be nil during early load; fall back to print().
+-- ============================================================
+local function csLog(msg)
+    if g_logManager ~= nil then
+        g_logManager:devInfo("[CropStress]", msg)
+    else
+        print("[CropStress] " .. tostring(msg))
+    end
+end
+
 function CropStressModifier.new(manager)
     local self = setmetatable({}, CropStressModifier)
     self.manager = manager
@@ -150,7 +162,7 @@ function CropStressModifier:processFieldStress(field, fieldId, moisture)
         end
 
         if self.manager.debugMode then
-            g_logManager:devInfo("[CropStress]", string.format(
+            csLog(string.format(
                 "Stress Field %d (%s stage %d): +%.4f → total %.3f (moisture %.1f%% < %.0f%%)",
                 fieldId, cropName, growthStage, stressIncrease,
                 self.fieldStress[fieldId], moisture * 100, window.criticalMoisture * 100
@@ -219,11 +231,11 @@ end
 function CropStressModifier.installHarvestHook()
     if CropStressModifier.harvestHookInstalled then return end
     if HarvestingMachine == nil then
-        g_logManager:devInfo("[CropStress]", "HarvestingMachine not found — harvest hook skipped")
+        csLog("HarvestingMachine not found — harvest hook skipped")
         return
     end
     if HarvestingMachine.doGroundWorkArea == nil then
-        g_logManager:devInfo("[CropStress]", "HarvestingMachine.doGroundWorkArea not found — hook skipped")
+        csLog("HarvestingMachine.doGroundWorkArea not found — hook skipped")
         return
     end
 
@@ -276,7 +288,7 @@ function CropStressModifier.installHarvestHook()
 
             -- Log and reset stress for this field
             if g_cropStressManager.debugMode then
-                g_logManager:devInfo("[CropStress]", string.format(
+                csLog(string.format(
                     "Harvest field %d: stress=%.2f → yield reduced by %.0f%%",
                     fieldId, stress, reduction * 100
                 ))
@@ -286,7 +298,7 @@ function CropStressModifier.installHarvestHook()
     )
 
     CropStressModifier.harvestHookInstalled = true
-    g_logManager:devInfo("[CropStress]", "Harvest yield hook installed on HarvestingMachine.doGroundWorkArea")
+    csLog("Harvest yield hook installed on HarvestingMachine.doGroundWorkArea")
 end
 
 function CropStressModifier:delete()

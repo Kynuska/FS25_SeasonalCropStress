@@ -10,6 +10,18 @@
 -- ============================================================
 
 -- ============================================================
+-- LOGGING HELPER
+-- g_logManager may be nil during early load or late delete.
+-- ============================================================
+local function csLog(msg)
+    if g_logManager ~= nil then
+        g_logManager:devInfo("[CropStress]", msg)
+    else
+        print("[CropStress] " .. tostring(msg))
+    end
+end
+
+-- ============================================================
 -- CROP EVENT BUS
 -- Simple publish/subscribe for mod-internal events.
 -- Subscribers receive (context, data) where context is the
@@ -49,6 +61,10 @@ end
 CropStressManager = {}
 CropStressManager.__index = CropStressManager
 
+-- Season name lookup used by consoleStatus()
+-- 0=spring 1=summer 2=autumn 3=winter (matches FS25 environment.currentSeason)
+local SEASON_NAMES = { [0]="Spring", [1]="Summer", [2]="Autumn", [3]="Winter" }
+
 function CropStressManager.new()
     local self = setmetatable({}, CropStressManager)
 
@@ -78,7 +94,7 @@ end
 -- Called from Mission00.loadMission00Finished — g_currentMission is ready here
 function CropStressManager:initialize()
     if g_currentMission == nil then
-        g_logManager:devInfo("[CropStress]", "CRITICAL: g_currentMission nil at initialize — aborting")
+        csLog("CRITICAL: g_currentMission nil at initialize — aborting")
         return
     end
 
@@ -99,16 +115,17 @@ function CropStressManager:initialize()
     self.saveLoad:initialize()
 
     -- Capture first hour key so hourly tick fires correctly from the start
+    -- env.currentHour is a direct property — not a method call
     local env = g_currentMission.environment
     if env ~= nil then
         local day  = env.currentMonotonicDay or 0
-        local hour = env:getHour() or 0
+        local hour = env.currentHour or 0
         self.lastHourKey = day * 24 + hour
     end
 
     self.isInitialized = true
 
-    g_logManager:devInfo("[CropStress]", string.format(
+    csLog(string.format(
         "CropStressManager initialized. Fields tracked: %d",
         self.soilSystem:getFieldCount()
     ))
@@ -125,9 +142,10 @@ function CropStressManager:update(dt)
     if env == nil then return end
 
     -- Hourly tick detection
-    local day      = env.currentMonotonicDay or 0
-    local hour     = env:getHour() or 0
-    local hourKey  = day * 24 + hour
+    -- env.currentHour is a direct property, not a method
+    local day     = env.currentMonotonicDay or 0
+    local hour    = env.currentHour or 0
+    local hourKey = day * 24 + hour
 
     if hourKey ~= self.lastHourKey then
         self.lastHourKey = hourKey
@@ -155,7 +173,7 @@ function CropStressManager:onHourlyTick()
     -- self.consultant:hourlyEvaluate()
 
     if self.debugMode then
-        g_logManager:devInfo("[CropStress]", string.format(
+        csLog(string.format(
             "Hourly tick complete. Season=%d Temp=%.1f Rain=%s",
             self.weatherIntegration:getCurrentSeason(),
             self.weatherIntegration:getCurrentTemp(),
@@ -191,48 +209,27 @@ end
 function CropStressManager:sendInitialClientState(connection)
     if not self.isInitialized then return end
     if g_server == nil then return end  -- only server sends
-
-    -- Broadcast current moisture + stress state to the new client
-    -- Phase 1: simple approach — send all fields in one stream message
-    -- For large maps (100+ fields) consider chunking in Phase 2
-    self:writeStreamToConnection(connection)
-end
-
-function CropStressManager:writeStreamToConnection(connection)
-    -- Enumerate fields and build payload
-    local fieldData = self.soilSystem.fieldData
-    if fieldData == nil then return end
-
-    -- Count active fields
-    local count = 0
-    for _ in pairs(fieldData) do count = count + 1 end
-
-    local stream = connection:getStream()  -- NOTE: verify FS25 API for stream access
-    -- LUADOC NOTE: The exact multiplayer stream API needs verification.
-    -- Pattern from NPCFavor / UsedPlus uses NetworkNode:writeStream pattern.
-    -- For Phase 1, log a notice and skip MP stream (implement fully in Phase 2).
-    g_logManager:devInfo("[CropStress]", "MP: initial client state sync — implement stream in Phase 2")
+    -- Phase 2: implement full field moisture/stress sync via NetworkNode events.
+    -- Raw connection:getStream() does not exist in FS25 — use proper network messages.
+    csLog("MP: initial client state sync not yet implemented (Phase 2)")
 end
 
 -- ============================================================
 -- OPTIONAL MOD DETECTION
 -- ============================================================
 function CropStressManager:detectOptionalMods()
-    -- FS25_NPCFavor
     if getfenv(0)["g_npcFavorSystem"] ~= nil then
-        g_logManager:devInfo("[CropStress]", "FS25_NPCFavor detected — enabling NPC integration")
+        csLog("FS25_NPCFavor detected — enabling NPC integration")
         self.npcIntegration.npcFavorActive = true
     end
 
-    -- FS25_UsedPlus
     if getfenv(0)["g_usedPlusManager"] ~= nil then
-        g_logManager:devInfo("[CropStress]", "FS25_UsedPlus detected — enabling finance integration")
+        csLog("FS25_UsedPlus detected — enabling finance integration")
         self.financeIntegration.usedPlusActive = true
     end
 
-    -- Precision Farming DLC
     if getfenv(0)["g_precisionFarming"] ~= nil then
-        g_logManager:devInfo("[CropStress]", "Precision Farming DLC detected — enabling PF compat (Phase 4)")
+        csLog("Precision Farming DLC detected — enabling PF compat (Phase 4)")
     end
 end
 
@@ -243,22 +240,31 @@ function CropStressManager:onToggleHUD()
     self.hudOverlay:toggle()
 end
 
-
 function CropStressManager:onOpenIrrigationDialog()
     local irrMgr = self.irrigationManager
-    if not irrMgr then return end
-    -- For Phase 2, open the first system found (simplified)
+    if irrMgr == nil then return end
+
+    -- Find first registered system to open (Phase 2 simplified approach)
     local firstId = nil
     for id, _ in pairs(irrMgr.systems) do
         firstId = id
         break
     end
-    if firstId then
-        g_gui:showDialog("IrrigationScheduleDialog", nil, firstId)
+
+    if firstId ~= nil then
+        -- showDialog returns the dialog instance; call onDialogOpen manually
+        -- because the 3-arg form of showDialog does not forward args to the callback
+        local dialog = g_gui:showDialog("IrrigationScheduleDialog")
+        if dialog ~= nil and dialog.target ~= nil then
+            dialog.target:onIrrigationDialogOpen(firstId)
+        end
     else
-        g_currentMission:showBlinkingWarning("No irrigation systems placed", 3000)
+        if g_currentMission ~= nil then
+            g_currentMission:showBlinkingWarning(g_i18n:getText("cs_no_irrigation_systems"), 3000)
+        end
     end
 end
+
 -- ============================================================
 -- CLEANUP
 -- ============================================================
@@ -278,7 +284,7 @@ function CropStressManager:delete()
     self.saveLoad:delete()
 
     self.isInitialized = false
-    g_logManager:devInfo("[CropStress]", "CropStressManager deleted")
+    csLog("CropStressManager deleted")
 end
 
 -- ============================================================
@@ -300,7 +306,7 @@ function CropStressManager:consoleStatus()
     print(string.format("  Debug mode:  %s", tostring(self.debugMode)))
 
     if self.weatherIntegration ~= nil then
-        local seas = WeatherIntegration.SEASON_NAMES[self.weatherIntegration.currentSeason] or "?"
+        local seas = SEASON_NAMES[self.weatherIntegration.currentSeason] or "?"
         print(string.format("  Season: %s  Temp: %.1f°C  Raining: %s",
             seas, self.weatherIntegration.currentTemp,
             tostring(self.weatherIntegration.isRaining)))
@@ -351,16 +357,15 @@ function CropStressManager:consoleSimulateHeat(daysStr)
         return
     end
 
-    -- Simulate by running hourly updates with a high-temp weather state
-    -- We temporarily override the weather state for the simulation
-    local savedTemp  = self.weatherIntegration.currentTemp
-    local savedRain  = self.weatherIntegration.hourlyRainAmount
+    -- Temporarily override weather state for the simulation
+    local savedTemp = self.weatherIntegration.currentTemp
+    local savedRain = self.weatherIntegration.hourlyRainAmount
 
     self.weatherIntegration.currentTemp      = 38.0  -- extreme heat
     self.weatherIntegration.hourlyRainAmount = 0.0   -- no rain
 
-    for d = 1, days do
-        for h = 1, 24 do
+    for _ = 1, days do
+        for _ = 1, 24 do
             self.soilSystem:hourlyUpdate(self.weatherIntegration)
             self.stressModifier:hourlyUpdate()
         end
