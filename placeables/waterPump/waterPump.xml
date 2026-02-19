@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    waterPump.xml
+    Placeable type declaration for the water pump.
+    The Lua class (WaterPump) is registered via modDesc.xml <placeableTypes>.
+    This file is referenced by modDesc.xml storeItem filename.
+-->
+<placeable type="fs25_seasonalcropstress_waterPump" descVersion="105">
+
+    <storeData>
+        <n>$l10n_cs_pump_name</n>
+        <specs>
+            <spec name="price" value="12000"/>
+            <spec name="dailyUpkeep" value="5"/>
+        </specs>
+        <category>PLACEABLE</category>
+        <image>placeables/waterPump/waterPump_shop.dds</image>
+    </storeData>
+
+    <filename>placeables/waterPump/waterPump.i3d</filename>
+
+    <price value="12000"/>
+    <dailyUpkeep value="5"/>
+
+    <!-- Custom pump parameters — read by WaterPump:onLoad() via getXMLFloat -->
+    <pumpConfig
+        waterFlowCapacity="1000"
+    />
+
+</placeable>
