@@ -48,6 +48,7 @@ source(modDir .. "src/CropStressManager.lua")
 -- before any vehicles are created — correct timing for function patching)
 -- ============================================================
 CropStressModifier.installHarvestHook()
+DialogLoader.register("IrrigationScheduleDialog", nil, "gui/IrrigationScheduleDialog", IrrigationScheduleDialog)
 
 -- ============================================================
 -- Lifecycle reference — set in Mission00.load, cleared in FSBaseMission.delete
@@ -73,6 +74,19 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
             InputAction.CS_TOGGLE_HUD,
             g_csManager,
             CropStressManager.onToggleHUD,
+            false, -- triggerUp
+            true,  -- triggerDown
+            false, -- triggerAlways
+            true   -- startActive
+        )
+    end
+
+    -- Register irrigation dialog input after mission is ready
+    if g_inputBinding ~= nil and InputAction ~= nil and InputAction.CS_OPEN_IRRIGATION ~= nil then
+        g_inputBinding:registerActionEvent(
+            InputAction.CS_OPEN_IRRIGATION,
+            g_csManager,
+            CropStressManager.onOpenIrrigationDialog,
             false, -- triggerUp
             true,  -- triggerDown
             false, -- triggerAlways

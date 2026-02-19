@@ -46,20 +46,20 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
         <sourceFile filename="main.lua"/>
     </extraSourceFiles>
 
-    <!--
-        Phase 1 input: HUD toggle only.
-        Phase 2 will add CS_OPEN_IRRIGATION (Shift+I).
-        Phase 3 will add CS_OPEN_CONSULTANT.
-    -->
     <inputBinding>
         <actionBinding action="CS_TOGGLE_HUD">
             <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_m"
                      axisComponent="+" index="1" isInverted="false" isTurnAxis="false"/>
         </actionBinding>
+        <actionBinding action="CS_OPEN_IRRIGATION">
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_i"
+                     axisComponent="+" index="1" isInverted="false" isTurnAxis="false"/>
+        </actionBinding>
     </inputBinding>
 
     <actions>
-        <action name="CS_TOGGLE_HUD" axisType="HALF_POSITIVE_AXIS" isSink="true"/>
+        <action name="CS_TOGGLE_HUD"      axisType="HALF_POSITIVE_AXIS" isSink="true"/>
+        <action name="CS_OPEN_IRRIGATION" axisType="HALF_POSITIVE_AXIS" isSink="true"/>
     </actions>
 
     <l10n filenamePrefix="translations/translation"/>

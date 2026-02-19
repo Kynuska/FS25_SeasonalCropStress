@@ -43,6 +43,13 @@
     <text name="cs_irr_pivot"         text="Center Pivot"/>
     <text name="cs_irr_drip"          text="Drip Line"/>
     <text name="cs_irr_pump"          text="Water Pump"/>
+    <text name="cs_day_mon"           text="M"/>
+    <text name="cs_day_tue"           text="T"/>
+    <text name="cs_day_wed"           text="W"/>
+    <text name="cs_day_thu"           text="T"/>
+    <text name="cs_day_fri"           text="F"/>
+    <text name="cs_day_sat"           text="S"/>
+    <text name="cs_day_sun"           text="S"/>
 
     <!-- ========== CONSULTANT (Phase 3) ========== -->
     <text name="cs_consultant_name"   text="Alex Chen, Agronomist"/>
@@ -54,4 +61,5 @@
     <!-- ========== INPUT ACTIONS ========== -->
     <text name="input_CS_TOGGLE_HUD"      text="Toggle Moisture HUD"/>
     <text name="input_CS_OPEN_IRRIGATION" text="Open Irrigation Manager"/>
+    <text name="input_CS_OPEN_CONSULTANT" text="Open Crop Consultant"/>
 </l10n>
