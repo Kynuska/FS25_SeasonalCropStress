@@ -46,6 +46,8 @@ function SoilMoistureSystem.new(manager)
     -- }
     self.fieldData = {}
 
+    self.irrigationGains = {}  -- fieldId -> total gain per hour
+
     -- Track which fields have already had a first-run HUD trigger
     self.criticalAlertCooldown = {}  -- fieldId → lastAlertHourKey
 
@@ -81,6 +83,12 @@ function SoilMoistureSystem:initialize()
         end
     end
 
+    -- Subscribe to irrigation events (once, here — never inside the hourly loop)
+    if self.manager ~= nil and self.manager.eventBus ~= nil then
+        self.manager.eventBus.subscribe("CS_IRRIGATION_STARTED", self.onIrrigationStarted, self)
+        self.manager.eventBus.subscribe("CS_IRRIGATION_STOPPED", self.onIrrigationStopped, self)
+    end
+
     self.isInitialized = true
     g_logManager:devInfo("[CropStress]", string.format(
         "SoilMoistureSystem initialized. %d fields tracked. Start moisture=%.0f%% (season %d)",
@@ -111,8 +119,7 @@ function SoilMoistureSystem:hourlyUpdate(weather)
         -- Rain gain (modulated by soil absorption)
         local rainGain = rainAmount * soilParams.rainAbsorb
 
-        -- Irrigation gain (Phase 2: set externally by IrrigationManager)
-        local irrigGain = data.irrigationGain or 0.0
+        local irrigGain = self.irrigationGains[fieldId] or 0.0
 
         local prevMoisture = data.moisture
         data.moisture = math.max(0.0, math.min(1.0,
@@ -180,6 +187,17 @@ function SoilMoistureSystem:getFieldsSortedByMoisture()
     end
     table.sort(list, function(a, b) return a.moisture < b.moisture end)
     return list
+end
+
+function SoilMoistureSystem:onIrrigationStarted(data)
+    self.irrigationGains[data.fieldId] = (self.irrigationGains[data.fieldId] or 0) + data.ratePerHour
+end
+
+function SoilMoistureSystem:onIrrigationStopped(data)
+    self.irrigationGains[data.fieldId] = (self.irrigationGains[data.fieldId] or 0) - data.ratePerHour
+    if self.irrigationGains[data.fieldId] < 0.001 then
+        self.irrigationGains[data.fieldId] = nil
+    end
 end
 
 -- Detect soil type from FS25 map metadata.

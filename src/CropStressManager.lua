@@ -148,14 +148,11 @@ function CropStressManager:onHourlyTick()
     -- 3. Accumulate crop stress where moisture is critical
     self.stressModifier:hourlyUpdate()
 
-    -- Phase 2: Irrigation scheduling check
-    -- self.irrigationManager:hourlyScheduleCheck()
+    self.irrigationManager:hourlyScheduleCheck()
+    self.financeIntegration:chargeHourlyCosts()
 
     -- Phase 3: Consultant alert evaluation
     -- self.consultant:hourlyEvaluate()
-
-    -- Phase 4: Charge irrigation operational costs
-    -- self.financeIntegration:chargeHourlyCosts()
 
     if self.debugMode then
         g_logManager:devInfo("[CropStress]", string.format(
@@ -246,6 +243,22 @@ function CropStressManager:onToggleHUD()
     self.hudOverlay:toggle()
 end
 
+
+function CropStressManager:onOpenIrrigationDialog()
+    local irrMgr = self.irrigationManager
+    if not irrMgr then return end
+    -- For Phase 2, open the first system found (simplified)
+    local firstId = nil
+    for id, _ in pairs(irrMgr.systems) do
+        firstId = id
+        break
+    end
+    if firstId then
+        g_gui:showDialog("IrrigationScheduleDialog", nil, firstId)
+    else
+        g_currentMission:showBlinkingWarning("No irrigation systems placed", 3000)
+    end
+end
 -- ============================================================
 -- CLEANUP
 -- ============================================================

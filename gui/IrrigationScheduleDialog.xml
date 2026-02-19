@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GUI onCreate="onCreate" onOpen="onDialogOpen" onClose="onDialogClose">
+    <GuiElement profile="newLayer" />
+    <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
+    <GuiElement profile="dialogBg" id="dialogElement" size="780px 580px">
+        <ThreePartBitmap profile="fs25_dialogBgMiddle" />
+        <ThreePartBitmap profile="fs25_dialogBgTop" />
+        <ThreePartBitmap profile="fs25_dialogBgBottom" />
+        <GuiElement profile="fs25_dialogContentContainer" id="content">
+            <Text id="title" profile="fs25_dialogTitle" text="Irrigation System" />
+
+            <!-- Water source status -->
+            <Text id="waterSourceLabel" profile="fs25_dialogText" position="-350px 0px" text="%cs_irr_water_source%" />
+            <Text id="waterSourceValue" profile="fs25_dialogText" position="-250px 0px" text="%cs_irr_connected%" />
+
+            <!-- Schedule section -->
+            <Text profile="fs25_dialogSubtitle" position="-350px -40px" text="%cs_irr_schedule%" />
+            <!-- Day buttons will be created in Lua, but we need a container -->
+            <GuiElement id="dayButtonsContainer" position="-350px -70px" size="280px 30px" />
+
+            <!-- Start time -->
+            <Text profile="fs25_dialogText" position="-350px -120px" text="Start Time:" />
+            <MultiTextOption id="startHour" profile="fs25_multiTextOption" position="-250px -120px" onOptionSelected="onStartHourChanged" />
+
+            <!-- End time -->
+            <Text profile="fs25_dialogText" position="-350px -160px" text="End Time:" />
+            <MultiTextOption id="endHour" profile="fs25_multiTextOption" position="-250px -160px" onOptionSelected="onEndHourChanged" />
+
+            <!-- Performance section -->
+            <Text profile="fs25_dialogSubtitle" position="-350px -220px" text="Performance" />
+            <Text id="flowRate" profile="fs25_dialogText" position="-350px -250px" text="Flow Rate: 0.018/hr" />
+            <Text id="efficiency" profile="fs25_dialogText" position="-350px -280px" text="Efficiency: 100%" />
+            <Text id="cost" profile="fs25_dialogText" position="-350px -310px" text="Est. Cost: $15/hr" />
+            <Text id="wear" profile="fs25_dialogText" position="-350px -340px" text="Wear Level: 0%" />
+
+            <!-- Covered fields list -->
+            <Text profile="fs25_dialogSubtitle" position="-350px -380px" text="%cs_irr_covered_fields%" />
+            <GuiElement id="coveredFieldsContainer" profile="fs25_listBox" position="-350px -410px" size="300px 120px">
+                <!-- Items added dynamically -->
+            </GuiElement>
+        </GuiElement>
+
+        <!-- Button box at bottom -->
+        <BoxLayout profile="fs25_dialogButtonBox" id="buttonBox">
+            <Button profile="buttonOK" id="btnIrrigateNow" text="%cs_irr_irrigate_now%" onClick="onIrrigateNow"/>
+            <Button profile="buttonOK" id="btnSave" text="%cs_irr_save_schedule%" onClick="onSaveSchedule"/>
+            <Button profile="buttonCancel" id="btnClose" text="Close" onClick="onDialogClose"/>
+        </BoxLayout>
+    </GuiElement>
+</GUI>

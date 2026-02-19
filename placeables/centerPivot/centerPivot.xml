@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<placeable type="irrigationPivot" descVersion="105">
+    <name>
+        <en>Center Pivot</en>
+    </name>
+    <filename>placeables/centerPivot/centerPivot.i3d</filename>
+    <price value="85000"/>
+    <dailyUpkeep value="25"/>
+    <rotationSpeed value="5"/>
+    <motorStartSpeed value="0.5"/>
+    <motorStopSpeed value="0.1"/>
+    <wearDuration value="720"/>
+    <workArea>
+        <area type="CYLINDER" x="0" y="0.5" z="0" radius="2.5" height="1"/>
+    </workArea>
+    <specializations>
+        <specialization name="irrigationPivot" className="IrrigationPivot" filename="placeables/centerPivot/centerPivot.lua"/>
+    </specializations>
+    <!-- Custom parameters -->
+    <irrigationConfig radius="200" flowRatePerHour="0.018" operationalCostPerHour="15"
+                      defaultStartHour="6" defaultEndHour="10"
+                      defaultActiveDays="1,1,1,1,1,0,0"/>
+</placeable>
