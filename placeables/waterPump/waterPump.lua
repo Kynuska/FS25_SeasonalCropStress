@@ -7,21 +7,44 @@ WaterPump = {}
 local WaterPump_mt = Class(WaterPump, Placeable)
 
 function WaterPump.new(isServer, isClient, customMt)
-    local self = Placeable.new(isServer, isClient, customMt or WaterPump_mt)
-    self.irrigationManager = g_cropStressManager and g_cropStressManager.irrigationManager
+    -- Placeable.new() takes only the metatable in FS25
+    local self = Placeable.new(customMt or WaterPump_mt)
+    self.isServer = isServer
+    self.isClient = isClient
+
+    -- irrigationManager must NOT be read here — g_cropStressManager doesn't exist yet.
+    -- Looked up in onLoad instead.
+    self.irrigationManager = nil
+    self.waterFlowCapacity = 1000  -- default; overwritten in onLoad from XML
     return self
 end
 
 function WaterPump:onLoad(savegame)
     Placeable.onLoad(self, savegame)
-    self.waterFlowCapacity = self.configurations and self.configurations.waterFlowCapacity or 1000
-    if self.irrigationManager then
+
+    -- Read custom config from the placeable's XML file
+    if self.xmlFile ~= nil then
+        local base = self.baseKey .. ".pumpConfig"
+        local wfc = getXMLFloat(self.xmlFile, base .. "#waterFlowCapacity")
+        if wfc ~= nil then
+            self.waterFlowCapacity = wfc
+        end
+    end
+
+    -- Resolve IrrigationManager now that the mission is loaded
+    self.irrigationManager = g_cropStressManager and g_cropStressManager.irrigationManager or nil
+
+    -- waterFlowCapacity must be set BEFORE registerWaterSource so the
+    -- manager records the correct capacity on first registration
+    if self.irrigationManager ~= nil then
         self.irrigationManager:registerWaterSource(self)
+    else
+        print("[CropStress] waterPump: IrrigationManager not available at onLoad — pump not registered")
     end
 end
 
 function WaterPump:onDelete()
-    if self.irrigationManager then
+    if self.irrigationManager ~= nil then
         self.irrigationManager:deregisterWaterSource(self.id)
     end
     Placeable.onDelete(self)
@@ -29,10 +52,10 @@ end
 
 function WaterPump:onReadStream(streamId, connection)
     Placeable.onReadStream(self, streamId, connection)
-    -- Read any sync data if needed
+    -- No additional state to sync for Phase 2
 end
 
 function WaterPump:onWriteStream(streamId, connection)
     Placeable.onWriteStream(self, streamId, connection)
-    -- Write sync data
+    -- No additional state to sync for Phase 2
 end

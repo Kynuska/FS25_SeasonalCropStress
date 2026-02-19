@@ -23,33 +23,38 @@ end
 function FinanceIntegration:chargeHourlyCosts()
     if not self.isInitialized then return end
     local irrMgr = self.manager.irrigationManager
-    if not irrMgr then return end
+    if irrMgr == nil then return end
 
     for id, system in pairs(irrMgr.systems) do
         if system.isActive then
             local cost = system.operationalCostPerHour
             if self.usedPlusActive then
-                -- Phase 4: use UsedPlus
-                if g_usedPlusManager and g_usedPlusManager.recordExpense then
+                -- Phase 4: verify exact UsedPlus API against source before enabling
+                -- LUADOC NOTE: g_usedPlusManager:recordExpense() signature unconfirmed
+                if g_usedPlusManager ~= nil and g_usedPlusManager.recordExpense ~= nil then
                     g_usedPlusManager:recordExpense("IRRIGATION", cost, {
                         description = string.format("Irrigation system %d", id),
                         category    = "OPERATIONAL",
                     })
                 end
             else
-                g_currentMission.missionInfo:updateFunds(-cost, "OTHER", true)
+                -- Correct FS25 call: updateFunds on the mission object directly,
+                -- with the FundsReasonType enum (not a raw string)
+                if g_currentMission ~= nil then
+                    g_currentMission:updateFunds(-cost, FundsReasonType.OTHER, true)
+                end
             end
         end
     end
 end
 
 function FinanceIntegration:getEquipmentWearLevel(vehicleId)
-    -- Phase 4: query UsedPlus DNA
+    -- Phase 4: query UsedPlus DNA reliability value
     return 0.0
 end
 
 function FinanceIntegration:delete()
-    if self.manager and self.manager.eventBus then
+    if self.manager ~= nil and self.manager.eventBus ~= nil then
         self.manager.eventBus.unsubscribeAll(self)
     end
     self.isInitialized = false

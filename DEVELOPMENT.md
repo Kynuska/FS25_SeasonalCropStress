@@ -318,6 +318,52 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 
 ---
 
+### 2026-02-19 — Claude (Sonnet 4.6) — Full codebase bug-fix review
+
+**Started from:** Bug report: `CropStressModifier.lua:222: attempt to index nil with 'devInfo'`
+
+**Completed:**
+Full file-by-file review and fix pass of every source file in the mod. No new features — bugs and API errors only.
+
+Files fixed:
+- `src/CropStressModifier.lua` — `g_logManager:devInfo()` → `csLog()` helper throughout; added `csLog()` local function
+- `main.lua` — removed `DialogLoader.register()` call (API doesn't exist in FS25); moved dialog registration into `loadMission00Finished` using `g_gui:loadGui()`; replaced `g_logManager:devInfo()` with `print()`
+- `src/CropStressManager.lua` — `g_logManager:devInfo()` → `csLog()`; `env:getHour()` → `env.currentHour`; `g_gui:showDialog(name, nil, id)` → `showDialog(name)` + manual `dialog.target:onIrrigationDialogOpen(id)`; removed dead `writeStreamToConnection()` / `connection:getStream()` code; `WeatherIntegration.SEASON_NAMES` cross-file dependency removed — local `SEASON_NAMES` table defined in this file instead
+- `src/SoilMoistureSystem.lua` — `g_logManager:devInfo()` → `csLog()`; `env:currentSeason()` → `env.currentSeason`; `env:getHour()` → `env.currentHour`
+- `src/WeatherIntegration.lua` — `g_logManager:devInfo()` → `csLog()`; `env:currentSeason()` → `env.currentSeason`
+- `src/IrrigationManager.lua` — `g_logManager:devInfo()` → `csLog()`; `env:getHour()` → `env.currentHour`; `env:getDayOfWeek()` → `env.currentDayInPeriod`; `placeable:getPosition()` → `getPlaceablePosition()` local helper using `getWorldTranslation(placeable.rootNode)`; added nil guard on `g_currentMission` in `detectCoveredFields()`
+- `src/FinanceIntegration.lua` — `g_currentMission.missionInfo:updateFunds()` → `g_currentMission:updateFunds()` with `FundsReasonType.OTHER` enum instead of raw string `"OTHER"`
+- `src/HUDOverlay.lua` — `g_logManager:devInfo()` → `csLog()`; `HUDOverlay:getMoistureColor()` called as `HUDOverlay:getMoistureColor()` (class table) inside instance method → fixed to `self:getMoistureColor()`; added nil guard on `g_currentMission` in `onCriticalThreshold()`
+- `gui/IrrigationScheduleDialog.lua` — base class `MessageDialog` → `DialogElement`; `getElement()` → `getDescendantByName()`; `createDayButtons()` removed entirely (dynamic UI construction API doesn't exist — buttons must be in XML); day state tracked in `self.daySelected[]` table instead of `Button:getSelected()`; `setState(hour)` → `setState(hour, true)`; `removeAllChildren()` → reverse loop over `.elements` with `removeElement()`; `Text:new()` → `GuiElement.new()` with profile + `addElement()`; `⚠` unicode → `!`; `self:close()` → `g_gui:closeDialog(self)`; hardcoded strings → `g_i18n:getText()` calls; nil guards added throughout
+- `gui/IrrigationScheduleDialog.xml` — `onOpen`/`onClose` → `onIrrigationDialogOpen`/`onIrrigationDialogClose` (prevents stack overflow); `%keyname%` i18n syntax → `$l10n_keyname` throughout; day buttons now declared in XML as `btn_day_1`–`btn_day_7` (matches fixed Lua); `buttonOK` → `buttonActivate` for action buttons; `profile="fs25_listBox"` removed from plain container; hardcoded strings → l10n keys
+- `placeables/centerPivot/centerPivot.lua` — `Placeable.new(isServer, isClient, mt)` → `Placeable.new(mt)` with manual `self.isServer`/`self.isClient`; `g_cropStressManager` access moved from `new()` to `onLoad()`; `self.configurations` → `getXMLFloat`/`getXMLInt`/`getXMLString` via `self.xmlFile`/`self.baseKey`; `self:getNodeFromComponent()` → `I3DUtil.getChildIndex()` + `getChildAt()`; `self.isActive` explicit init to `false`; `onUpdate` gated on `self.isClient`
+- `placeables/centerPivot/centerPivot.xml` — removed `<specializations>` block (vehicle pattern, not placeable); removed `<workArea>`, `<rotationSpeed>`, `<motorStartSpeed>`, `<motorStopSpeed>` (vehicle attributes); added `<storeData>` block; type prefixed to `fs25_seasonalcropstress_irrigationPivot`; `<name>` block → `<storeData><n>` with l10n key
+- `placeables/waterPump/waterPump.lua` — same three fixes as centerPivot: `Placeable.new()` signature, `g_cropStressManager` timing, `self.configurations` → XML read
+
+**Tested:**
+- Code review only — no in-game testing this session
+
+**Checked off in TODO:**
+- No new TODO items checked off — this was a bug-fix pass on already-marked items, not new feature work
+- NOTE: `[x]` items for `IrrigationScheduleDialog` XML/Lua and `centerPivot`/`waterPump` Lua were marked complete in the previous session but contained the bugs fixed here. They remain `[x]` as the implementations are now correct, but in-game test items remain `[ ]`
+
+**Next agent should start at:**
+`Create placeables/waterPump/waterPump.xml — MISSING. Only waterPump.lua was created.`
+(Unchanged from previous session — still the highest-priority unblocked item)
+
+**Notes / surprises:**
+- `g_logManager:devInfo()` was the single most widespread bug — present in every file that used logging. Every future file should use the `csLog()` local helper pattern established in this session (defined at top of each file, falls back to `print()` if `g_logManager` is nil).
+- `env.currentSeason`, `env.currentHour`, `env.currentDayInPeriod` are all **direct properties**, not method calls. This mistake was present in 4 files. Add to CLAUDE.md "What DOESN'T Work" table.
+- `placeable:getPosition()` does not exist — use `getWorldTranslation(placeable.rootNode)`. Add to CLAUDE.md.
+- `g_currentMission:updateFunds()` takes `FundsReasonType.OTHER` enum, not the string `"OTHER"`.
+- `DialogLoader` does not exist in FS25 — dialog registration is via `g_gui:loadGui()` in `loadMission00Finished`.
+- `IrrigationScheduleDialog` callback names `onOpen`/`onClose` in XML were confirmed as the stack-overflow pattern documented in CLAUDE.md — renamed to `onIrrigationDialogOpen`/`onIrrigationDialogClose`. The Lua method names match.
+- `waterPump.xml` still missing. `centerPivot.xml` now correct but has placeholder shop image path (`centerPivot_shop.dds`) that needs a real asset.
+- Neither placeable has an `.i3d` file — Phase 2 remains unplayable until assets exist.
+- All new l10n keys added this session that need to be added to `translation_en.xml`: `cs_irr_start_time`, `cs_irr_end_time`, `cs_irr_performance`, `cs_irr_flow_rate`, `cs_irr_efficiency`, `cs_irr_cost`, `cs_irr_wear`, `cs_close`, `cs_no_irrigation_systems`
+
+---
+
 ### 2026-02-19 — Claude (Sonnet 4.6) — Phase 2 review & bug fixes
 
 **Started from:** Code review of existing Phase 2 implementation
@@ -413,4 +459,4 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 
 ---
 
-*DEVELOPMENT.md — last updated: 2026-02-19, Phase 2 review session.*
+*DEVELOPMENT.md — last updated: 2026-02-19, full bug-fix review session.*

@@ -11,7 +11,7 @@
 WeatherIntegration = {}
 WeatherIntegration.__index = WeatherIntegration
 
--- Season indices (matches g_currentMission.environment:currentSeason())
+-- Season indices (matches g_currentMission.environment.currentSeason)
 WeatherIntegration.SEASON_SPRING = 0
 WeatherIntegration.SEASON_SUMMER = 1
 WeatherIntegration.SEASON_AUTUMN = 2
@@ -19,6 +19,17 @@ WeatherIntegration.SEASON_WINTER = 3
 
 -- Season display names (English — UI uses i18n keys)
 WeatherIntegration.SEASON_NAMES = { [0]="Spring", [1]="Summer", [2]="Autumn", [3]="Winter" }
+
+-- ============================================================
+-- LOGGING HELPER
+-- ============================================================
+local function csLog(msg)
+    if g_logManager ~= nil then
+        g_logManager:devInfo("[CropStress]", msg)
+    else
+        print("[CropStress] " .. tostring(msg))
+    end
+end
 
 function WeatherIntegration.new(manager)
     local self = setmetatable({}, WeatherIntegration)
@@ -30,8 +41,8 @@ function WeatherIntegration.new(manager)
     self.currentHumidity = 0.5    -- 0.0-1.0
 
     -- Rain state: rainScale is the FS25 normalized rain intensity (0.0-1.0)
-    self.rainScale       = 0.0
-    self.isRaining       = false
+    self.rainScale        = 0.0
+    self.isRaining        = false
 
     -- Accumulated rain for the current hour (in moisture fraction units)
     -- Calculated from rainScale * absorption coefficient
@@ -43,14 +54,14 @@ end
 
 function WeatherIntegration:initialize()
     if g_currentMission == nil then
-        g_logManager:devInfo("[CropStress]", "WeatherIntegration: g_currentMission nil at init")
+        csLog("WeatherIntegration: g_currentMission nil at init")
         return
     end
 
     -- Do an immediate poll to populate cached values
     self:update()
     self.isInitialized = true
-    g_logManager:devInfo("[CropStress]", string.format(
+    csLog(string.format(
         "WeatherIntegration initialized. Season=%s Temp=%.1f°C Rain=%s",
         WeatherIntegration.SEASON_NAMES[self.currentSeason] or "?",
         self.currentTemp,
@@ -64,11 +75,10 @@ function WeatherIntegration:update()
     local env = g_currentMission.environment
     if env == nil then return end
 
-    -- Season
-    self.currentSeason = env:currentSeason() or WeatherIntegration.SEASON_SPRING
+    -- Season: direct property access, not a method call
+    self.currentSeason = env.currentSeason or WeatherIntegration.SEASON_SPRING
 
     -- Temperature
-    -- FS25: env.weather.temperature or env.weather:getCurrentTemperature()
     -- Try multiple access paths for compatibility across patch versions
     local temp = 15.0
     if env.weather ~= nil then
@@ -111,7 +121,7 @@ function WeatherIntegration:getHourlyEvapMultiplier()
 
     -- Season component
     local seasonMods = { [0]=0.80, [1]=1.40, [2]=0.90, [3]=0.20 }
-    local seasonMod = seasonMods[self.currentSeason] or 1.0
+    local seasonMod  = seasonMods[self.currentSeason] or 1.0
 
     return tempMod * seasonMod
 end

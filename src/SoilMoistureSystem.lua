@@ -32,6 +32,17 @@ SoilMoistureSystem.SEASON_START_MOISTURE = { [0]=0.60, [1]=0.40, [2]=0.55, [3]=0
 -- Critical threshold — below this, fire CS_CRITICAL_THRESHOLD
 SoilMoistureSystem.CRITICAL_MOISTURE = 0.25
 
+-- ============================================================
+-- LOGGING HELPER
+-- ============================================================
+local function csLog(msg)
+    if g_logManager ~= nil then
+        g_logManager:devInfo("[CropStress]", msg)
+    else
+        print("[CropStress] " .. tostring(msg))
+    end
+end
+
 function SoilMoistureSystem.new(manager)
     local self = setmetatable({}, SoilMoistureSystem)
     self.manager = manager
@@ -48,7 +59,7 @@ function SoilMoistureSystem.new(manager)
 
     self.irrigationGains = {}  -- fieldId -> total gain per hour
 
-    -- Track which fields have already had a first-run HUD trigger
+    -- Per-field cooldown to avoid spamming CS_CRITICAL_THRESHOLD
     self.criticalAlertCooldown = {}  -- fieldId → lastAlertHourKey
 
     self.isInitialized = false
@@ -57,18 +68,19 @@ end
 
 function SoilMoistureSystem:initialize()
     if g_currentMission == nil or g_currentMission.fieldManager == nil then
-        g_logManager:devInfo("[CropStress]", "SoilMoistureSystem: fieldManager unavailable at init")
+        csLog("SoilMoistureSystem: fieldManager unavailable at init")
         return
     end
 
+    -- currentSeason is a direct property on the environment object, not a method call
     local season = 0
     if g_currentMission.environment ~= nil then
-        season = g_currentMission.environment:currentSeason() or 0
+        season = g_currentMission.environment.currentSeason or 0
     end
     local startMoisture = SoilMoistureSystem.SEASON_START_MOISTURE[season] or 0.50
 
     local fields = g_currentMission.fieldManager:getFields()
-    local count = 0
+    local count  = 0
 
     for _, field in pairs(fields) do
         local fid = field.fieldId
@@ -83,14 +95,14 @@ function SoilMoistureSystem:initialize()
         end
     end
 
-    -- Subscribe to irrigation events (once, here — never inside the hourly loop)
+    -- Subscribe to irrigation events once here — never inside the hourly loop
     if self.manager ~= nil and self.manager.eventBus ~= nil then
         self.manager.eventBus.subscribe("CS_IRRIGATION_STARTED", self.onIrrigationStarted, self)
         self.manager.eventBus.subscribe("CS_IRRIGATION_STOPPED", self.onIrrigationStopped, self)
     end
 
     self.isInitialized = true
-    g_logManager:devInfo("[CropStress]", string.format(
+    csLog(string.format(
         "SoilMoistureSystem initialized. %d fields tracked. Start moisture=%.0f%% (season %d)",
         count, startMoisture * 100, season
     ))
@@ -101,11 +113,15 @@ function SoilMoistureSystem:hourlyUpdate(weather)
     if not self.isInitialized then return end
     if weather == nil then return end
 
-    local evapMultiplier  = weather:getHourlyEvapMultiplier()
-    local rainAmount      = weather:getHourlyRainAmount()
+    local evapMultiplier = weather:getHourlyEvapMultiplier()
+    local rainAmount     = weather:getHourlyRainAmount()
 
-    local env = g_currentMission and g_currentMission.environment
-    local hourKey = env and ((env.currentMonotonicDay or 0) * 24 + (env:getHour() or 0)) or 0
+    -- currentHour is a direct property on the environment object, not a method call
+    local env     = g_currentMission and g_currentMission.environment
+    local hourKey = 0
+    if env ~= nil then
+        hourKey = (env.currentMonotonicDay or 0) * 24 + (env.currentHour or 0)
+    end
 
     for fieldId, data in pairs(self.fieldData) do
         local soilParams = SoilMoistureSystem.SOIL_PARAMS[data.soilType]
@@ -117,15 +133,14 @@ function SoilMoistureSystem:hourlyUpdate(weather)
             * soilParams.evapMod
 
         -- Rain gain (modulated by soil absorption)
-        local rainGain = rainAmount * soilParams.rainAbsorb
-
+        local rainGain  = rainAmount * soilParams.rainAbsorb
         local irrigGain = self.irrigationGains[fieldId] or 0.0
 
         local prevMoisture = data.moisture
         data.moisture = math.max(0.0, math.min(1.0,
             data.moisture - evapLoss + rainGain + irrigGain))
 
-        -- Fire event via CropEventBus
+        -- Publish moisture update event
         if self.manager ~= nil and self.manager.eventBus ~= nil then
             self.manager.eventBus.publish("CS_MOISTURE_UPDATED", {
                 fieldId  = fieldId,
@@ -134,14 +149,14 @@ function SoilMoistureSystem:hourlyUpdate(weather)
             })
         end
 
-        -- Critical threshold check (with cooldown to avoid spam)
+        -- Critical threshold check (12-hour cooldown per field to avoid spam)
         if data.moisture <= SoilMoistureSystem.CRITICAL_MOISTURE then
             local lastAlert = self.criticalAlertCooldown[fieldId] or -999
             if (hourKey - lastAlert) >= 12 then
                 self.criticalAlertCooldown[fieldId] = hourKey
                 if self.manager ~= nil and self.manager.eventBus ~= nil then
                     self.manager.eventBus.publish("CS_CRITICAL_THRESHOLD", {
-                        fieldId      = fieldId,
+                        fieldId       = fieldId,
                         moistureLevel = data.moisture,
                     })
                 end
@@ -149,7 +164,7 @@ function SoilMoistureSystem:hourlyUpdate(weather)
         end
 
         if self.manager.debugMode then
-            g_logManager:devInfo("[CropStress]", string.format(
+            csLog(string.format(
                 "Field %d: %.1f%% → %.1f%% (evap=%.4f rain=%.4f irr=%.4f)",
                 fieldId, prevMoisture * 100, data.moisture * 100,
                 evapLoss, rainGain, irrigGain

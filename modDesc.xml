@@ -36,7 +36,7 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
     <multiplayer supported="true"/>
 
     <!-- Phase 1: no 3D assets yet. Replace with real icon before publishing. -->
-    <!-- <iconFilename>icon.dds</iconFilename> -->
+    <iconFilename>icon.dds</iconFilename>
 
     <!--
         All source files are loaded by main.lua via source() calls in strict
