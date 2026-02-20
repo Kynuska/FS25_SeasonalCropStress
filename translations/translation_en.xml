@@ -80,4 +80,20 @@
     <e k="cs_irr_wear"           v="Wear Level"/>
     <e k="cs_close"              v="Close"/>
     <e k="cs_no_irrigation_systems" v="No irrigation systems placed yet"/>
+
+    <!-- ========== CONSULTANT DIALOG (Phase 3) ========== -->
+    <text name="cs_consultant_subtitle"        text="Field Status &amp; Recommendations"/>
+    <text name="cs_consultant_relationship"    text="Relationship with Alex:"/>
+    <text name="cs_consultant_field_status"    text="Field Risk Summary (Top 5)"/>
+    <text name="cs_consultant_recommendation"  text="Recommendations"/>
+    <text name="cs_consultant_open_irrigation" text="Open Irrigation Manager"/>
+    <text name="cs_consultant_no_data"         text="No field data available."/>
+
+    <!-- INPUT ACTION hint text (shown in key-binding screen) -->
+    <e k="input_CS_OPEN_CONSULTANT" v="Open Crop Consultant"/>
+
+    <!-- Phase 3 alert strings already present above — ensure cs_irr_started exists -->
+    <e k="cs_irr_started"          v="Irrigation started."/>
+    <e k="cs_schedule_saved"       v="Schedule saved."/>
+
 </l10n>

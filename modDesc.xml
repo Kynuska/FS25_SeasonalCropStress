@@ -55,11 +55,16 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
             <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_i"
                      axisComponent="+" index="1" isInverted="false" isTurnAxis="false"/>
         </actionBinding>
+        <actionBinding action="CS_OPEN_CONSULTANT">
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_c"
+                     axisComponent="+" index="1" isInverted="false" isTurnAxis="false"/>
+        </actionBinding>
     </inputBinding>
 
     <actions>
         <action name="CS_TOGGLE_HUD"      axisType="HALF_POSITIVE_AXIS" isSink="true"/>
         <action name="CS_OPEN_IRRIGATION" axisType="HALF_POSITIVE_AXIS" isSink="true"/>
+        <action name="CS_OPEN_CONSULTANT"  axisType="HALF_POSITIVE_AXIS" isSink="true"/>
     </actions>
 
     <l10n filenamePrefix="translations/translation"/>
