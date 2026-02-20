@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    CropConsultantDialog.xml
+    Agronomist consultation panel.
+    NEVER use onOpen/onClose as callback names — system lifecycle conflict.
+    Pattern follows TakeLoanDialog.xml per CLAUDE.md.
+-->
+<GUI onCreate="onCreate" onOpen="onConsultantDialogOpen" onClose="onConsultantDialogClose">
+    <GuiElement profile="newLayer" />
+    <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
+    <GuiElement profile="dialogBg" id="dialogElement" size="800px 600px">
+        <ThreePartBitmap profile="fs25_dialogBgMiddle" />
+        <ThreePartBitmap profile="fs25_dialogBgTop" />
+        <ThreePartBitmap profile="fs25_dialogBgBottom" />
+        <GuiElement profile="fs25_dialogContentContainer" id="content">
+
+            <!-- ── Title ─────────────────────────────── -->
+            <Text id="titleText"    profile="fs25_dialogTitle"    text="$l10n_cs_consultant_name" />
+            <Text id="subtitleText" profile="fs25_dialogSubtitle" position="0px -15px"
+                  text="$l10n_cs_consultant_subtitle" />
+
+            <!-- ── NPC Relationship Section (hidden when NPCFavor not active) ── -->
+            <GuiElement id="npcSection" position="0px -50px" size="760px 30px">
+                <Text id="npcRelLabel" profile="fs25_dialogText" position="-350px 0px"
+                      text="$l10n_cs_consultant_relationship" />
+                <Text id="npcRelValue" profile="fs25_dialogText" position="-180px 0px"
+                      text="—" />
+            </GuiElement>
+
+            <!-- ── Field Risk List ───────────────────── -->
+            <Text profile="fs25_dialogSubtitle" position="-350px -90px"
+                  text="$l10n_cs_consultant_field_status" />
+            <GuiElement id="fieldListContainer" position="-350px -125px" size="760px 130px">
+                <!-- Items added dynamically in CropConsultantDialog.lua -->
+            </GuiElement>
+
+            <!-- ── Recommendations ───────────────────── -->
+            <Text profile="fs25_dialogSubtitle" position="-350px -270px"
+                  text="$l10n_cs_consultant_recommendation" />
+            <Text id="recommendText" profile="fs25_dialogText" position="-350px -305px"
+                  size="760px 120px" text="—" />
+
+        </GuiElement>
+
+        <!-- ── Buttons ───────────────────────────────── -->
+        <BoxLayout profile="fs25_dialogButtonBox" id="buttonBox">
+            <Button profile="buttonActivate" id="btnOpenIrr"
+                    text="$l10n_cs_consultant_open_irrigation"
+                    onClick="onOpenIrrigationDialog" />
+            <Button profile="buttonOK" id="btnClose"
+                    text="$l10n_cs_close"
+                    onClick="onConsultantDialogClose" />
+        </BoxLayout>
+    </GuiElement>
+</GUI>

@@ -40,6 +40,9 @@ source(modDir .. "gui/FieldMoisturePanel.lua")
 source(modDir .. "gui/IrrigationScheduleDialog.lua") -- Phase 2 stub
 source(modDir .. "gui/CropConsultantDialog.lua")     -- Phase 3 stub
 
+-- Phase 6 continued: Consultant dialog
+source(modDir .. "gui/CropConsultantDialog.lua")
+
 -- Phase 7: Central coordinator (must load last)
 source(modDir .. "src/CropStressManager.lua")
 
@@ -77,6 +80,12 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
             IrrigationScheduleDialog.new(),
             false
         )
+        g_gui:loadGui(
+            modDir .. "gui/CropConsultantDialog.xml",
+            nil,
+            CropConsultantDialog.new(),
+            false
+        )
     end
 
     -- Register HUD toggle input after mission is ready
@@ -105,6 +114,19 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
         )
     end
 
+    -- Register consultant dialog input after mission is ready
+    if g_inputBinding ~= nil and InputAction ~= nil and InputAction.CS_OPEN_CONSULTANT ~= nil then
+        g_inputBinding:registerActionEvent(
+            InputAction.CS_OPEN_CONSULTANT,
+            g_csManager,
+            CropStressManager.onOpenConsultantDialog,
+            false, -- triggerUp
+            true,  -- triggerDown
+            false, -- triggerAlways
+            true   -- startActive
+        )
+    end
+
     -- Register console debug commands
     if addConsoleCommand ~= nil then
         addConsoleCommand("csHelp",
@@ -125,6 +147,9 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
         addConsoleCommand("csDebug",
             "Toggle verbose debug logging",
             "consoleToggleDebug", g_csManager)
+        addConsoleCommand("csConsultant",
+            "Open the Crop Consultant dialog",
+            "consoleConsultant", g_csManager)
     end
 end)
 
@@ -156,6 +181,7 @@ FSBaseMission.delete = Utils.appendedFunction(FSBaseMission.delete, function(sel
             removeConsoleCommand("csForceStress")
             removeConsoleCommand("csSimulateHeat")
             removeConsoleCommand("csDebug")
+            removeConsoleCommand("csConsultant")
         end
     end
 end)

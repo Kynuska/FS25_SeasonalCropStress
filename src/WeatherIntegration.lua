@@ -143,3 +143,50 @@ function WeatherIntegration:delete()
     -- No subscriptions to clean up (we poll instead)
     self.isInitialized = false
 end
+-- ============================================================
+-- 5-DAY MOISTURE FORECAST
+-- Projects moisture for a field over the next N in-game days
+-- based on current weather state (linear extrapolation).
+--
+-- LUADOC NOTE: Upgrade to use g_currentMission.environment.weather:getForecast()
+-- if/when that API is confirmed available in FS25.
+-- ============================================================
+function WeatherIntegration:getMoistureForecast(fieldId, days)
+    days = days or 5
+
+    local soilSystem = self.manager and self.manager.soilSystem
+    if soilSystem == nil then
+        local t = {}
+        for i = 1, days do t[i] = 0.5 end
+        return t
+    end
+
+    local current = soilSystem:getMoisture(fieldId) or 0.5
+
+    local soilType = "loamy"
+    if soilSystem.fieldData ~= nil and soilSystem.fieldData[fieldId] ~= nil then
+        soilType = soilSystem.fieldData[fieldId].soilType or "loamy"
+    end
+    local soilParams = SoilMoistureSystem.SOIL_PARAMS[soilType]
+        or SoilMoistureSystem.SOIL_PARAMS.loamy
+
+    local evapPerHour  = SoilMoistureSystem.BASE_EVAP_RATE
+        * self:getHourlyEvapMultiplier()
+        * soilParams.evapMod
+    local rainPerHour  = self:getHourlyRainAmount() * soilParams.rainAbsorb
+    local irrigPerHour = 0.0
+    if self.manager ~= nil and self.manager.irrigationManager ~= nil then
+        irrigPerHour = self.manager.irrigationManager:getIrrigationRateForField(fieldId)
+    end
+
+    local netHourly = rainPerHour + irrigPerHour - evapPerHour
+
+    local projections = {}
+    local moisture    = current
+    for day = 1, days do
+        moisture = math.max(0.0, math.min(1.0, moisture + netHourly * 24))
+        projections[day] = moisture
+    end
+
+    return projections
+end

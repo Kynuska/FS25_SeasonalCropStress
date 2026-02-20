@@ -83,8 +83,8 @@ function CropStressManager.new()
     self.stressModifier     = CropStressModifier.new(self)
     self.irrigationManager  = IrrigationManager.new(self)       -- Phase 2 stub
     self.hudOverlay         = HUDOverlay.new(self)
-    self.consultant         = CropConsultant.new(self)          -- Phase 3 stub
-    self.npcIntegration     = NPCIntegration.new(self)          -- Phase 3 stub
+    self.consultant         = CropConsultant.new(self)
+    self.npcIntegration     = NPCIntegration.new(self)
     self.financeIntegration = FinanceIntegration.new(self)      -- Phase 4 stub
     self.saveLoad           = SaveLoadHandler.new(self)
 
@@ -170,7 +170,7 @@ function CropStressManager:onHourlyTick()
     self.financeIntegration:chargeHourlyCosts()
 
     -- Phase 3: Consultant alert evaluation
-    -- self.consultant:hourlyEvaluate()
+    self.consultant:hourlyEvaluate()
 
     if self.debugMode then
         csLog(string.format(
@@ -221,6 +221,8 @@ function CropStressManager:detectOptionalMods()
     if getfenv(0)["g_npcFavorSystem"] ~= nil then
         csLog("FS25_NPCFavor detected — enabling NPC integration")
         self.npcIntegration.npcFavorActive = true
+        -- Also enable NPCFavor mode on the consultant so alerts route through Alex Chen
+        self.consultant:enableNPCFavorMode()
     end
 
     if getfenv(0)["g_usedPlusManager"] ~= nil then
@@ -230,6 +232,17 @@ function CropStressManager:detectOptionalMods()
 
     if getfenv(0)["g_precisionFarming"] ~= nil then
         csLog("Precision Farming DLC detected — enabling PF compat (Phase 4)")
+    end
+end
+
+-- ============================================================
+-- INPUT EVENT — CONSULTANT DIALOG
+-- ============================================================
+function CropStressManager:onOpenConsultantDialog()
+    if g_gui == nil then return end
+    local dialog = g_gui:showDialog("CropConsultantDialog")
+    if dialog ~= nil and dialog.target ~= nil then
+        dialog.target:onConsultantDialogOpen()
     end
 end
 
@@ -377,6 +390,20 @@ function CropStressManager:consoleSimulateHeat(daysStr)
     print(string.format("Simulated %d-day heat wave. Check csStatus for field state.", days))
 end
 
+
+function CropStressManager:consoleConsultant()
+    if g_gui == nil then
+        print("CropStress: g_gui not available")
+        return
+    end
+    local dialog = g_gui:showDialog("CropConsultantDialog")
+    if dialog ~= nil and dialog.target ~= nil then
+        dialog.target:onConsultantDialogOpen()
+        print("CropConsultant dialog opened")
+    else
+        print("CropStress: CropConsultantDialog not registered — check main.lua loadGui call")
+    end
+end
 function CropStressManager:consoleToggleDebug()
     self.debugMode = not self.debugMode
     print(string.format("CropStress debug mode: %s", tostring(self.debugMode)))
