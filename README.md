@@ -11,15 +11,16 @@
 
 FS25 farms look lush even when your crops are quietly dying of thirst. This mod changes that.
 
-**Seasonal Crop Stress & Irrigation Manager** adds real soil moisture physics to every field on your farm. Rain replenishes. Heat evaporates. Sandy soil drains fast; clay holds longer. When moisture drops below critical thresholds during the growth windows that matter most — wheat during heading, corn during pollination — stress accumulates and your yield shrinks. Play it right and your harvest is better than vanilla. Ignore it and you'll wonder why your combines are running light.
+**Seasonal Crop Stress & Irrigation Manager** adds real soil moisture physics to every field on your farm. Rain replenishes. Heat evaporates. Sandy soil drains fast; clay holds longer. When moisture drops below critical thresholds during the growth windows that matter most — wheat during heading, corn during pollination — stress accumulates and your yield shrinks. Place a center-pivot irrigator, schedule it, and protect what you've grown. Play it right and your harvest beats vanilla. Ignore it and you'll wonder why your combines are running light.
 
-Phase 1 is live. Irrigation hardware, a Crop Consultant NPC, and optional integration with FS25_NPCFavor and FS25_UsedPlus are coming in Phases 2–4.
+Phases 1 and 2 are live. Phase 3 (Crop Consultant NPC, NPCFavor integration) is in active development. Phase 4 (FS25_UsedPlus integration, drip irrigation, Precision Farming overlay) is planned.
 
 ---
 
 ## ✨ Features
 
-**Phase 1 — Soil Moisture & Crop Stress (current)**
+### Phase 1 — Soil Moisture & Crop Stress ✅ Live
+
 - Per-field soil moisture simulation (0–100%) driven by real in-game weather
 - Seasonal evapotranspiration: heat accelerates moisture loss, cold slows it
 - Soil type modifiers: sandy drains 40% faster, clay retains 30% longer, loam is baseline
@@ -27,26 +28,41 @@ Phase 1 is live. Irrigation hardware, a Crop Consultant NPC, and optional integr
 - Crop-specific critical growth windows for 8 crops: wheat, barley, corn, canola, sunflower, soybeans, sugar beet, potato
 - Yield stress accumulates during critical windows when moisture falls below crop thresholds
 - Harvest yield reduction — up to **60% loss** at maximum stress
-- **Field Moisture HUD** overlay showing real-time status for all active fields (press `Shift+M`)
+- **Field Moisture HUD** overlay (press `Shift+M`) — color-coded bars for every active field
+- Click any field row in the HUD to see its **5-day moisture forecast** strip
 - Color-coded moisture indicators: green (healthy) → yellow (warning) → red (critical)
 - Auto-show HUD when a field reaches critical drought threshold
 - First-run welcome notification so you know the mod is active
 - Full save/load persistence — all field moisture and stress state survives session restarts
 - Developer console commands (`csHelp` in the `~` console)
 
-**Coming in Phase 2 — Irrigation Systems**
-- Center-pivot and drip irrigation hardware
-- Irrigation scheduling UI
-- Water source management
+### Phase 2 — Irrigation Infrastructure ✅ Live
 
-**Coming in Phase 3 — Crop Consultant**
-- Alex Chen, Agronomist NPC with field recommendations
-- Alert system with severity levels
-- Optional FS25_NPCFavor integration for relationship-based advice
+- **Center Pivot Irrigator** placeable — circular field coverage up to 200m radius
+- **Water Pump** placeable — place near any water source; auto-connects to pivots within 500m
+- Pressure curve: flow degrades linearly from 100% at 0m to 70% at 500m; zero beyond
+- **Irrigation Schedule Dialog** (press `E` near a pivot, or `Shift+I`) — set active days, start/end hour, view covered fields and flow rate
+- "Irrigate Now" button for immediate manual activation
+- Operational costs charged to farm account each active hour
+- Irrigation schedule persists across saves and reloads
+- Equipment wear level tracked (used in Phase 4 UsedPlus integration)
 
-**Coming in Phase 4 — Economy Integration**
-- Crop insurance via optional FS25_UsedPlus integration
-- Yield history tracking and analytics
+### Phase 3 — Crop Consultant 🚧 In Development
+
+- **Alert system**: three severity levels fire as moisture drops
+  - INFO (40–50%): *"Field X getting dry — monitor conditions"* — 4s notification
+  - WARNING (25–40%): *"Field X moisture low — irrigation recommended"* — 6s notification
+  - CRITICAL (<25%): *"Field X at drought threshold — irrigate NOW!"* — 10s notification
+- 12-in-game-hour cooldown per field per severity to prevent spam
+- **Crop Consultant dialog** (`Shift+C` or `csConsultant` console command) — top 5 fields by risk, recommended actions, 3-day forecast
+- Optional **FS25_NPCFavor integration**: Alex Chen, Agronomist NPC — generates favor quests (SOIL_SAMPLE, IRRIGATION_CHECK, EMERGENCY_WATER, SEASONAL_PLAN) and routes alerts through NPC dialog
+
+### Phase 4 — Economy & Polish 📋 Planned
+
+- Drip irrigation line placeable with linear field coverage
+- Optional **FS25_UsedPlus integration**: crop insurance, used equipment marketplace listings, wear-based flow degradation
+- **Precision Farming DLC overlay**: moisture layer on PF soil map, soil type data from PF samples
+- Full translation set: DE, FR, NL, PL
 
 ---
 
@@ -60,7 +76,7 @@ Phase 1 is live. Irrigation hardware, a Crop Consultant NPC, and optional integr
 3. Launch Farming Simulator 25 and enable **Seasonal Crop Stress & Irrigation Manager** in the Mods menu
 4. Start or load a career save — the mod activates automatically
 
-> **Note:** The mod works on any map with standard FS25 fields. Multiplayer is supported; the host runs all simulation calculations.
+> **Multiplayer:** The host runs all simulation calculations. Clients see synced field state. The host's tick rate determines simulation accuracy.
 
 ---
 
@@ -68,10 +84,12 @@ Phase 1 is live. Irrigation hardware, a Crop Consultant NPC, and optional integr
 
 1. **Load your farm** — the soil moisture monitor activates immediately on career load
 2. **Press `Shift+M`** to open the Field Moisture HUD in the bottom-left corner
-3. Watch the color indicators: **green** is healthy, **yellow** needs attention, **red** means irrigate now
-4. Fields in critical drought will **automatically open the HUD** and trigger an alert
-5. Type `csHelp` in the developer console (`~` key) to see all available commands
-6. At harvest, fields that suffered drought stress during critical growth windows will yield less — sometimes significantly less
+3. **Click any field row** to see its 5-day moisture forecast below the panel
+4. **Press `Shift+C`** to open the Crop Consultant — field risk summary, recommendations, and optional NPC panel
+5. Watch the color indicators: **green** is healthy, **yellow** needs attention, **red** means irrigate now
+6. **Place a Water Pump** near a water source, then place a **Center Pivot** within 500m
+7. Press **`E`** near the pivot (or `Shift+I`) to open the irrigation schedule dialog
+8. At harvest, fields that suffered drought stress during critical growth windows will yield less
 
 > **Tip:** Sandy-soil fields dry out much faster during heatwaves. Check them daily in summer.
 
@@ -79,22 +97,32 @@ Phase 1 is live. Irrigation hardware, a Crop Consultant NPC, and optional integr
 
 ## 🖥️ Console Commands
 
-Open the developer console with the `~` (tilde) key, then type any command below.
+Open the developer console with the `~` (tilde) key.
 
 | Command | Arguments | Description |
 |---------|-----------|-------------|
 | `csHelp` | — | List all available Crop Stress commands |
 | `csStatus` | — | System overview: active fields, moisture averages, stress totals |
-| `csSetMoisture` | `<fieldId> <0-100>` | Manually set a field's moisture percentage |
-| `csForceStress` | `<fieldId> <0-1>` | Manually set a field's accumulated stress value |
-| `csSimulateHeat` | `[days]` | Simulate N days of extreme heat (38°C, no rain) — default 3 days |
-| `csDebug` | — | Toggle debug logging to `log.txt` |
+| `csSetMoisture` | `<fieldId> <0-1>` | Manually set a field's moisture level |
+| `csForceStress` | `<fieldId>` | Force maximum stress on a field |
+| `csSimulateHeat` | `[days]` | Simulate N days of extreme heat (38°C, no rain) |
+| `csConsultant` | — | Open the Crop Consultant dialog directly |
+| `csDebug` | — | Toggle verbose debug logging to `log.txt` |
+
+---
+
+## ⌨️ Key Bindings
+
+| Action | Default | Description |
+|--------|---------|-------------|
+| `Shift+M` | CS_TOGGLE_HUD | Toggle the Field Moisture HUD |
+| `Shift+I` | CS_OPEN_IRRIGATION | Open Irrigation Schedule dialog |
+| `Shift+C` | CS_OPEN_CONSULTANT | Open Crop Consultant dialog |
+| `E` (near pivot) | ACTIVATE_HANDTOOL | Open schedule for that specific pivot |
 
 ---
 
 ## 🌱 Crop Critical Windows
-
-Each crop has specific growth stages where moisture deficits cause the most damage.
 
 | Crop | Critical Window | Moisture Threshold | Max Yield Loss |
 |------|----------------|--------------------|----------------|
@@ -114,23 +142,25 @@ Each crop has specific growth stages where moisture deficits cause the most dama
 | Subsystem | File | Responsibility |
 |-----------|------|----------------|
 | **CropStressManager** | `src/CropStressManager.lua` | Central coordinator; owns all subsystems; CropEventBus; hourly tick |
-| **WeatherIntegration** | `src/WeatherIntegration.lua` | Polls FS25 environment for temperature, rainfall, and season each hour |
+| **WeatherIntegration** | `src/WeatherIntegration.lua` | Polls FS25 environment for temperature, rainfall, season; 5-day moisture forecast projection |
 | **SoilMoistureSystem** | `src/SoilMoistureSystem.lua` | Per-field moisture state; evapotranspiration; rain absorption; soil type modifiers |
 | **CropStressModifier** | `src/CropStressModifier.lua` | Crop critical windows; stress accumulation; harvest yield reduction hook |
-| **HUDOverlay** | `src/HUDOverlay.lua` | Immediate-mode field moisture display; color coding; auto-show on critical alert |
-| **SaveLoadHandler** | `src/SaveLoadHandler.lua` | Persist all field moisture and stress values inside careerSavegame.xml |
-| **IrrigationManager** | `src/IrrigationManager.lua` | *(Phase 2 stub)* Center-pivot and drip irrigation systems |
-| **CropConsultant** | `src/CropConsultant.lua` | *(Phase 3 stub)* Agronomist NPC advisor with alert severity system |
-| **NPCIntegration** | `src/NPCIntegration.lua` | *(Phase 3 stub)* Optional FS25_NPCFavor bridge for relationship-gated advice |
-| **FinanceIntegration** | `src/FinanceIntegration.lua` | *(Phase 4 stub)* Optional FS25_UsedPlus crop insurance bridge |
+| **IrrigationManager** | `src/IrrigationManager.lua` | Center-pivot and pump registration; coverage detection; schedule activation; pressure curve |
+| **CropConsultant** | `src/CropConsultant.lua` | Three-tier alert system; 12h cooldown; hourly proactive evaluation; NPCFavor delegate |
+| **NPCIntegration** | `src/NPCIntegration.lua` | *(Phase 3)* Optional FS25_NPCFavor bridge; Alex Chen NPC; 4 favor types; safe runtime detection |
+| **HUDOverlay** | `src/HUDOverlay.lua` | Field moisture display; click-to-select rows; 5-day forecast strip; auto-show on critical alert |
+| **SaveLoadHandler** | `src/SaveLoadHandler.lua` | Persist field moisture, stress, HUD state, and irrigation schedules inside careerSavegame.xml |
+| **FinanceIntegration** | `src/FinanceIntegration.lua` | *(Phase 4)* Hourly irrigation costs; optional FS25_UsedPlus bridge |
 
-**Event System:** Modules communicate via `CropEventBus` — a custom string-keyed publish/subscribe emitter that avoids dependency on FS25's version-specific integer `MessageType` IDs.
+**Event System:** Modules communicate via `CropEventBus` — a lightweight internal publish/subscribe emitter. Avoids dependency on FS25's version-specific integer `MessageType` IDs.
 
 | Event | Publisher | Subscriber(s) |
 |-------|-----------|---------------|
-| `CS_MOISTURE_UPDATED` | SoilMoistureSystem | HUDOverlay |
+| `CS_MOISTURE_UPDATED` | SoilMoistureSystem | HUDOverlay, CropConsultant |
 | `CS_CRITICAL_THRESHOLD` | SoilMoistureSystem | HUDOverlay, CropConsultant |
 | `CS_STRESS_ACCUMULATED` | CropStressModifier | HUDOverlay |
+| `CS_IRRIGATION_STARTED` | IrrigationManager | SoilMoistureSystem |
+| `CS_IRRIGATION_STOPPED` | IrrigationManager | SoilMoistureSystem |
 | `CS_HARVEST_COMPLETE` | CropStressModifier | SaveLoadHandler, FinanceIntegration |
 
 ---
@@ -139,46 +169,60 @@ Each crop has specific growth stages where moisture deficits cause the most dama
 
 ```
 FS25_SeasonalCropStress/
-├── modDesc.xml                          # Mod descriptor — declares main.lua only
-├── main.lua                             # Entry point — source() load order + lifecycle hooks
+├── modDesc.xml
+├── main.lua
 │
 ├── config/
-│   └── cropStressDefaults.xml           # All tunable simulation defaults
+│   └── cropStressDefaults.xml
 │
 ├── src/
-│   ├── WeatherIntegration.lua           # Weather polling
-│   ├── SoilMoistureSystem.lua           # Per-field moisture simulation
-│   ├── CropStressModifier.lua           # Critical windows + harvest hook
-│   ├── CropStressManager.lua            # Coordinator + CropEventBus
-│   ├── HUDOverlay.lua                   # Field moisture HUD
-│   ├── SaveLoadHandler.lua              # Save/load persistence
-│   ├── IrrigationManager.lua            # [Phase 2] Irrigation systems stub
-│   ├── CropConsultant.lua               # [Phase 3] Agronomist NPC stub
-│   ├── NPCIntegration.lua               # [Phase 3] NPCFavor bridge stub
-│   └── FinanceIntegration.lua           # [Phase 4] UsedPlus bridge stub
+│   ├── WeatherIntegration.lua
+│   ├── SoilMoistureSystem.lua
+│   ├── CropStressModifier.lua
+│   ├── CropStressManager.lua
+│   ├── IrrigationManager.lua
+│   ├── HUDOverlay.lua
+│   ├── CropConsultant.lua           ← Phase 3 live
+│   ├── NPCIntegration.lua           ← Phase 3 live (NPCFavor optional)
+│   ├── SaveLoadHandler.lua
+│   └── FinanceIntegration.lua       ← Phase 4 stub
 │
 ├── gui/
-│   ├── FieldMoisturePanel.lua           # [Phase 2] Detailed field panel stub
-│   ├── IrrigationScheduleDialog.lua     # [Phase 2] Scheduling UI stub
-│   └── CropConsultantDialog.lua         # [Phase 3] Consultant dialog stub
+│   ├── IrrigationScheduleDialog.lua
+│   ├── IrrigationScheduleDialog.xml
+│   ├── CropConsultantDialog.lua     ← Phase 3 live
+│   ├── CropConsultantDialog.xml     ← Phase 3 live
+│   └── FieldMoisturePanel.lua
+│
+├── placeables/
+│   ├── centerPivot/
+│   │   ├── centerPivot.xml
+│   │   ├── centerPivot.lua
+│   │   └── centerPivot.i3d          ← placeholder geometry
+│   └── waterPump/
+│       ├── waterPump.xml
+│       ├── waterPump.lua
+│       └── waterPump.i3d            ← placeholder geometry
 │
 └── translations/
-    ├── translation_en.xml               # English (complete)
-    ├── translation_de.xml               # German (Phase 1 keys)
-    ├── translation_fr.xml               # French (Phase 1 keys)
-    └── translation_nl.xml               # Dutch (Phase 1 keys)
+    ├── translation_en.xml           ← complete
+    ├── translation_de.xml           ← Phase 1 keys only
+    ├── translation_fr.xml           ← Phase 1 keys only
+    └── translation_nl.xml           ← Phase 1 keys only
 ```
 
 ---
 
 ## ⚠️ Known Limitations
 
-- **Phase 2–4 systems are stubs** — irrigation hardware, the Crop Consultant NPC, and economy integration are not yet functional
-- **Harvest yield hook requires field position mapping** — the `getFieldIdAtPosition()` function uses a best-effort spatial query; fields with unusual geometry may not match correctly in all cases
-- **Translations** — only English has a full translation; DE/FR/NL cover Phase 1 HUD keys only; additional language files are not yet created
-- **No 3D assets** — the mod has no icon DDS file yet; a placeholder icon is planned before the first public release
-- **Multiplayer** — the host runs all simulation; clients see synced field state but simulation accuracy depends on the host's tick rate
-- **Weather API** — weather data is polled via multiple fallback paths to support different FS25 patch versions; if a patch changes the weather API, `WeatherIntegration.lua` may need updating
+- **Placeholder 3D assets** — center pivot and water pump use minimal placeholder `.i3d` files. No rotation animation on the pivot arm yet. Final art assets planned before v1.0 public release.
+- **No mod icon** — `icon.dds` is a placeholder. A proper icon is planned before public release.
+- **Translations** — only English is complete. DE/FR/NL cover Phase 1 HUD keys only. Full translation pass planned for Phase 4.
+- **Drip irrigation** — not yet implemented. Planned for Phase 4.
+- **Harvest yield hook** — uses a best-effort spatial query to map harvester position to field ID. Fields with unusual geometry may not match correctly in all cases.
+- **Weather forecast** — the 5-day forecast uses current-weather linear projection, not FS25's internal forecast. It's directionally accurate but won't reflect forecast rain events.
+- **NPCFavor API** — NPCIntegration calls are written against the expected FS25_NPCFavor v1.2 API but have not been tested against a live build. All calls are nil-guarded; the mod loads cleanly without FS25_NPCFavor present.
+- **Multiplayer** — simulation runs on host only; clients see synced state but have no direct simulation authority.
 
 ---
 
@@ -186,17 +230,18 @@ FS25_SeasonalCropStress/
 
 - [Mod Plan & Phase Roadmap](FS25_SeasonalCropStress_ModPlan.md) — full technical blueprint for all four phases
 - [CLAUDE.md](CLAUDE.md) — architecture guide and contributor notes for AI-assisted development
+- [DEVELOPMENT.md](DEVELOPMENT.md) — session-by-session build tracker and TODO list
 
 ---
 
 ## 📝 License & Credits
 
 **Author:** TisonK
-**Version:** 1.0.0.0 (Phase 1)
+**Version:** 1.0.0.0 (Phases 1–3)
 
 © TisonK — All Rights Reserved.
 
-This mod is provided for personal use. Redistribution, modification, or reupload without explicit permission from the author is not permitted.
+This mod is provided for personal use. Redistribution, modification, or reupload without explicit written permission from the author is not permitted.
 
 ---
 
