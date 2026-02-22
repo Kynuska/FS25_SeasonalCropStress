@@ -383,7 +383,23 @@ function HUDOverlay:drawForecastStrip(px, py)
     setTextBold(false)
 
     -- Column labels and bars
+    -- projections[1..5] are day+1 through day+5 from WeatherIntegration:getMoistureForecast().
+    -- We show current moisture as the first "Now" column directly from soilSystem,
+    -- then the five projected days.  Shift projections into display slots 2-5 and
+    -- insert current moisture as slot 1.
     local colLabels   = {"Now", "D+1", "D+2", "D+3", "D+4"}
+    local currentMoisture = 0
+    if self.manager ~= nil and self.manager.soilSystem ~= nil then
+        currentMoisture = self.manager.soilSystem:getMoisture(fieldId) or 0
+    end
+    -- Build display values: [current, proj[1], proj[2], proj[3], proj[4]]
+    local displayVals = {
+        currentMoisture,
+        projections[1] or currentMoisture,
+        projections[2] or currentMoisture,
+        projections[3] or currentMoisture,
+        projections[4] or currentMoisture,
+    }
     local colStartX   = px + HUDOverlay.PADDING
     local colGap      = (HUDOverlay.PANEL_W - HUDOverlay.PADDING * 2) / HUDOverlay.FORECAST_COLS
     local barAreaH    = fH - HUDOverlay.FORECAST_HEADER_H - HUDOverlay.PADDING * 2
@@ -391,7 +407,7 @@ function HUDOverlay:drawForecastStrip(px, py)
     local barBaseY    = py + HUDOverlay.PADDING + HUDOverlay.FORECAST_ROW_H
 
     for i = 1, HUDOverlay.FORECAST_COLS do
-        local val = projections[i] or 0
+        local val = displayVals[i] or 0
         local cx  = colStartX + (i - 1) * colGap + HUDOverlay.PADDING
 
         -- Column label (day label, small, dimmed)

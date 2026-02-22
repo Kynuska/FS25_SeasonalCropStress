@@ -17,13 +17,14 @@
             <Text profile="fs25_dialogSubtitle" position="-350px -40px" text="$l10n_cs_irr_schedule" />
 
             <!-- Day toggle buttons — looked up in Lua as btn_day_1 .. btn_day_7 -->
-            <Button id="btn_day_1" profile="buttonActivate" position="-350px -75px" size="35px 30px" text="$l10n_cs_day_mon" onClick="onDayToggle" onClickSoundDisabled="true" />
-            <Button id="btn_day_2" profile="buttonActivate" position="-310px -75px" size="35px 30px" text="$l10n_cs_day_tue" onClick="onDayToggle" onClickSoundDisabled="true" />
-            <Button id="btn_day_3" profile="buttonActivate" position="-270px -75px" size="35px 30px" text="$l10n_cs_day_wed" onClick="onDayToggle" onClickSoundDisabled="true" />
-            <Button id="btn_day_4" profile="buttonActivate" position="-230px -75px" size="35px 30px" text="$l10n_cs_day_thu" onClick="onDayToggle" onClickSoundDisabled="true" />
-            <Button id="btn_day_5" profile="buttonActivate" position="-190px -75px" size="35px 30px" text="$l10n_cs_day_fri" onClick="onDayToggle" onClickSoundDisabled="true" />
-            <Button id="btn_day_6" profile="buttonActivate" position="-150px -75px" size="35px 30px" text="$l10n_cs_day_sat" onClick="onDayToggle" onClickSoundDisabled="true" />
-            <Button id="btn_day_7" profile="buttonActivate" position="-110px -75px" size="35px 30px" text="$l10n_cs_day_sun" onClick="onDayToggle" onClickSoundDisabled="true" />
+            <!-- Each button calls its own specific handler so the day index is unambiguous -->
+            <Button id="btn_day_1" profile="buttonActivate" position="-350px -75px" size="35px 30px" text="$l10n_cs_day_mon" onClick="onDayToggle1" onClickSoundDisabled="true" />
+            <Button id="btn_day_2" profile="buttonActivate" position="-310px -75px" size="35px 30px" text="$l10n_cs_day_tue" onClick="onDayToggle2" onClickSoundDisabled="true" />
+            <Button id="btn_day_3" profile="buttonActivate" position="-270px -75px" size="35px 30px" text="$l10n_cs_day_wed" onClick="onDayToggle3" onClickSoundDisabled="true" />
+            <Button id="btn_day_4" profile="buttonActivate" position="-230px -75px" size="35px 30px" text="$l10n_cs_day_thu" onClick="onDayToggle4" onClickSoundDisabled="true" />
+            <Button id="btn_day_5" profile="buttonActivate" position="-190px -75px" size="35px 30px" text="$l10n_cs_day_fri" onClick="onDayToggle5" onClickSoundDisabled="true" />
+            <Button id="btn_day_6" profile="buttonActivate" position="-150px -75px" size="35px 30px" text="$l10n_cs_day_sat" onClick="onDayToggle6" onClickSoundDisabled="true" />
+            <Button id="btn_day_7" profile="buttonActivate" position="-110px -75px" size="35px 30px" text="$l10n_cs_day_sun" onClick="onDayToggle7" onClickSoundDisabled="true" />
 
             <!-- Start time -->
             <Text profile="fs25_dialogText" position="-350px -120px" text="$l10n_cs_irr_start_time" />

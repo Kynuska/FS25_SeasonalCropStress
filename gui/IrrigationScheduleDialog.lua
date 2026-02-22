@@ -51,11 +51,11 @@ function IrrigationScheduleDialog:onCreate()
     end
 end
 
-function IrrigationScheduleDialog:onDialogOpen(systemId)
+function IrrigationScheduleDialog:onIrrigationDialogOpen(systemId)
     self.systemId = systemId
     local system = self:getCurrentSystem()
     if system == nil then
-        self:onDialogClose()
+        self:onIrrigationDialogClose()
         return
     end
 
@@ -102,9 +102,18 @@ function IrrigationScheduleDialog:syncDayButtons(system)
     end
 end
 
--- Called from XML onClick on each day button (pass day index as arg in XML)
-function IrrigationScheduleDialog:onDayToggle(dayIndex)
-    local idx = tonumber(dayIndex)
+-- Called from XML onClick on each day button.
+-- FS25 GUI XML onClick does not support passing arguments inline, so each
+-- day button binds its own numbered wrapper that forwards to the shared impl.
+function IrrigationScheduleDialog:onDayToggle1() self:_toggleDay(1) end
+function IrrigationScheduleDialog:onDayToggle2() self:_toggleDay(2) end
+function IrrigationScheduleDialog:onDayToggle3() self:_toggleDay(3) end
+function IrrigationScheduleDialog:onDayToggle4() self:_toggleDay(4) end
+function IrrigationScheduleDialog:onDayToggle5() self:_toggleDay(5) end
+function IrrigationScheduleDialog:onDayToggle6() self:_toggleDay(6) end
+function IrrigationScheduleDialog:onDayToggle7() self:_toggleDay(7) end
+
+function IrrigationScheduleDialog:_toggleDay(idx)
     if idx == nil or idx < 1 or idx > 7 then return end
 
     local system = self:getCurrentSystem()
@@ -209,7 +218,7 @@ function IrrigationScheduleDialog:onIrrigateNow()
             g_currentMission:showBlinkingWarning(g_i18n:getText("cs_irr_started"), 3000)
         end
     end
-    self:onDialogClose()
+    self:onIrrigationDialogClose()
 end
 
 function IrrigationScheduleDialog:onSaveSchedule()
@@ -217,7 +226,7 @@ function IrrigationScheduleDialog:onSaveSchedule()
     if g_currentMission ~= nil then
         g_currentMission:showBlinkingWarning(g_i18n:getText("cs_schedule_saved"), 2000)
     end
-    self:onDialogClose()
+    self:onIrrigationDialogClose()
 end
 
 function IrrigationScheduleDialog:getCurrentSystem()
@@ -226,6 +235,6 @@ function IrrigationScheduleDialog:getCurrentSystem()
     return g_cropStressManager.irrigationManager.systems[self.systemId]
 end
 
-function IrrigationScheduleDialog:onDialogClose()
+function IrrigationScheduleDialog:onIrrigationDialogClose()
     g_gui:closeDialog(self)
 end
