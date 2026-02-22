@@ -153,7 +153,7 @@ function CropStressModifier:processFieldStress(field, fieldId, moisture)
 
         -- Publish via event bus
         if self.manager ~= nil and self.manager.eventBus ~= nil then
-            self.manager.eventBus.publish("CS_STRESS_APPLIED", {
+            self.manager.eventBus.publish("CS_STRESS_ACCUMULATED", {
                 fieldId    = fieldId,
                 cropType   = cropName,
                 stress     = self.fieldStress[fieldId],

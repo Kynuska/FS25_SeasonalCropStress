@@ -38,10 +38,14 @@ function FinanceIntegration:chargeHourlyCosts()
                     })
                 end
             else
-                -- Correct FS25 call: updateFunds on the mission object directly,
-                -- with the FundsReasonType enum (not a raw string)
+                -- Correct FS25 call: updateFunds on the mission object directly.
+                -- FundsReasonType.OTHER is nil-guarded — it may not be defined in all builds.
+                -- We also obtain the correct farmId rather than defaulting to farm 0.
                 if g_currentMission ~= nil then
-                    g_currentMission:updateFunds(-cost, FundsReasonType.OTHER, true)
+                    local reasonType = (FundsReasonType ~= nil and FundsReasonType.OTHER) or 0
+                    local farmId = (g_currentMission.player ~= nil and g_currentMission.player:getOwnerFarmId())
+                        or AccessHandler.EVERYBODY
+                    g_currentMission:updateFunds(farmId, -cost, reasonType, true)
                 end
             end
         end

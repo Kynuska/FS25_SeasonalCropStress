@@ -37,10 +37,7 @@ source(modDir .. "src/SaveLoadHandler.lua")
 
 -- Phase 6: GUI panels
 source(modDir .. "gui/FieldMoisturePanel.lua")
-source(modDir .. "gui/IrrigationScheduleDialog.lua") -- Phase 2 stub
-source(modDir .. "gui/CropConsultantDialog.lua")     -- Phase 3 stub
-
--- Phase 6 continued: Consultant dialog
+source(modDir .. "gui/IrrigationScheduleDialog.lua")
 source(modDir .. "gui/CropConsultantDialog.lua")
 
 -- Phase 7: Central coordinator (must load last)

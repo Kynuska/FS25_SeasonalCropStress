@@ -115,7 +115,7 @@ function CropConsultantDialog:buildFieldList()
 
     local soilSystem     = g_cropStressManager.soilSystem
     local stressModifier = g_cropStressManager.stressModifier
-    if soilSystem == nil then return end
+    if soilSystem == nil or soilSystem.fieldData == nil then return end
 
     -- Build risk score list: stress * 0.6 + (1-moisture) * 0.4
     local riskList = {}
@@ -182,7 +182,7 @@ function CropConsultantDialog:buildRecommendation()
     local soilSystem   = g_cropStressManager and g_cropStressManager.soilSystem
     local weatherInteg = g_cropStressManager and g_cropStressManager.weatherIntegration
 
-    if soilSystem == nil then
+    if soilSystem == nil or soilSystem.fieldData == nil then
         self.recommendText:setText("—")
         return
     end
