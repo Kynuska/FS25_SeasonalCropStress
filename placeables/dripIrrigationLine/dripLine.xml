@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    dripLine.xml
+    Placeable type declaration for drip irrigation line system.
+    The Lua class (DripIrrigationLine) is registered via modDesc.xml <placeableTypes>.
+    This file is referenced by modDesc.xml storeItem filename.
+-->
+<placeable type="fs25_seasonalcropstress_dripLine" descVersion="105">
+
+    <storeData>
+        <name>$l10n_cs_drip_name</name>
+        <specs>
+            <spec name="price" value="45000"/>
+            <spec name="dailyUpkeep" value="15"/>
+        </specs>
+        <category>PLACEABLE</category>
+        <image>placeables/dripIrrigationLine/dripLine_shop.dds</image>
+    </storeData>
+
+    <filename>placeables/dripIrrigationLine/dripLine.i3d</filename>
+
+    <price value="45000"/>
+    <dailyUpkeep value="15"/>
+
+    <!-- Custom drip irrigation parameters — read by DripIrrigationLine:onLoad() -->
+    <dripConfig
+        lineLength="100"
+        lineSpacing="0.8"
+        flowRatePerHour="0.012"
+        operationalCostPerHour="8"
+        defaultStartHour="6"
+        defaultEndHour="10"
+        defaultActiveDays="1,1,1,1,1,0,0"
+    />
+
+</placeable>
