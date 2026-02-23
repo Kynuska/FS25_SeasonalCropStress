@@ -120,13 +120,13 @@ function IrrigationPivot:createProximityTrigger()
     setTranslation(self.triggerNode, 0, 0, 0)
 
     -- Add a sphere collider for the trigger
-    -- addTrigger(node, radius, isTrigger) — registers node as a trigger volume
-    -- LUADOC NOTE: verify exact addTrigger signature for FS25
+    -- FS25 addSphere syntax: addSphere(node, radius, useForCollision, collisionMask, triggerMask)
+    -- For a trigger volume, we need addTrigger instead
     local triggerRadius = IrrigationPivot.INTERACTION_RADIUS
-    addSphere(self.triggerNode, triggerRadius, 1, 1, 1)  -- visual-less collision sphere
-
-    -- Register trigger callback
-    addTrigger(self.triggerNode, "onProximityTrigger", self)
+    
+    -- Use addTrigger to create a proper trigger volume
+    -- addTrigger(node, callback, userData) - creates a trigger that calls callback on enter/leave
+    addTrigger(self.triggerNode, self)
 
     csLog(string.format("centerPivot %s: proximity trigger created (r=%.1fm)", tostring(self.id), triggerRadius))
 end
