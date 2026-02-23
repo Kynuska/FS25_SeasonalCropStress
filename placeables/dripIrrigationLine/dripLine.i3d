@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<i3D xmlns="http://www.game-giant.com/igds" version="67">
+    <Assets>
+        <Asset name="dripLineShape" />
+    </Assets>
+    <Scene>
+        <TransformGroup id="root" nodeId="1">
+            <TransformGroup id="dripTube" nodeId="2">
+                <Shape id="tubeShape" shapeId="1" materialIds="1" />
+            </TransformGroup>
+        </TransformGroup>
+    </Scene>
+    <Shapes>
+        <Shape name="dripLineShape" shapeId="1" materialId="1">
+            <BoxShape halfExtents="0.1 0.05 50" />
+        </Shape>
+    </Shapes>
+    <Materials>
+        <Material name="dripTubeMat" materialId="1">
+            <Attribute name="diffuseColor" value="0.2 0.2 0.2 1" />
+            <Attribute name="specularColor" value="0.1 0.1 0.1 1" />
+            <Attribute name="roughness" value="0.8" />
+        </Material>
+    </Materials>
+</i3D>

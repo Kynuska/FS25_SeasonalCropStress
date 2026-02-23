@@ -13,7 +13,7 @@ FS25 farms look lush even when your crops are quietly dying of thirst. This mod 
 
 **Seasonal Crop Stress & Irrigation Manager** adds real soil moisture physics to every field on your farm. Rain replenishes. Heat evaporates. Sandy soil drains fast; clay holds longer. When moisture drops below critical thresholds during the growth windows that matter most — wheat during heading, corn during pollination — stress accumulates and your yield shrinks. Place a center-pivot irrigator, schedule it, and protect what you've grown. Play it right and your harvest beats vanilla. Ignore it and you'll wonder why your combines are running light.
 
-Phases 1 and 2 are live. Phase 3 (Crop Consultant NPC, NPCFavor integration) is in active development. Phase 4 (FS25_UsedPlus integration, drip irrigation, Precision Farming overlay) is planned.
+Phases 1, 2, and 3 are live. Phase 4 (FS25_UsedPlus integration, drip irrigation, Precision Farming overlay) is planned.
 
 ---
 
@@ -47,7 +47,7 @@ Phases 1 and 2 are live. Phase 3 (Crop Consultant NPC, NPCFavor integration) is 
 - Irrigation schedule persists across saves and reloads
 - Equipment wear level tracked (used in Phase 4 UsedPlus integration)
 
-### Phase 3 — Crop Consultant 🚧 In Development
+### Phase 3 — Crop Consultant ✅ Live
 
 - **Alert system**: three severity levels fire as moisture drops
   - INFO (40–50%): *"Field X getting dry — monitor conditions"* — 4s notification
@@ -57,12 +57,13 @@ Phases 1 and 2 are live. Phase 3 (Crop Consultant NPC, NPCFavor integration) is 
 - **Crop Consultant dialog** (`Shift+C` or `csConsultant` console command) — top 5 fields by risk, recommended actions, 3-day forecast
 - Optional **FS25_NPCFavor integration**: Alex Chen, Agronomist NPC — generates favor quests (SOIL_SAMPLE, IRRIGATION_CHECK, EMERGENCY_WATER, SEASONAL_PLAN) and routes alerts through NPC dialog
 
-### Phase 4 — Economy & Polish 📋 Planned
+### Phase 4 — Economy & Polish 🚧 In Development
 
-- Drip irrigation line placeable with linear field coverage
-- Optional **FS25_UsedPlus integration**: crop insurance, used equipment marketplace listings, wear-based flow degradation
-- **Precision Farming DLC overlay**: moisture layer on PF soil map, soil type data from PF samples
-- Full translation set: DE, FR, NL, PL
+- FinanceIntegration: UsedPlus integration code written (awaiting in-game test)
+- Drip irrigation line placeable with linear field coverage *(planned)*
+- Used equipment marketplace entries *(planned)*
+- Precision Farming DLC overlay *(planned)*
+- Polish translations *(planned)*
 
 ---
 
@@ -206,9 +207,9 @@ FS25_SeasonalCropStress/
 │
 └── translations/
     ├── translation_en.xml           ← complete
-    ├── translation_de.xml           ← Phase 1 keys only
-    ├── translation_fr.xml           ← Phase 1 keys only
-    └── translation_nl.xml           ← Phase 1 keys only
+    ├── translation_de.xml           ← complete (Phase 1-3)
+    ├── translation_fr.xml           ← complete (Phase 1-3)
+    └── translation_nl.xml           ← complete (Phase 1-3)
 ```
 
 ---
@@ -217,7 +218,6 @@ FS25_SeasonalCropStress/
 
 - **Placeholder 3D assets** — center pivot and water pump use minimal placeholder `.i3d` files. No rotation animation on the pivot arm yet. Final art assets planned before v1.0 public release.
 - **No mod icon** — `icon.dds` is a placeholder. A proper icon is planned before public release.
-- **Translations** — only English is complete. DE/FR/NL cover Phase 1 HUD keys only. Full translation pass planned for Phase 4.
 - **Drip irrigation** — not yet implemented. Planned for Phase 4.
 - **Harvest yield hook** — uses a best-effort spatial query to map harvester position to field ID. Fields with unusual geometry may not match correctly in all cases.
 - **Weather forecast** — the 5-day forecast uses current-weather linear projection, not FS25's internal forecast. It's directionally accurate but won't reflect forecast rain events.
