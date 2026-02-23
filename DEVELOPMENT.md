@@ -258,9 +258,9 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 - [ ] **TEST (with PF DLC):** PF soil map shows moisture overlay, soil types match PF data
 
 #### Translations — Complete Set
-- [ ] `translation_de.xml` — German, all keys
-- [ ] `translation_fr.xml` — French, all keys
-- [ ] `translation_nl.xml` — Dutch, all keys
+- [x] `translation_de.xml` — German, all keys (Phase 1-3 complete)
+- [x] `translation_fr.xml` — French, all keys (Phase 1-3 complete)
+- [x] `translation_nl.xml` — Dutch, all keys (Phase 1-3 complete)
 - [ ] `translation_pl.xml` — Polish, all keys
 - [ ] **TEST:** Switch game language to DE → all mod UI text is German, no missing key fallbacks
 
@@ -284,6 +284,32 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 ## Session Log
 
 *Sessions are logged in reverse-chronological order (newest at top). Each entry MUST include: date, AI agent, what was done, what was tested, what the next agent should start on, and any blockers or surprises.*
+
+---
+
+### 2026-02-23 — Claude (Sonnet 4.6) — Translation Polish Pass + Documentation Update
+
+**Started from:** Add Phase 2-3 translation keys to DE, FR, NL files
+
+**Completed:**
+- `translations/translation_de.xml` — Complete rewrite with all Phase 1-3 keys: HUD overlay, field status, soil types, alerts, irrigation (Phase 2), consultant dialog (Phase 3), input actions, placeable shop names, E-key interaction
+- `translations/translation_fr.xml` — Complete rewrite with all Phase 1-3 keys in French: same structure as DE
+- `translations/translation_nl.xml` — Complete rewrite with all Phase 1-3 keys in Dutch: same structure as DE/FR
+- `README.md` — Updated to reflect Phase 3 complete status: changed "Phase 3 — Crop Consultant 🚧 In Development" to "Phase 3 — Crop Consultant ✅ Live", updated translations section to show DE/FR/NL as "complete (Phase 1-3)", removed outdated translations limitation from Known Limitations
+
+**Tested:**
+- Code review only — no in-game testing this session
+
+**Checked off in TODO:**
+- `[ ]` → `[x]` : Add missing translation keys to DE, FR, NL (Phase 2-3 keys)
+- `[ ]` → `[x]` : Update README.md to reflect Phase 3 complete status
+
+**Next agent should start at:**
+`Run in-game tests to verify all translations display correctly`
+
+**Notes / surprises:**
+- All three translation files (DE, FR, NL) now have consistent structure with matching key sets
+- Keys added: cs_irr_title, cs_irr_water_source, cs_irr_connected, cs_irr_disconnected, cs_irr_schedule, cs_irr_flow_rate, cs_irr_efficiency, cs_irr_cost, cs_irr_wear, cs_irr_covered_fields, cs_irr_pivot, cs_irr_drip, cs_irr_pump, day-of-week buttons, consultant dialog keys (cs_consultant_subtitle, cs_consultant_relationship, cs_consultant_field_status, cs_consultant_recommendation, cs_consultant_open_irrigation, cs_consultant_no_data), input action keys, placeable shop names, additional UI strings
 
 ---
 
