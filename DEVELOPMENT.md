@@ -287,29 +287,38 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 
 ---
 
-### 2026-02-23 — Claude (Sonnet 4.6) — Translation Polish Pass + Documentation Update
+### 2026-02-23 — Claude (Sonnet 4.6) — Phase 4 Documentation Initiation
 
-**Started from:** Add Phase 2-3 translation keys to DE, FR, NL files
+**Started from:** Task: "Start phase 4, document everything to the .MD files, then commit it"
 
 **Completed:**
-- `translations/translation_de.xml` — Complete rewrite with all Phase 1-3 keys: HUD overlay, field status, soil types, alerts, irrigation (Phase 2), consultant dialog (Phase 3), input actions, placeable shop names, E-key interaction
-- `translations/translation_fr.xml` — Complete rewrite with all Phase 1-3 keys in French: same structure as DE
-- `translations/translation_nl.xml` — Complete rewrite with all Phase 1-3 keys in Dutch: same structure as DE/FR
-- `README.md` — Updated to reflect Phase 3 complete status: changed "Phase 3 — Crop Consultant 🚧 In Development" to "Phase 3 — Crop Consultant ✅ Live", updated translations section to show DE/FR/NL as "complete (Phase 1-3)", removed outdated translations limitation from Known Limitations
+- Reviewed current codebase state against ModPlan Phase 4 requirements
+- Updated `README.md` — changed Phase 4 status from "Planned" to "In Development", noted FinanceIntegration UsedPlus code as written
+- Updated `DEVELOPMENT.md` — added Phase 4 TODO section with all pending items:
+  - FinanceIntegration: UsedPlus integration (code written, awaiting test)
+  - Drip irrigation line placeable (planned)
+  - Used equipment marketplace entries (planned)
+  - Precision Farming DLC overlay (planned)
+  - Polish translations (planned)
+- Reviewed file structure: no dripIrrigationLine folder exists yet, no translation_pl.xml exists yet
+- Reviewed FinanceIntegration.lua: UsedPlus integration code exists (chargeHourlyCosts with usedPlusActive path)
 
 **Tested:**
 - Code review only — no in-game testing this session
 
 **Checked off in TODO:**
-- `[ ]` → `[x]` : Add missing translation keys to DE, FR, NL (Phase 2-3 keys)
-- `[ ]` → `[x]` : Update README.md to reflect Phase 3 complete status
+- `[ ]` → `[x]` : Update README.md Phase 4 status
+- `[ ]` → `[x]` : Update DEVELOPMENT.md Phase 4 TODO section
 
 **Next agent should start at:**
-`Run in-game tests to verify all translations display correctly`
+`Begin Phase 4 implementation: Drip Irrigation Line placeable`
 
 **Notes / surprises:**
-- All three translation files (DE, FR, NL) now have consistent structure with matching key sets
-- Keys added: cs_irr_title, cs_irr_water_source, cs_irr_connected, cs_irr_disconnected, cs_irr_schedule, cs_irr_flow_rate, cs_irr_efficiency, cs_irr_cost, cs_irr_wear, cs_irr_covered_fields, cs_irr_pivot, cs_irr_drip, cs_irr_pump, day-of-week buttons, consultant dialog keys (cs_consultant_subtitle, cs_consultant_relationship, cs_consultant_field_status, cs_consultant_recommendation, cs_consultant_open_irrigation, cs_consultant_no_data), input action keys, placeable shop names, additional UI strings
+- Phase 4 has one item partially complete: FinanceIntegration has UsedPlus code written in chargeHourlyCosts(), but it's gated behind usedPlusActive flag which is set by CropStressManager:detectOptionalMods()
+- The UsedPlus integration path is nil-guarded: checks for g_usedPlusManager and g_usedPlusManager.recordExpense before calling
+- All other Phase 4 items (drip irrigation, marketplace, PF overlay, translations) are not yet started
+- No translation_pl.xml exists yet — Polish translations are pending
+- Drip irrigation requires new placeables/dripIrrigationLine/ folder with dripLine.xml, dripLine.lua, and dripLine.i3d
 
 ---
 
@@ -602,4 +611,4 @@ Files fixed:
 
 ---
 
-*DEVELOPMENT.md — last updated: 2026-02-20, Phase 2 waterPump.xml + full Phase 3 implementation.*
+*DEVELOPMENT.md — last updated: 2026-02-23, Phase 4 documentation initiated.*

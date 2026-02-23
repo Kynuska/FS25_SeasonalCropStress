@@ -57,12 +57,13 @@ Phases 1, 2, and 3 are live. Phase 4 (FS25_UsedPlus integration, drip irrigation
 - **Crop Consultant dialog** (`Shift+C` or `csConsultant` console command) — top 5 fields by risk, recommended actions, 3-day forecast
 - Optional **FS25_NPCFavor integration**: Alex Chen, Agronomist NPC — generates favor quests (SOIL_SAMPLE, IRRIGATION_CHECK, EMERGENCY_WATER, SEASONAL_PLAN) and routes alerts through NPC dialog
 
-### Phase 4 — Economy & Polish 📋 Planned
+### Phase 4 — Economy & Polish 🚧 In Development
 
-- Drip irrigation line placeable with linear field coverage
-- Optional **FS25_UsedPlus integration**: crop insurance, used equipment marketplace listings, wear-based flow degradation
-- **Precision Farming DLC overlay**: moisture layer on PF soil map, soil type data from PF samples
-- Full translation set: DE, FR, NL, PL
+- FinanceIntegration: UsedPlus integration code written (awaiting in-game test)
+- Drip irrigation line placeable with linear field coverage *(planned)*
+- Used equipment marketplace entries *(planned)*
+- Precision Farming DLC overlay *(planned)*
+- Polish translations *(planned)*
 
 ---
 
