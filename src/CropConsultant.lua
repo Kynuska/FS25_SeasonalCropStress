@@ -233,16 +233,6 @@ end
 -- ============================================================
 -- HELPERS
 -- ============================================================
-function CropConsultant:getSeverity(moisture)
-    if moisture < CropConsultant.SEVERITY_CRITICAL_MAX then
-        return "CRITICAL"
-    elseif moisture < CropConsultant.SEVERITY_WARNING_MAX then
-        return "WARNING"
-    else
-        return "INFO"
-    end
-end
-
 function CropConsultant:getCropName(fieldId)
     if g_currentMission == nil or g_currentMission.fieldManager == nil then return "?" end
     local field = nil

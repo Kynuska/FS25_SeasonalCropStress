@@ -65,9 +65,6 @@ HUDOverlay.COLOR_CRITICAL    = {0.85, 0.20, 0.10, 1.00}  -- red    <30%
 HUDOverlay.COLOR_FORECAST_BG = {0.08, 0.08, 0.12, 0.82}
 HUDOverlay.COLOR_DIM_TEXT    = {0.60, 0.60, 0.60, 1.00}
 
--- Threshold for auto-show on first run
-HUDOverlay.FIRST_RUN_MOISTURE_TRIGGER = 0.50
-
 -- ============================================================
 -- LOGGING HELPER
 -- ============================================================

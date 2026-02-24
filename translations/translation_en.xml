@@ -66,6 +66,7 @@
         <!-- Placeable shop names -->
     <e k="cs_pivot_name"     v="Center Pivot Irrigator"/>
     <e k="cs_pump_name"      v="Water Pump"/>
+    <e k="cs_drip_name"      v="Drip Irrigation Line"/>
 
     <!-- E-key interaction -->
     <e k="cs_irr_open_schedule"  v="Open Irrigation Schedule"/>
@@ -91,22 +92,6 @@
     <!-- Phase 3 alert strings already present above — ensure cs_irr_started exists -->
     <e k="cs_irr_started"          v="Irrigation started."/>
     <e k="cs_schedule_saved"       v="Schedule saved."/>
-    
-    <!-- Missing translation keys identified during polish pass -->
-    <e k="cs_irr_connected"        v="Connected"/>
-    <e k="cs_irr_disconnected"     v="Disconnected"/>
-    <e k="cs_no_irrigation_systems" v="No irrigation systems placed yet"/>
-    <e k="cs_day_mon"              v="Mon"/>
-    <e k="cs_day_tue"              v="Tue"/>
-    <e k="cs_day_wed"              v="Wed"/>
-    <e k="cs_day_thu"              v="Thu"/>
-    <e k="cs_day_fri"              v="Fri"/>
-    <e k="cs_day_sat"              v="Sat"/>
-    <e k="cs_day_sun"              v="Sun"/>
-    <e k="cs_irr_start_time"       v="Start Time"/>
-    <e k="cs_irr_end_time"         v="End Time"/>
-    <e k="cs_irr_performance"      v="Performance"/>
-    <e k="cs_close"                v="Close"/>
 
     <!-- Precision Farming DLC -->
     <text name="cs_pf_moisture_overlay" text="Soil Moisture"/>

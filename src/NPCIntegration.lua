@@ -264,14 +264,6 @@ function NPCIntegration:getRelationshipLevel()
 end
 
 -- ============================================================
--- ENABLE NPC FAVOR MODE
--- Called by CropStressManager after detection and also by CropConsultant.
--- ============================================================
-function NPCIntegration:enableNPCFavorMode()
-    self.npcFavorActive = true
-end
-
--- ============================================================
 -- CLEANUP
 -- ============================================================
 function NPCIntegration:delete()

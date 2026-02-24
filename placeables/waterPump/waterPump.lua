@@ -3,6 +3,17 @@
 -- Water pump placeable. Registers with IrrigationManager as a water source.
 -- ============================================================
 
+-- ============================================================
+-- LOGGING HELPER
+-- ============================================================
+local function csLog(msg)
+    if g_logManager ~= nil then
+        g_logManager:devInfo("[CropStress]", msg)
+    else
+        print("[CropStress] " .. tostring(msg))
+    end
+end
+
 WaterPump = {}
 local WaterPump_mt = Class(WaterPump, Placeable)
 
@@ -39,7 +50,7 @@ function WaterPump:onLoad(savegame)
     if self.irrigationManager ~= nil then
         self.irrigationManager:registerWaterSource(self)
     else
-        print("[CropStress] waterPump: IrrigationManager not available at onLoad — pump not registered")
+        csLog("waterPump: IrrigationManager not available at onLoad — pump not registered")
     end
 end
 
