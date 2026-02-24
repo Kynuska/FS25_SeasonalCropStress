@@ -69,9 +69,9 @@
     <text name="cs_consultant_name" text="Alex Chen, Agronomista"/>
     
     <!-- Input Actions -->
-    <text name="input_CS_TOGGLE_HUD" text="Toggle Moisture HUD"/>
-    <text name="input_CS_OPEN_IRRIGATION" text="Open Irrigation Schedule"/>
-    <text name="input_CS_OPEN_CONSULTANT" text="Open Crop Consultant"/>
+    <text name="input_CS_TOGGLE_HUD" text="Przełącz HUD wilgotności"/>
+    <text name="input_CS_OPEN_IRRIGATION" text="Otwórz harmonogram nawadniania"/>
+    <text name="input_CS_OPEN_CONSULTANT" text="Otwórz konsultanta upraw"/>
     
     <!-- Days of Week -->
     <text name="cs_day_mon" text="Pn"/>
