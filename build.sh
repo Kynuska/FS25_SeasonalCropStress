@@ -41,15 +41,20 @@ if command -v zip &>/dev/null; then
         --exclude "*.DS_Store"
     echo "  Built via zip"
 else
-    # Python fallback (works on Windows with Git Bash + Python)
-    python3 - <<'PYEOF'
+    # Python fallback — try python3 first, then Windows launcher (py)
+    PYTHON_CMD=""
+    if command -v python3 &>/dev/null; then PYTHON_CMD="python3"
+    elif command -v py &>/dev/null; then PYTHON_CMD="py"
+    else echo "ERROR: no Python found (need python3 or py)"; exit 1
+    fi
+    $PYTHON_CMD - <<'PYEOF'
 import zipfile, os, sys
 
 MOD_DIR = os.getcwd()
 ZIP_PATH = os.path.join(os.path.dirname(MOD_DIR), os.path.basename(MOD_DIR) + ".zip")
 
 EXCLUDE_DIRS  = {".git", ".claude", "__MACOSX"}
-EXCLUDE_EXTS  = {".sh", ".md", ".DS_Store"}
+EXCLUDE_EXTS  = {".sh", ".md", ".DS_Store", ".zip"}
 EXCLUDE_FILES = {".gitignore"}
 
 with zipfile.ZipFile(ZIP_PATH, "w", zipfile.ZIP_DEFLATED) as zf:
