@@ -59,9 +59,10 @@
     <text name="cs_favor_seasonal_plan"   text="Review the seasonal irrigation plan"/>
 
     <!-- ========== INPUT ACTIONS ========== -->
-    <text name="input_CS_TOGGLE_HUD"      text="Toggle Moisture HUD"/>
-    <text name="input_CS_OPEN_IRRIGATION" text="Open Irrigation Manager"/>
-    <text name="input_CS_OPEN_CONSULTANT" text="Open Crop Consultant"/>
+    <!-- Use <e> format for input action names — required by FS25 key binding screen -->
+    <e k="input_CS_TOGGLE_HUD"      v="Toggle Moisture HUD"/>
+    <e k="input_CS_OPEN_IRRIGATION" v="Open Irrigation Manager"/>
+    <e k="input_CS_OPEN_CONSULTANT" v="Open Crop Consultant"/>
 
         <!-- Placeable shop names -->
     <e k="cs_pivot_name"     v="Center Pivot Irrigator"/>
@@ -86,8 +87,7 @@
     <text name="cs_consultant_open_irrigation" text="Open Irrigation Manager"/>
     <text name="cs_consultant_no_data"         text="No field data available."/>
 
-    <!-- INPUT ACTION hint text (shown in key-binding screen) is already declared
-         above as <text name="input_CS_OPEN_CONSULTANT"> — no duplicate needed. -->
+    <!-- Input action hint text (key-binding screen) declared above as <e> elements. -->
 
     <!-- Phase 3 alert strings already present above — ensure cs_irr_started exists -->
     <e k="cs_irr_started"          v="Irrigation started."/>
