@@ -86,6 +86,8 @@ function CropStressManager.new()
     self.consultant         = CropConsultant.new(self)
     self.npcIntegration     = NPCIntegration.new(self)
     self.financeIntegration = FinanceIntegration.new(self)      -- Phase 4 stub
+    self.usedEquipmentMarketplace = UsedEquipmentMarketplace.new(self)  -- Phase 4 stub
+    self.precisionFarmingOverlay = PrecisionFarmingOverlay.new(self)  -- Phase 4 stub
     self.saveLoad           = SaveLoadHandler.new(self)
 
     return self
@@ -110,6 +112,8 @@ function CropStressManager:initialize()
     self:detectOptionalMods()
     self.npcIntegration:initialize()
     self.financeIntegration:initialize()
+    self.usedEquipmentMarketplace:initialize()
+    self.precisionFarmingOverlay:initialize()
 
     -- Persistence handler
     self.saveLoad:initialize()
@@ -228,10 +232,12 @@ function CropStressManager:detectOptionalMods()
     if getfenv(0)["g_usedPlusManager"] ~= nil then
         csLog("FS25_UsedPlus detected — enabling finance integration")
         self.financeIntegration.usedPlusActive = true
+        self.usedEquipmentMarketplace:enableUsedPlusMode()
     end
 
     if getfenv(0)["g_precisionFarming"] ~= nil then
         csLog("Precision Farming DLC detected — enabling PF compat (Phase 4)")
+        self.precisionFarmingOverlay:enablePrecisionFarmingMode()
     end
 end
 

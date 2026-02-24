@@ -1,0 +1,139 @@
+-- ============================================================
+-- UsedEquipmentMarketplace.lua
+-- Phase 4: Integrates with FS25_UsedPlus to add pre-owned
+-- irrigation equipment to the used equipment marketplace.
+-- ============================================================
+
+UsedEquipmentMarketplace = {}
+UsedEquipmentMarketplace.__index = UsedEquipmentMarketplace
+
+function UsedEquipmentMarketplace.new(manager)
+    local self = setmetatable({}, UsedEquipmentMarketplace)
+    self.manager = manager
+    self.usedPlusActive = false
+    self.isInitialized = false
+    return self
+end
+
+function UsedEquipmentMarketplace:initialize()
+    self.isInitialized = true
+    csLog("UsedEquipmentMarketplace initialized")
+end
+
+-- Enable UsedPlus mode - called by CropStressManager after detection
+function UsedEquipmentMarketplace:enableUsedPlusMode()
+    self.usedPlusActive = true
+    self:registerUsedEquipment()
+    csLog("UsedEquipmentMarketplace: UsedPlus integration enabled")
+end
+
+-- Register pre-owned irrigation equipment with UsedPlus marketplace
+function UsedEquipmentMarketplace:registerUsedEquipment()
+    if not self.usedPlusActive then return end
+    if g_usedPlusManager == nil or g_usedPlusManager.registerUsedEquipment == nil then return end
+
+    -- Center Pivot used equipment entries
+    local pivotConfigs = {
+        {
+            name = "Used Center Pivot Irrigation System",
+            type = "irrigationPivot",
+            basePrice = 42500,  -- 50% of new price (85000)
+            conditionRange = {0.4, 0.8},  -- 40-80% condition
+            description = "Pre-owned center pivot irrigation system. Covers up to 200m radius. Includes mounting hardware.",
+            image = "placeables/centerPivot/centerPivot_shop.dds"
+        },
+        {
+            name = "Used Heavy-Duty Center Pivot",
+            type = "irrigationPivot",
+            basePrice = 51000,  -- 60% of new price
+            conditionRange = {0.6, 0.9},  -- 60-90% condition
+            description = "High-capacity center pivot with reinforced arm. Covers up to 250m radius.",
+            image = "placeables/centerPivot/centerPivot_shop.dds"
+        }
+    }
+
+    -- Water Pump used equipment entries
+    local pumpConfigs = {
+        {
+            name = "Used Water Pump Unit",
+            type = "waterPump",
+            basePrice = 18000,  -- 60% of new price (30000)
+            conditionRange = {0.4, 0.8},
+            description = "Pre-owned water pump unit. Connects to any water source within 500m.",
+            image = "placeables/waterPump/waterPump_shop.dds"
+        },
+        {
+            name = "Used High-Flow Water Pump",
+            type = "waterPump",
+            basePrice = 22500,  -- 75% of new price
+            conditionRange = {0.5, 0.85},
+            description = "Industrial-grade water pump with increased flow capacity.",
+            image = "placeables/waterPump/waterPump_shop.dds"
+        }
+    }
+
+    -- Drip Irrigation Line used equipment entries
+    local dripConfigs = {
+        {
+            name = "Used Drip Irrigation Line Kit",
+            type = "dripLine",
+            basePrice = 22500,  -- 50% of new price (45000)
+            conditionRange = {0.4, 0.8},
+            description = "Pre-owned drip irrigation line system. Covers linear field sections up to 100m.",
+            image = "placeables/dripIrrigationLine/dripLine_shop.dds"
+        }
+    }
+
+    -- Register all equipment types
+    for _, config in ipairs(pivotConfigs) do
+        self:registerSingleEquipment(config)
+    end
+
+    for _, config in ipairs(pumpConfigs) do
+        self:registerSingleEquipment(config)
+    end
+
+    for _, config in ipairs(dripConfigs) do
+        self:registerSingleEquipment(config)
+    end
+end
+
+-- Register a single piece of equipment with UsedPlus
+function UsedEquipmentMarketplace:registerSingleEquipment(config)
+    if g_usedPlusManager == nil or g_usedPlusManager.registerUsedEquipment == nil then return end
+
+    local equipmentData = {
+        name = config.name,
+        type = config.type,
+        basePrice = config.basePrice,
+        conditionRange = config.conditionRange,
+        description = config.description,
+        image = config.image,
+        category = "IRRIGATION",
+        subcategory = "AGRICULTURAL_EQUIPMENT",
+        -- Optional: Add custom attributes for irrigation equipment
+        attributes = {
+            coverageRadius = config.coverageRadius or 200,
+            flowRate = config.flowRate or 1000,
+            operationalCost = config.operationalCost or 15
+        }
+    }
+
+    g_usedPlusManager:registerUsedEquipment(equipmentData)
+    csLog(string.format("Registered used equipment: %s", config.name))
+end
+
+function UsedEquipmentMarketplace:delete()
+    self.isInitialized = false
+end
+
+-- ============================================================
+-- LOGGING HELPER
+-- ============================================================
+local function csLog(msg)
+    if g_logManager ~= nil then
+        g_logManager:devInfo("[CropStress]", msg)
+    else
+        print("[CropStress] " .. tostring(msg))
+    end
+end

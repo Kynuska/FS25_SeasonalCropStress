@@ -108,4 +108,8 @@
     <e k="cs_irr_performance"      v="Performance"/>
     <e k="cs_close"                v="Close"/>
 
+    <!-- Precision Farming DLC -->
+    <text name="cs_pf_moisture_overlay" text="Soil Moisture"/>
+    <text name="cs_pf_moisture_overlay_desc" text="Displays current soil moisture levels across your fields. Red indicates dry soil, green indicates optimal moisture, and blue indicates saturated soil."/>
+
 </l10n>

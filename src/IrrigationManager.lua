@@ -137,22 +137,34 @@ end
 -- Field Coverage Detection
 -- ============================================================
 function IrrigationManager:detectCoveredFields(placeable, cx, cz)
-    local radius  = placeable.radius or 200
     local covered = {}
 
-    if placeable.irrigationType ~= "pivot" then
-        -- Drip line coverage stubbed for Phase 4
-        return covered
-    end
+    if placeable.irrigationType == "pivot" then
+        local radius = placeable.radius or 200
+        if g_currentMission == nil or g_currentMission.fieldManager == nil then return covered end
 
-    if g_currentMission == nil or g_currentMission.fieldManager == nil then return covered end
+        local fields = g_currentMission.fieldManager:getFields()
+        for _, field in pairs(fields) do
+            if self:fieldIntersectsCircle(field, cx, cz, radius) then
+                table.insert(covered, field.fieldId)
+            end
+        end
+    elseif placeable.irrigationType == "drip" then
+        -- Drip line coverage: linear field intersection
+        if g_currentMission == nil or g_currentMission.fieldManager == nil then return covered end
 
-    local fields = g_currentMission.fieldManager:getFields()
-    for _, field in pairs(fields) do
-        if self:fieldIntersectsCircle(field, cx, cz, radius) then
-            table.insert(covered, field.fieldId)
+        local startX, _, startZ = placeable.startX or cx, 0, placeable.startZ or cz
+        local endX, _, endZ = placeable.endX or (cx + 100), 0, placeable.endZ or cz
+        local spacing = placeable.lineSpacing or 0.8
+
+        local fields = g_currentMission.fieldManager:getFields()
+        for _, field in pairs(fields) do
+            if self:fieldIntersectsDripLine(field, startX, startZ, endX, endZ, spacing) then
+                table.insert(covered, field.fieldId)
+            end
         end
     end
+
     return covered
 end
 
@@ -174,6 +186,30 @@ function IrrigationManager:fieldIntersectsCircle(field, cx, cz, radius)
     local dx = cx - closestX
     local dz = cz - closestZ
     return (dx * dx + dz * dz) <= (radius * radius)
+end
+
+-- Drip line vs. field intersection (simplified AABB check)
+function IrrigationManager:fieldIntersectsDripLine(field, startX, startZ, endX, endZ, spacing)
+    local minX, maxX, minZ, maxZ
+    if field.minX ~= nil then
+        minX, maxX, minZ, maxZ = field.minX, field.maxX, field.minZ, field.maxZ
+    else
+        local fx = field.posX or (field.startX and (field.startX + (field.widthX  or 0) * 0.5)) or startX
+        local fz = field.posZ or (field.startZ and (field.startZ + (field.heightZ or 0) * 0.5)) or startZ
+        local fr = field.fieldRadius or 50
+        minX, maxX = fx - fr, fx + fr
+        minZ, maxZ = fz - fr, fz + fr
+    end
+
+    -- Calculate drip line bounding box with spacing
+    local lineMinX = math.min(startX, endX) - spacing * 0.5
+    local lineMaxX = math.max(startX, endX) + spacing * 0.5
+    local lineMinZ = math.min(startZ, endZ) - spacing * 0.5
+    local lineMaxZ = math.max(startZ, endZ) + spacing * 0.5
+
+    -- Check AABB intersection
+    return (minX <= lineMaxX and maxX >= lineMinX and
+            minZ <= lineMaxZ and maxZ >= lineMinZ)
 end
 
 -- ============================================================
