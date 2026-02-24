@@ -249,7 +249,10 @@ Profile MUST have `imageSliceId value="noSlice"` and extend `baseReference`.
 | `continue` | Not in Lua 5.1 | Use guard clauses |
 | `os.time()` / `os.date()` | Not available in FS25 sandbox | Use `g_currentMission.time` / `.environment.currentDay` |
 | `Slider` widgets | Unreliable events | Use quick buttons or `MultiTextOption` |
-| `DialogElement` base | Deprecated | Use `MessageDialog` pattern |
+| i3d root node named `"root"` | Reserved by FS25 scene loader node registry → `FocusManager:94: table index is nil` on `loadSharedI3DFileFinished` | Name root nodes `"<assetName>_root"` (e.g. `"centerPivot_root"`) |
+| `addTrigger(node, tableRef)` | Second arg must be a **string** method name, not a table | `addTrigger(node, "onProximityTrigger", self)` |
+| `g_gui:loadGui()` with a live instance | `loadGui(xml, nil, MyDialog.new(), false)` pre-builds an object before XML is parsed — `FocusManager` hits nil on `focusElement` on next update | Pass the class table: `loadGui(xml, nil, MyDialog, false)` |
+| `DialogElement` base | Deprecated — `focusElement` is never set → `FocusManager:update()` crashes on first frame with "attempt to index nil with 'focusElement'" | Use `MessageDialog`: `Class(MyDialog, MessageDialog)` and `MessageDialog.new(target, mt)` — XML root stays `<GUI>` |
 | Dialog XML naming callbacks `onClose`/`onOpen` | System lifecycle conflict — causes stack overflow | Use different callback names |
 | XML `imageFilename` for mod images | Can't load from ZIP | Set dynamically via `setImageFilename()` in Lua |
 | `MapHotspot` base class | Abstract class has no icon — markers invisible | Use `PlaceableHotspot.new()` + `Overlay.new()` |

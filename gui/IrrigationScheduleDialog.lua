@@ -4,12 +4,16 @@
 -- ============================================================
 
 IrrigationScheduleDialog = {}
-local IrrigationScheduleDialog_mt = Class(IrrigationScheduleDialog, DialogElement)
+local IrrigationScheduleDialog_mt = Class(IrrigationScheduleDialog, MessageDialog)
 
 function IrrigationScheduleDialog.new(target, customMt)
-    local self = DialogElement.new(target, customMt or IrrigationScheduleDialog_mt)
-    self.systemId = nil
-    self.daySelected = {false, false, false, false, false, false, false}  -- local state, not Button.getSelected()
+    -- Called by g_gui:loadGui() with no arguments — target and customMt will both be nil.
+    -- Base class MUST be MessageDialog (not the deprecated DialogElement) so that
+    -- focusElement is properly initialised during XML wiring and FocusManager:update()
+    -- does not crash with "attempt to index nil with 'focusElement'" on the first frame.
+    local self = MessageDialog.new(target, customMt or IrrigationScheduleDialog_mt)
+    self.systemId    = nil
+    self.daySelected = {false, false, false, false, false, false, false}
     return self
 end
 

@@ -17,13 +17,17 @@
 -- ============================================================
 
 CropConsultantDialog = {}
-local CropConsultantDialog_mt = Class(CropConsultantDialog, DialogElement)
+local CropConsultantDialog_mt = Class(CropConsultantDialog, MessageDialog)
 
 -- ============================================================
 -- CONSTRUCTOR
 -- ============================================================
 function CropConsultantDialog.new(target, customMt)
-    local self = DialogElement.new(target, customMt or CropConsultantDialog_mt)
+    -- Called by g_gui:loadGui() with no arguments — target and customMt will both be nil.
+    -- Base class MUST be MessageDialog (not the deprecated DialogElement) so that
+    -- focusElement is properly initialised during XML wiring and FocusManager:update()
+    -- does not crash with "attempt to index nil with 'focusElement'" on the first frame.
+    local self = MessageDialog.new(target, customMt or CropConsultantDialog_mt)
     self.lastRefreshTime = 0
     return self
 end
