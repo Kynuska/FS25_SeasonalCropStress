@@ -77,6 +77,16 @@ function CropStressManager.new()
     -- Hourly tick tracking (monotonic day * 24 + hour)
     self.lastHourKey   = -1
 
+    -- Debug: Check if WeatherIntegration is available
+    if WeatherIntegration == nil then
+        print("[CropStress] ERROR: WeatherIntegration is nil!")
+        return nil
+    end
+    if WeatherIntegration.new == nil then
+        print("[CropStress] ERROR: WeatherIntegration.new is nil!")
+        return nil
+    end
+
     -- Subsystems (constructed here, initialized in :initialize() when g_currentMission is ready)
     self.weatherIntegration = WeatherIntegration.new(self)
     self.soilSystem         = SoilMoistureSystem.new(self)
@@ -86,8 +96,21 @@ function CropStressManager.new()
     self.consultant         = CropConsultant.new(self)
     self.npcIntegration     = NPCIntegration.new(self)
     self.financeIntegration = FinanceIntegration.new(self)      -- Phase 4 stub
-    self.usedEquipmentMarketplace = UsedEquipmentMarketplace.new(self)  -- Phase 4 stub
-    self.precisionFarmingOverlay = PrecisionFarmingOverlay.new(self)  -- Phase 4 stub
+
+    -- Phase 4 optional bridges — guarded so a missing source() doesn't crash the whole mod
+    if UsedEquipmentMarketplace ~= nil then
+        self.usedEquipmentMarketplace = UsedEquipmentMarketplace.new(self)
+    else
+        csLog("WARNING: UsedEquipmentMarketplace class not loaded — check main.lua source() order")
+        self.usedEquipmentMarketplace = { initialize=function()end, delete=function()end, enableUsedPlusMode=function()end }
+    end
+
+    if PrecisionFarmingOverlay ~= nil then
+        self.precisionFarmingOverlay = PrecisionFarmingOverlay.new(self)
+    else
+        csLog("WARNING: PrecisionFarmingOverlay class not loaded — check main.lua source() order")
+        self.precisionFarmingOverlay = { initialize=function()end, delete=function()end, enablePrecisionFarmingMode=function()end }
+    end
     self.saveLoad           = SaveLoadHandler.new(self)
 
     return self
@@ -231,7 +254,7 @@ function CropStressManager:detectOptionalMods()
 
     if getfenv(0)["g_usedPlusManager"] ~= nil then
         csLog("FS25_UsedPlus detected — enabling finance integration")
-        self.financeIntegration.usedPlusActive = true
+        self.financeIntegration:enableUsedPlusMode()
         self.usedEquipmentMarketplace:enableUsedPlusMode()
     end
 
@@ -292,6 +315,8 @@ function CropStressManager:delete()
     CropEventBus.listeners = {}
 
     -- Subsystem cleanup (reverse order of init)
+    self.precisionFarmingOverlay:delete()
+    self.usedEquipmentMarketplace:delete()
     self.financeIntegration:delete()
     self.npcIntegration:delete()
     self.consultant:delete()
@@ -316,6 +341,7 @@ function CropStressManager:consoleHelp()
     print("  csForceStress <id>     — Force max stress on a field")
     print("  csSimulateHeat <days>  — Simulate heat wave for N in-game days")
     print("  csDebug                — Toggle verbose debug logging")
+    print("  csConsultant           — Open the Crop Consultant dialog")
     print("==============================================")
 end
 

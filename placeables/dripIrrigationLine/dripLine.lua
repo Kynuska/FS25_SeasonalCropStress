@@ -135,7 +135,9 @@ function DripIrrigationLine:createProximityTrigger()
     link(self.nodeId, self.triggerNode)
     setTranslation(self.triggerNode, 0, 0, 0)
 
-    addTrigger(self.triggerNode, self)
+    -- addTrigger second arg MUST be a string method name, not the table itself.
+    -- FS25 calls: self["onProximityTrigger"](self, triggerId, otherId, onEnter, onLeave, onStay)
+    addTrigger(self.triggerNode, "onProximityTrigger", self)
 
     csLog(string.format("dripLine %s: proximity trigger created (r=%.1fm)", tostring(self.id), DripIrrigationLine.INTERACTION_RADIUS))
 end

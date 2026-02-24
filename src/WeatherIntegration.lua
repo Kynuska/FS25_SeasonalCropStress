@@ -14,6 +14,9 @@
 WeatherIntegration = {}
 WeatherIntegration.__index = WeatherIntegration
 
+-- Debug: Ensure the module is being loaded
+print("[CropStress] WeatherIntegration module loaded")
+
 -- Season indices (matches g_currentMission.environment.currentSeason)
 WeatherIntegration.SEASON_SPRING = 0
 WeatherIntegration.SEASON_SUMMER = 1
