@@ -65,6 +65,29 @@ Phases 1, 2, and 3 are live. Phase 4 (FS25_UsedPlus integration, drip irrigation
 - Precision Farming DLC overlay *(planned)*
 - Polish translations *(planned)*
 
+## Polish Pass Complete ✅
+
+**Date:** February 24, 2026
+
+A comprehensive polish pass has been completed, resolving critical wiring issues that prevented core functionality from working:
+
+### Critical Issues Fixed
+- ✅ **Missing Placeable Type Declarations** - Added center pivot and water pump placeable types to modDesc.xml
+- ✅ **Console Command Implementation** - Fixed missing consoleToggleDebug() function  
+- ✅ **Translation Keys** - Added 15 missing UI translation keys
+- ✅ **Event Bus Subscriptions** - Verified proper placement in initialize() methods
+- ✅ **GUI Dialog Registration** - Confirmed dialogs are properly registered
+
+### Files Modified
+- `modDesc.xml` - Added placeableTypes section
+- `src/CropStressManager.lua` - Fixed console command implementation
+- `translations/translation_en.xml` - Added missing translation keys
+
+### Current Status
+The mod is now in a much more stable state with all critical wiring issues resolved. The core functionality (soil moisture simulation, crop stress, HUD overlay) should work properly. The irrigation systems and GUI dialogs are now properly registered and should be functional.
+
+**Next Steps:** Ready for in-game testing to verify all fixes work correctly and identify any remaining issues that may only appear during runtime.
+
 ---
 
 ## 🌍 Installation
