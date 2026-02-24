@@ -19,19 +19,18 @@ end
 
 function IrrigationScheduleDialog:onCreate()
     -- FS25: elements wired by name via getDescendantByName()
-    self.titleElement          = self:getDescendantByName("title")
-    self.waterSourceValue      = self:getDescendantByName("waterSourceValue")
-    self.startHourDropdown     = self:getDescendantByName("startHour")
-    self.endHourDropdown       = self:getDescendantByName("endHour")
-    self.flowRateText          = self:getDescendantByName("flowRate")
-    self.efficiencyText        = self:getDescendantByName("efficiency")
-    self.costText              = self:getDescendantByName("cost")
-    self.wearText              = self:getDescendantByName("wear")
+    self.titleElement           = self:getDescendantByName("title")
+    self.waterSourceValue       = self:getDescendantByName("waterSourceValue")
+    self.startHourText          = self:getDescendantByName("startHourText")
+    self.endHourText            = self:getDescendantByName("endHourText")
+    self.flowRateText           = self:getDescendantByName("flowRate")
+    self.efficiencyText         = self:getDescendantByName("efficiency")
+    self.costText               = self:getDescendantByName("cost")
+    self.wearText               = self:getDescendantByName("wear")
     self.coveredFieldsContainer = self:getDescendantByName("coveredFieldsContainer")
-    self.btnIrrigateNow        = self:getDescendantByName("btnIrrigateNow")
-    self.btnSave               = self:getDescendantByName("btnSave")
-    self.btnClose              = self:getDescendantByName("btnClose")
-    self.dayButtonsContainer   = self:getDescendantByName("dayButtonsContainer")
+    self.btnIrrigateNow         = self:getDescendantByName("btnIrrigateNow")
+    self.btnSave                = self:getDescendantByName("btnSave")
+    self.btnClose               = self:getDescendantByName("btnClose")
 
     -- Day toggle buttons looked up by name (declared in XML as btn_day_1 .. btn_day_7)
     self.dayButtons = {}
@@ -40,18 +39,6 @@ function IrrigationScheduleDialog:onCreate()
         if btn ~= nil then
             self.dayButtons[i] = btn
         end
-    end
-
-    -- Initialize time dropdowns with hours 0-23
-    local hours = {}
-    for h = 0, 23 do
-        table.insert(hours, string.format("%02d:00", h))
-    end
-    if self.startHourDropdown ~= nil then
-        self.startHourDropdown:setTexts(hours)
-    end
-    if self.endHourDropdown ~= nil then
-        self.endHourDropdown:setTexts(hours)
     end
 end
 
@@ -81,13 +68,8 @@ function IrrigationScheduleDialog:onIrrigationDialogOpen(systemId)
     -- Sync day button visual state from schedule
     self:syncDayButtons(system)
 
-    -- Set time dropdowns (setState takes index + silent flag)
-    if self.startHourDropdown ~= nil then
-        self.startHourDropdown:setState(system.schedule.startHour, true)
-    end
-    if self.endHourDropdown ~= nil then
-        self.endHourDropdown:setState(system.schedule.endHour, true)
-    end
+    -- Set time displays from schedule (button-based, no dropdown)
+    self:updateTimeDisplays(system)
 
     -- Update performance texts
     self:updatePerformance(system)
@@ -131,18 +113,43 @@ function IrrigationScheduleDialog:_toggleDay(idx)
     end
 end
 
-function IrrigationScheduleDialog:onStartHourChanged(state)
-    local system = self:getCurrentSystem()
-    if system ~= nil then
-        system.schedule.startHour = state
+-- Update both time display Text elements from system.schedule (hours 0-23)
+function IrrigationScheduleDialog:updateTimeDisplays(system)
+    if system == nil then return end
+    if self.startHourText ~= nil then
+        self.startHourText:setText(string.format("%02d:00", system.schedule.startHour))
+    end
+    if self.endHourText ~= nil then
+        self.endHourText:setText(string.format("%02d:00", system.schedule.endHour))
     end
 end
 
-function IrrigationScheduleDialog:onEndHourChanged(state)
+function IrrigationScheduleDialog:onStartHourMinus()
     local system = self:getCurrentSystem()
-    if system ~= nil then
-        system.schedule.endHour = state
-    end
+    if system == nil then return end
+    system.schedule.startHour = (system.schedule.startHour - 1 + 24) % 24
+    self:updateTimeDisplays(system)
+end
+
+function IrrigationScheduleDialog:onStartHourPlus()
+    local system = self:getCurrentSystem()
+    if system == nil then return end
+    system.schedule.startHour = (system.schedule.startHour + 1) % 24
+    self:updateTimeDisplays(system)
+end
+
+function IrrigationScheduleDialog:onEndHourMinus()
+    local system = self:getCurrentSystem()
+    if system == nil then return end
+    system.schedule.endHour = (system.schedule.endHour - 1 + 24) % 24
+    self:updateTimeDisplays(system)
+end
+
+function IrrigationScheduleDialog:onEndHourPlus()
+    local system = self:getCurrentSystem()
+    if system == nil then return end
+    system.schedule.endHour = (system.schedule.endHour + 1) % 24
+    self:updateTimeDisplays(system)
 end
 
 function IrrigationScheduleDialog:updatePerformance(system)

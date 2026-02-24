@@ -67,6 +67,17 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
         <action name="CS_OPEN_CONSULTANT"  axisType="HALF_POSITIVE_AXIS" isSink="true"/>
     </actions>
 
+    <!--
+        Inline l10n for input action descriptions.
+        These must be available at modDesc parse time — BEFORE the external
+        translation file is loaded — so the key binding screen shows correct names.
+        The external file is also loaded below for all other strings.
+    -->
+    <l10n>
+        <text name="input_CS_TOGGLE_HUD"><en>Toggle Moisture HUD</en></text>
+        <text name="input_CS_OPEN_IRRIGATION"><en>Open Irrigation Manager</en></text>
+        <text name="input_CS_OPEN_CONSULTANT"><en>Open Crop Consultant</en></text>
+    </l10n>
     <l10n filenamePrefix="translations/translation"/>
 
     <placeableTypes>

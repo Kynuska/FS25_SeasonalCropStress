@@ -5,7 +5,7 @@
     NEVER use onOpen/onClose as callback names — system lifecycle conflict.
     Pattern follows TakeLoanDialog.xml per CLAUDE.md.
 -->
-<GUI onCreate="onCreate" onOpen="onConsultantDialogOpen" onClose="onConsultantDialogClose">
+<GUI onCreate="onCreate" onClose="onConsultantDialogClose">
     <GuiElement profile="newLayer" />
     <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
     <GuiElement profile="dialogBg" id="dialogElement" size="800px 600px">
