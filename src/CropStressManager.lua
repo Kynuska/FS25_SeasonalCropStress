@@ -77,6 +77,16 @@ function CropStressManager.new()
     -- Hourly tick tracking (monotonic day * 24 + hour)
     self.lastHourKey   = -1
 
+    -- Debug: Check if WeatherIntegration is available
+    if WeatherIntegration == nil then
+        print("[CropStress] ERROR: WeatherIntegration is nil!")
+        return nil
+    end
+    if WeatherIntegration.new == nil then
+        print("[CropStress] ERROR: WeatherIntegration.new is nil!")
+        return nil
+    end
+
     -- Subsystems (constructed here, initialized in :initialize() when g_currentMission is ready)
     self.weatherIntegration = WeatherIntegration.new(self)
     self.soilSystem         = SoilMoistureSystem.new(self)
