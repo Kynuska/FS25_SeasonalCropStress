@@ -68,4 +68,11 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
     </actions>
 
     <l10n filenamePrefix="translations/translation"/>
+
+    <placeableTypes>
+        <placeableType name="irrigationPivot" parent="simplePlaceable"
+            filename="placeables/centerPivot/centerPivot.lua"/>
+        <placeableType name="waterPump" parent="simplePlaceable"
+            filename="placeables/waterPump/waterPump.lua"/>
+    </placeableTypes>
 </modDesc>

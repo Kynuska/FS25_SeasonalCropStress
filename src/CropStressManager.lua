@@ -399,11 +399,12 @@ function CropStressManager:consoleConsultant()
     local dialog = g_gui:showDialog("CropConsultantDialog")
     if dialog ~= nil and dialog.target ~= nil then
         dialog.target:onConsultantDialogOpen()
-        print("CropConsultant dialog opened")
+        print("CropStress: CropConsultant dialog opened")
     else
         print("CropStress: CropConsultantDialog not registered — check main.lua loadGui call")
     end
 end
+
 function CropStressManager:consoleToggleDebug()
     self.debugMode = not self.debugMode
     print(string.format("CropStress debug mode: %s", tostring(self.debugMode)))
