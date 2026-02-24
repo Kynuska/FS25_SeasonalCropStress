@@ -74,5 +74,7 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
             filename="placeables/centerPivot/centerPivot.lua"/>
         <placeableType name="waterPump" parent="simplePlaceable"
             filename="placeables/waterPump/waterPump.lua"/>
+        <placeableType name="dripLine" parent="simplePlaceable"
+            filename="placeables/dripIrrigationLine/dripLine.lua"/>
     </placeableTypes>
 </modDesc>

@@ -86,4 +86,8 @@
     <text name="cs_no_irrigation_systems"  text="Noch keine Bewässerungssysteme platziert."/>
     <text name="cs_irr_started"             text="Bewässerung gestartet."/>
     <text name="cs_schedule_saved"         text="Zeitplan gespeichert."/>
+
+    <!-- Precision Farming DLC -->
+    <text name="cs_pf_moisture_overlay" text="Bodenfeuchte"/>
+    <text name="cs_pf_moisture_overlay_desc" text="Zeigt die aktuelle Bodenfeuchte auf Ihren Feldern an. Rot zeigt trockenen Boden, Grün optimale Feuchte und Blau gesättigten Boden an."/>
 </l10n>

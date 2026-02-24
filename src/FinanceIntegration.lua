@@ -54,7 +54,23 @@ end
 
 function FinanceIntegration:getEquipmentWearLevel(vehicleId)
     -- Phase 4: query UsedPlus DNA reliability value
-    return 0.0
+    if not self.usedPlusActive then return 0.0 end
+    if g_usedPlusManager == nil or g_usedPlusManager.getVehicleDNA == nil then return 0.0 end
+
+    local dna = g_usedPlusManager:getVehicleDNA(vehicleId)
+    if dna == nil then return 0.0 end
+
+    -- UsedPlus DNA reliability: 0.6–1.4 multiplier
+    -- reliability 0.6 = 40% worn, reliability 1.4 = 0% worn
+    -- Convert to wear level 0.0 (new) to 1.0 (broken)
+    local wearLevel = math.max(0.0, (1.4 - dna.reliability) / 0.8)
+    return math.min(1.0, wearLevel)
+end
+
+-- Enable UsedPlus mode - called by CropStressManager after detection
+function FinanceIntegration:enableUsedPlusMode()
+    self.usedPlusActive = true
+    csLog("FinanceIntegration: UsedPlus integration enabled")
 end
 
 function FinanceIntegration:delete()

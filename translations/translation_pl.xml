@@ -95,4 +95,8 @@
     <text name="cs_ok" text="OK"/>
     <text name="cs_yes" text="Tak"/>
     <text name="cs_no" text="Nie"/>
+    
+    <!-- Precision Farming DLC -->
+    <text name="cs_pf_moisture_overlay" text="Wilgotność gleby"/>
+    <text name="cs_pf_moisture_overlay_desc" text="Wyświetla poziom wilgotności gleby na Twoich polach. Czerwony oznacza suchą glebę, zielony optymalną wilgotność, a niebieski nasycenie wodą."/>
 </l10n>

@@ -86,4 +86,8 @@
     <text name="cs_no_irrigation_systems"  text="Nog geen irrigatiesystemen geplaatst."/>
     <text name="cs_irr_started"             text="Irrigatie gestart."/>
     <text name="cs_schedule_saved"         text="Schema opgeslagen."/>
+
+    <!-- Precision Farming DLC -->
+    <text name="cs_pf_moisture_overlay" text="Grondvochtigheid"/>
+    <text name="cs_pf_moisture_overlay_desc" text="Toont het vochtigheidsniveau van de grond op uw velden. Rood geeft droge grond aan, groen optimale vochtigheid en blauw verzadigde grond."/>
 </l10n>

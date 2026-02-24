@@ -86,4 +86,8 @@
     <text name="cs_no_irrigation_systems"  text="Aucun système d'irrigation placé."/>
     <text name="cs_irr_started"             text="Irrigation démarrée."/>
     <text name="cs_schedule_saved"         text="Programme enregistré."/>
+
+    <!-- Precision Farming DLC -->
+    <text name="cs_pf_moisture_overlay" text="Humidité du sol"/>
+    <text name="cs_pf_moisture_overlay_desc" text="Affiche le niveau d'humidité du sol sur vos champs. Rouge indique un sol sec, vert une humidité optimale et bleu un sol saturé."/>
 </l10n>
