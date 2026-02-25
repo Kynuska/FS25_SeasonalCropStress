@@ -1,100 +1,97 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <l10n>
-    <!-- ========== HUD OVERLAY ========== -->
-    <text name="cs_hud_title"         text="CROP MOISTURE"/>
-    <text name="cs_hud_healthy"       text="Healthy"/>
-    <text name="cs_hud_warning"       text="Drought Stress"/>
-    <text name="cs_hud_critical"      text="CRITICAL — Irrigate Now!"/>
-    <text name="cs_hud_no_crop"       text="No crop"/>
-    <text name="cs_hud_forecast"      text="5-Day Forecast"/>
-    <text name="cs_hud_first_run"     text="Crop Moisture Monitor is now active. Press Shift+M to toggle the field status panel."/>
+    <texts>
+        <!-- ========== HUD OVERLAY ========== -->
+        <text name="cs_hud_title"         text="CROP MOISTURE"/>
+        <text name="cs_hud_healthy"       text="Healthy"/>
+        <text name="cs_hud_warning"       text="Drought Stress"/>
+        <text name="cs_hud_critical"      text="CRITICAL — Irrigate Now!"/>
+        <text name="cs_hud_no_crop"       text="No crop"/>
+        <text name="cs_hud_forecast"      text="5-Day Forecast"/>
+        <text name="cs_hud_first_run"     text="Crop Moisture Monitor is now active. Press Shift+M to toggle the field status panel."/>
 
-    <!-- ========== FIELD STATUS ========== -->
-    <text name="cs_field_moisture"    text="Moisture"/>
-    <text name="cs_field_soil_type"   text="Soil Type"/>
-    <text name="cs_field_stress"      text="Stress Accumulated"/>
-    <text name="cs_field_yield_impact" text="Est. Yield Impact"/>
-    <text name="cs_field_critical_window" text="Critical Window: NOW"/>
-    <text name="cs_field_nearest_water"   text="Nearest Water"/>
+        <!-- ========== FIELD STATUS ========== -->
+        <text name="cs_field_moisture"        text="Moisture"/>
+        <text name="cs_field_soil_type"       text="Soil Type"/>
+        <text name="cs_field_stress"          text="Stress Accumulated"/>
+        <text name="cs_field_yield_impact"    text="Est. Yield Impact"/>
+        <text name="cs_field_critical_window" text="Critical Window: NOW"/>
+        <text name="cs_field_nearest_water"   text="Nearest Water"/>
 
-    <!-- ========== SOIL TYPES ========== -->
-    <text name="cs_soil_sandy"        text="Sandy"/>
-    <text name="cs_soil_loamy"        text="Loamy"/>
-    <text name="cs_soil_clay"         text="Clay"/>
+        <!-- ========== SOIL TYPES ========== -->
+        <text name="cs_soil_sandy"  text="Sandy"/>
+        <text name="cs_soil_loamy"  text="Loamy"/>
+        <text name="cs_soil_clay"   text="Clay"/>
 
-    <!-- ========== ALERTS ========== -->
-    <text name="cs_alert_info"        text="Field %d: %s moisture dropping — monitor conditions."/>
-    <text name="cs_alert_warning"     text="Field %d: %s moisture low — irrigation recommended."/>
-    <text name="cs_alert_critical"    text="Field %d: %s at drought stress threshold — irrigate NOW!"/>
+        <!-- ========== ALERTS ========== -->
+        <text name="cs_alert_info"     text="Field %d: %s moisture dropping — monitor conditions."/>
+        <text name="cs_alert_warning"  text="Field %d: %s moisture low — irrigation recommended."/>
+        <text name="cs_alert_critical" text="Field %d: %s at drought stress threshold — irrigate NOW!"/>
 
-    <!-- ========== IRRIGATION (Phase 2) ========== -->
-    <text name="cs_irr_title"         text="Irrigation System — %s"/>
-    <text name="cs_irr_water_source"  text="Water Source"/>
-    <text name="cs_irr_connected"     text="Connected"/>
-    <text name="cs_irr_disconnected"  text="Disconnected"/>
-    <text name="cs_irr_schedule"      text="Schedule"/>
-    <text name="cs_irr_flow_rate"     text="Flow Rate"/>
-    <text name="cs_irr_efficiency"    text="Efficiency"/>
-    <text name="cs_irr_cost"          text="Est. Cost"/>
-    <text name="cs_irr_wear"          text="Wear Level"/>
-    <text name="cs_irr_covered_fields" text="Covered Fields"/>
-    <text name="cs_irr_irrigate_now"  text="Irrigate Now"/>
-    <text name="cs_irr_save_schedule" text="Save Schedule"/>
-    <text name="cs_irr_pivot"         text="Center Pivot"/>
-    <text name="cs_irr_drip"          text="Drip Line"/>
-    <text name="cs_irr_pump"          text="Water Pump"/>
-    <text name="cs_day_mon"           text="M"/>
-    <text name="cs_day_tue"           text="T"/>
-    <text name="cs_day_wed"           text="W"/>
-    <text name="cs_day_thu"           text="T"/>
-    <text name="cs_day_fri"           text="F"/>
-    <text name="cs_day_sat"           text="S"/>
-    <text name="cs_day_sun"           text="S"/>
+        <!-- ========== IRRIGATION ========== -->
+        <text name="cs_irr_title"          text="Irrigation System — %s"/>
+        <text name="cs_irr_water_source"   text="Water Source"/>
+        <text name="cs_irr_connected"      text="Connected"/>
+        <text name="cs_irr_disconnected"   text="Disconnected"/>
+        <text name="cs_irr_schedule"       text="Schedule"/>
+        <text name="cs_irr_flow_rate"      text="Flow Rate"/>
+        <text name="cs_irr_efficiency"     text="Efficiency"/>
+        <text name="cs_irr_cost"           text="Est. Cost"/>
+        <text name="cs_irr_wear"           text="Wear Level"/>
+        <text name="cs_irr_covered_fields" text="Covered Fields"/>
+        <text name="cs_irr_irrigate_now"   text="Irrigate Now"/>
+        <text name="cs_irr_save_schedule"  text="Save Schedule"/>
+        <text name="cs_irr_pivot"          text="Center Pivot"/>
+        <text name="cs_irr_drip"           text="Drip Line"/>
+        <text name="cs_irr_pump"           text="Water Pump"/>
+        <text name="cs_irr_start_time"     text="Start Time"/>
+        <text name="cs_irr_end_time"       text="End Time"/>
+        <text name="cs_irr_performance"    text="Performance"/>
+        <text name="cs_irr_started"        text="Irrigation started."/>
+        <text name="cs_irr_open_schedule"  text="Open Irrigation Schedule"/>
+        <text name="cs_schedule_saved"     text="Schedule saved."/>
 
-    <!-- ========== CONSULTANT (Phase 3) ========== -->
-    <text name="cs_consultant_name"   text="Alex Chen, Agronomist"/>
-    <text name="cs_favor_soil_sample"     text="Take a soil sample from Field %d"/>
-    <text name="cs_favor_irr_check"       text="Inspect the irrigation system near Field %d"/>
-    <text name="cs_favor_emergency_water" text="Irrigate Field %d before sundown!"/>
-    <text name="cs_favor_seasonal_plan"   text="Review the seasonal irrigation plan"/>
+        <!-- ========== DAY LABELS ========== -->
+        <text name="cs_day_mon" text="M"/>
+        <text name="cs_day_tue" text="T"/>
+        <text name="cs_day_wed" text="W"/>
+        <text name="cs_day_thu" text="T"/>
+        <text name="cs_day_fri" text="F"/>
+        <text name="cs_day_sat" text="S"/>
+        <text name="cs_day_sun" text="S"/>
 
-    <!-- ========== INPUT ACTIONS ========== -->
-    <!-- Use <e> format for input action names — required by FS25 key binding screen -->
-    <e k="input_CS_TOGGLE_HUD"      v="Toggle Moisture HUD"/>
-    <e k="input_CS_OPEN_IRRIGATION" v="Open Irrigation Manager"/>
-    <e k="input_CS_OPEN_CONSULTANT" v="Open Crop Consultant"/>
+        <!-- ========== CONSULTANT ========== -->
+        <text name="cs_consultant_name"          text="Alex Chen, Agronomist"/>
+        <text name="cs_consultant_subtitle"      text="Field Status &amp; Recommendations"/>
+        <text name="cs_consultant_relationship"  text="Relationship with Alex:"/>
+        <text name="cs_consultant_field_status"  text="Field Risk Summary (Top 5)"/>
+        <text name="cs_consultant_recommendation" text="Recommendations"/>
+        <text name="cs_consultant_open_irrigation" text="Open Irrigation Manager"/>
+        <text name="cs_consultant_no_data"        text="No field data available."/>
 
-        <!-- Placeable shop names -->
-    <e k="cs_pivot_name"     v="Center Pivot Irrigator"/>
-    <e k="cs_pump_name"      v="Water Pump"/>
-    <e k="cs_drip_name"      v="Drip Irrigation Line"/>
+        <!-- ========== NPC FAVOR QUESTS ========== -->
+        <text name="cs_favor_soil_sample"     text="Take a soil sample from Field %d"/>
+        <text name="cs_favor_irr_check"       text="Inspect the irrigation system near Field %d"/>
+        <text name="cs_favor_emergency_water" text="Irrigate Field %d before sundown!"/>
+        <text name="cs_favor_seasonal_plan"   text="Review the seasonal irrigation plan"/>
 
-    <!-- E-key interaction -->
-    <e k="cs_irr_open_schedule"  v="Open Irrigation Schedule"/>
+        <!-- ========== PLACEABLES ========== -->
+        <text name="cs_pivot_name"  text="Center Pivot Irrigator"/>
+        <text name="cs_pump_name"   text="Water Pump"/>
+        <text name="cs_drip_name"   text="Drip Irrigation Line"/>
 
-    <!-- IrrigationScheduleDialog — additional labels (using <e> format for consistency) -->
-    <e k="cs_irr_start_time"     v="Start Time"/>
-    <e k="cs_irr_end_time"       v="End Time"/>
-    <e k="cs_irr_performance"    v="Performance"/>
-    <e k="cs_close"              v="Close"/>
-    <e k="cs_no_irrigation_systems" v="No irrigation systems placed yet"/>
+        <!-- ========== SHARED ========== -->
+        <text name="cs_close"                text="Close"/>
+        <text name="cs_no_irrigation_systems" text="No irrigation systems placed yet"/>
 
-    <!-- ========== CONSULTANT DIALOG (Phase 3) ========== -->
-    <text name="cs_consultant_subtitle"        text="Field Status &amp; Recommendations"/>
-    <text name="cs_consultant_relationship"    text="Relationship with Alex:"/>
-    <text name="cs_consultant_field_status"    text="Field Risk Summary (Top 5)"/>
-    <text name="cs_consultant_recommendation"  text="Recommendations"/>
-    <text name="cs_consultant_open_irrigation" text="Open Irrigation Manager"/>
-    <text name="cs_consultant_no_data"         text="No field data available."/>
+        <!-- ========== INPUT ACTION DESCRIPTIONS ========== -->
+        <!-- Also declared inline in modDesc.xml for parse-time availability -->
+        <text name="input_CS_TOGGLE_HUD"      text="Toggle Moisture HUD"/>
+        <text name="input_CS_OPEN_IRRIGATION" text="Open Irrigation Manager"/>
+        <text name="input_CS_OPEN_CONSULTANT" text="Open Crop Consultant"/>
 
-    <!-- Input action hint text (key-binding screen) declared above as <e> elements. -->
-
-    <!-- Phase 3 alert strings already present above — ensure cs_irr_started exists -->
-    <e k="cs_irr_started"          v="Irrigation started."/>
-    <e k="cs_schedule_saved"       v="Schedule saved."/>
-
-    <!-- Precision Farming DLC -->
-    <text name="cs_pf_moisture_overlay" text="Soil Moisture"/>
-    <text name="cs_pf_moisture_overlay_desc" text="Displays current soil moisture levels across your fields. Red indicates dry soil, green indicates optimal moisture, and blue indicates saturated soil."/>
-
+        <!-- ========== PRECISION FARMING DLC ========== -->
+        <text name="cs_pf_moisture_overlay"      text="Soil Moisture"/>
+        <text name="cs_pf_moisture_overlay_desc" text="Displays current soil moisture levels across your fields. Red indicates dry soil, green indicates optimal moisture, and blue indicates saturated soil."/>
+    </texts>
 </l10n>

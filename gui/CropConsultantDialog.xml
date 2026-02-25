@@ -16,7 +16,7 @@
 
             <!-- ── Title ─────────────────────────────── -->
             <Text id="titleText"    profile="fs25_dialogTitle"    text="$l10n_cs_consultant_name" />
-            <Text id="subtitleText" profile="fs25_dialogSubtitle" position="0px -15px"
+            <Text id="subtitleText" profile="fs25_dialogText" position="0px -15px"
                   text="$l10n_cs_consultant_subtitle" />
 
             <!-- ── NPC Relationship Section (hidden when NPCFavor not active) ── -->
@@ -28,14 +28,14 @@
             </GuiElement>
 
             <!-- ── Field Risk List ───────────────────── -->
-            <Text profile="fs25_dialogSubtitle" position="-350px -90px"
+            <Text profile="fs25_dialogText" position="-350px -90px"
                   text="$l10n_cs_consultant_field_status" />
             <GuiElement id="fieldListContainer" position="-350px -125px" size="760px 130px">
                 <!-- Items added dynamically in CropConsultantDialog.lua -->
             </GuiElement>
 
             <!-- ── Recommendations ───────────────────── -->
-            <Text profile="fs25_dialogSubtitle" position="-350px -270px"
+            <Text profile="fs25_dialogText" position="-350px -270px"
                   text="$l10n_cs_consultant_recommendation" />
             <Text id="recommendText" profile="fs25_dialogText" position="-350px -305px"
                   size="760px 120px" text="—" />
