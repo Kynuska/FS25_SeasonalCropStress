@@ -5,6 +5,11 @@
 -- Phase 4: will integrate with UsedPlus.
 -- ============================================================
 
+local function csLog(msg)
+    if g_logManager ~= nil then g_logManager:devInfo("[CropStress]", msg)
+    else print("[CropStress] " .. tostring(msg)) end
+end
+
 FinanceIntegration = {}
 FinanceIntegration.__index = FinanceIntegration
 

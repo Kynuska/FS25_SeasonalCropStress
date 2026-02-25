@@ -11,11 +11,21 @@
 -- - FS25_RealisticWeather: Detected at runtime, uses enhanced temperature/rain if present
 -- ============================================================
 
-WeatherIntegration = {}
-WeatherIntegration.__index = WeatherIntegration
+-- Store the module in a local variable first
+local WeatherIntegrationModule = {}
+WeatherIntegrationModule.__index = WeatherIntegrationModule
 
 -- Debug: Ensure the module is being loaded
 print("[CropStress] WeatherIntegration module loaded")
+
+-- Export to global environment so other modules can access it
+getfenv(0)["WeatherIntegration"] = WeatherIntegrationModule
+
+-- Also store in a persistent global to prevent garbage collection issues
+getfenv(0)["g_cropStress_WeatherIntegration"] = WeatherIntegrationModule
+
+-- Now assign the local variable to the global name for backward compatibility
+WeatherIntegration = WeatherIntegrationModule
 
 -- Season indices (matches g_currentMission.environment.currentSeason)
 WeatherIntegration.SEASON_SPRING = 0

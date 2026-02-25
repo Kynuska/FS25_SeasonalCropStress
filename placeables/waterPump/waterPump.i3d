@@ -53,7 +53,8 @@
     <Dynamics/>
 
     <Scene>
-        <TransformGroup name="root" nodeId="1" translation="0 0 0" rotation="0 0 0" scale="1 1 1">
+        <!-- NOT named "root" — reserved by FS25 scene loader -->
+        <TransformGroup name="waterPump_root" nodeId="1" translation="0 0 0" rotation="0 0 0" scale="1 1 1">
             <Shape name="body" nodeId="2" shapeId="1" translation="0 0 0"
                    rigid="true" static="true" collision="true"
                    collisionMask="1" kinematic="false"/>

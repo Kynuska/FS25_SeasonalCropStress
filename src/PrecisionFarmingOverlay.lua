@@ -4,6 +4,11 @@
 -- soil moisture overlay on the PF soil analysis map screen.
 -- ============================================================
 
+local function csLog(msg)
+    if g_logManager ~= nil then g_logManager:devInfo("[CropStress]", msg)
+    else print("[CropStress] " .. tostring(msg)) end
+end
+
 PrecisionFarmingOverlay = {}
 PrecisionFarmingOverlay.__index = PrecisionFarmingOverlay
 
@@ -130,15 +135,4 @@ end
 
 function PrecisionFarmingOverlay:delete()
     self.isInitialized = false
-end
-
--- ============================================================
--- LOGGING HELPER
--- ============================================================
-local function csLog(msg)
-    if g_logManager ~= nil then
-        g_logManager:devInfo("[CropStress]", msg)
-    else
-        print("[CropStress] " .. tostring(msg))
-    end
 end

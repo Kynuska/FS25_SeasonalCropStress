@@ -124,9 +124,9 @@ function IrrigationPivot:createProximityTrigger()
     -- For a trigger volume, we need addTrigger instead
     local triggerRadius = IrrigationPivot.INTERACTION_RADIUS
     
-    -- Use addTrigger to create a proper trigger volume
-    -- addTrigger(node, callback, userData) - creates a trigger that calls callback on enter/leave
-    addTrigger(self.triggerNode, self)
+    -- Use addTrigger(node, callbackName, target) — callbackName is a STRING, not a function/table.
+    -- FS25 calls target[callbackName](target, triggerId, otherId, onEnter, onLeave, onStay).
+    addTrigger(self.triggerNode, "onProximityTrigger", self)
 
     csLog(string.format("centerPivot %s: proximity trigger created (r=%.1fm)", tostring(self.id), triggerRadius))
 end

@@ -57,8 +57,8 @@
     <Dynamics/>
 
     <Scene>
-        <!-- Root node — self.nodeId in Lua -->
-        <TransformGroup name="root" nodeId="1" translation="0 0 0" rotation="0 0 0" scale="1 1 1">
+        <!-- Root node — self.nodeId in Lua. NOT named "root" — reserved by FS25 scene loader. -->
+        <TransformGroup name="centerPivot_root" nodeId="1" translation="0 0 0" rotation="0 0 0" scale="1 1 1">
 
             <!-- Arm node — rotated by onUpdate animation when pivot is active -->
             <TransformGroup name="armNode" nodeId="2" translation="0 4 0" rotation="0 0 0" scale="1 1 1"/>

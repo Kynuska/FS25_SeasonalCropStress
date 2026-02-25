@@ -1,3 +1,0 @@
-This is a placeholder for the mod icon file.
-The actual icon.dds file should be created with proper image editing software.
-This placeholder prevents the missing file error during mod loading.

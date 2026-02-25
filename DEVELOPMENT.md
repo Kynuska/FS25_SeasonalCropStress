@@ -611,7 +611,45 @@ Files fixed:
 
 ---
 
-### 2026-02-24 — Claude (Sonnet 4.6) — Polish Pass and Critical Fixes
+### 2026-02-24 (session 3) — Claude (Sonnet 4.6) — i3d reserved root name + addTrigger fix
+
+**Started from:** Runtime errors on map load:
+- `loadSharedI3DFileFinished` → `FocusManager.lua:94: table index is nil`
+- `update` → `FocusManager.lua:126: attempt to index nil with 'focusElement'`
+
+**Root causes identified:**
+
+1. **All three i3d files used `name="root"` as the scene root node.** `"root"` is reserved by the FS25 scene loader's internal node registry. When it tries to register the node, `nodeTable["root"]` is a reserved/nil slot → `table index is nil` at `FocusManager:94`. Renamed to `centerPivot_root`, `waterPump_root`, `dripLine_root`.
+
+2. **`dripLine.i3d` used the wrong schema.** `version="67"` with the old GIANTS `xmlns` and `id=` attributes instead of FS25 1.6 `nodeId=`. Fully rewritten to correct 1.6 schema.
+
+3. **`addTrigger(self.triggerNode, self)` wrong signature.** FS25 `addTrigger` requires `(node, "callbackString", target)`. Passing `self` (a table) as the second arg silently misregisters the trigger. Fixed to `addTrigger(self.triggerNode, "onProximityTrigger", self)`.
+
+**Also re-applied (previous session fixes were output but not yet copied to disk):**
+- `main.lua` — Phase 4 `source()` calls; `loadGui` class table (not instance)
+- `CropStressManager.lua` — Phase 4 nil guards; `enableUsedPlusMode()` method; Phase 4 `delete()` calls
+- `FinanceIntegration.lua`, `PrecisionFarmingOverlay.lua`, `UsedEquipmentMarketplace.lua` — `csLog` positioning
+
+**Files changed:**
+- `placeables/centerPivot/centerPivot.i3d`
+- `placeables/waterPump/waterPump.i3d`
+- `placeables/dripIrrigationLine/dripLine.i3d`
+- `placeables/centerPivot/centerPivot.lua`
+- `main.lua`, `CropStressManager.lua`, `FinanceIntegration.lua`, `PrecisionFarmingOverlay.lua`, `UsedEquipmentMarketplace.lua`
+
+**Tested:** Code review only
+
+**Next agent should start at:**
+`TEST: Place pump near river → connect a pivot → pivot activates`
+
+**Notes / surprises:**
+- `"root"` is reserved in the FS25 scene node table. Always name root nodes `"<assetName>_root"`. Added to CLAUDE.md.
+- `addTrigger(node, callbackString, target)` — second arg is always a **string** method name.
+- Previous session output files were never copied to disk — applying fixes from outputs alone is not enough; the mod folder must be updated manually each session.
+
+---
+
+### 2026-02-24 (session 2) — Claude (Sonnet 4.6) — Polish Pass and Critical Fixes
 
 **Started from:** Task: "Read all the MD files, then proceed with performing a polish pass over all phases. Look for dead code, not wired functions, missing calls etc etc"
 
