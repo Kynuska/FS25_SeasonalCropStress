@@ -28,6 +28,12 @@ InitEventClass(CropStressSettingsSyncEvent, "CropStressSettingsSyncEvent")
 CropStressSettingsSyncEvent.TYPE_SINGLE = 1
 CropStressSettingsSyncEvent.TYPE_BULK = 2
 
+-- Number of settings written/read in a bulk event.
+-- MUST match the number of writeSetting() calls in writeStream() and the
+-- count of keys in DEFAULTS (CropStressSettings.lua).  If you add or remove
+-- a setting, update this constant and the read/write calls together.
+CropStressSettingsSyncEvent.BULK_COUNT = 10
+
 -- Value type constants for serialization
 CropStressSettingsSyncEvent.VALUE_TYPE_BOOL = 1
 CropStressSettingsSyncEvent.VALUE_TYPE_INT = 2
@@ -63,7 +69,7 @@ function CropStressSettingsSyncEvent:writeStream(streamId, connection)
     elseif self.eventType == CropStressSettingsSyncEvent.TYPE_BULK then
         -- Write all settings
         local settings = self.settings
-        streamWriteUInt8(streamId, 10) -- Number of settings (fixed for now)
+        streamWriteUInt8(streamId, CropStressSettingsSyncEvent.BULK_COUNT)
         
         -- Write each setting with type tagging
         self:writeSetting(streamId, "enabled", settings.enabled, CropStressSettingsSyncEvent.VALUE_TYPE_BOOL)
