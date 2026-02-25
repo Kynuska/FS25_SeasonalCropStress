@@ -109,5 +109,54 @@
     <!-- ========== PRECISION FARMING DLC ========== -->
     <text name="cs_pf_moisture_overlay"      text="Humidité du sol"/>
     <text name="cs_pf_moisture_overlay_desc" text="Affiche le niveau d'humidité du sol sur vos champs. Rouge indique un sol sec, vert une humidité optimale et bleu un sol saturé."/>
+
+    <!-- ========== HELP LINES ========== -->
+    <text name="helpLine_cs_category"          text="Stress saisonnier des cultures"/>
+
+    <!-- Page 1: Présentation -->
+    <text name="helpLine_cs_p1_title"          text="Présentation"/>
+    <text name="helpLine_cs_p1_intro_title"    text="Ce que ce mod ajoute"/>
+    <text name="helpLine_cs_p1_intro_text"     text="Stress saisonnier des cultures ajoute une simulation d'humidité du sol à chaque parcelle. Les cultures ont besoin d'eau lors des étapes clés de croissance. Sans eau, la récolte sera moins bonne. Les systèmes d'irrigation vous permettent de contrôler l'approvisionnement en eau de vos champs."/>
+    <text name="helpLine_cs_p1_start_title"    text="Premiers pas"/>
+    <text name="helpLine_cs_p1_start_text"     text="Appuyez sur Maj+M pour ouvrir le HUD d'humidité et voir toutes vos parcelles d'un coup d'œil. Les parcelles en rouge ont besoin d'eau d'urgence, les vertes sont en bon état. Maj+C ouvre le Conseiller cultural pour des recommandations détaillées."/>
+
+    <!-- Page 2: Humidité du sol -->
+    <text name="helpLine_cs_p2_title"          text="Humidité du sol"/>
+    <text name="helpLine_cs_p2_how_title"      text="Comment fonctionne l'humidité"/>
+    <text name="helpLine_cs_p2_how_text"       text="La pluie remplit le sol et la chaleur l'assèche. Chaque parcelle suit son propre niveau d'humidité de 0% (complètement sec) à 100% (saturé). La vitesse de séchage dépend de la météo, de la saison et du type de sol."/>
+    <text name="helpLine_cs_p2_soil_title"     text="Types de sol"/>
+    <text name="helpLine_cs_p2_soil_text"      text="Le sol sableux s'assèche vite et nécessite une irrigation fréquente. Le sol argileux retient l'eau plus longtemps mais peut devenir gorgé d'eau. Le sol limoneux est intermédiaire et le plus facile à gérer. Le type de sol est affiché dans le HUD et le Conseiller cultural."/>
+
+    <!-- Page 3: Stress et rendement -->
+    <text name="helpLine_cs_p3_title"          text="Stress des cultures &amp; rendement"/>
+    <text name="helpLine_cs_p3_window_title"   text="Périodes de croissance critiques"/>
+    <text name="helpLine_cs_p3_window_text"    text="Chaque culture a une période où elle a le plus besoin d'eau. Le blé est le plus vulnérable au printemps, le maïs souffre des vagues de chaleur estivales, le colza est sensible en automne. Une humidité insuffisante pendant cette période génère du stress sur la parcelle."/>
+    <text name="helpLine_cs_p3_yield_title"    text="Réduction du rendement à la récolte"/>
+    <text name="helpLine_cs_p3_yield_text"     text="Le stress accumulé réduit votre récolte. Un peu de stress entraîne une petite perte. Une sécheresse sévère peut réduire la récolte jusqu'à 60%. Le Conseiller cultural affiche le risque de rendement par parcelle pour vous aider à prioriser l'irrigation."/>
+
+    <!-- Page 4: HUD et commandes -->
+    <text name="helpLine_cs_p4_title"          text="HUD &amp; commandes"/>
+    <text name="helpLine_cs_p4_hud_title"      text="Superposition HUD d'humidité"/>
+    <text name="helpLine_cs_p4_hud_text"       text="Appuyez sur Maj+M pour afficher ou masquer le HUD d'humidité. Il liste chaque parcelle avec son niveau d'humidité, son type de culture et son état de stress. Une prévision sur 5 jours indique si l'humidité monte ou baisse."/>
+    <text name="helpLine_cs_p4_status_title"   text="Couleurs de statut"/>
+    <text name="helpLine_cs_p4_status_text"    text="Vert signifie que la parcelle est saine et qu'aucune action n'est nécessaire. Jaune est un avertissement : l'humidité baisse et l'irrigation est bientôt conseillée. Rouge est critique : la culture subit un stress hydrique et la perte de rendement augmente — irriguer immédiatement."/>
+    <text name="helpLine_cs_p4_keys_title"     text="Raccourcis clavier"/>
+    <text name="helpLine_cs_p4_keys_text"      text="Maj+M active ou désactive le HUD d'humidité. Maj+I ouvre le gestionnaire d'irrigation pour un système sélectionné. Maj+C ouvre le Conseiller cultural avec un résumé des risques et des recommandations personnalisées."/>
+
+    <!-- Page 5: Irrigation -->
+    <text name="helpLine_cs_p5_title"          text="Irrigation"/>
+    <text name="helpLine_cs_p5_types_title"    text="Types d'irrigation"/>
+    <text name="helpLine_cs_p5_types_text"     text="Trois types d'irrigation sont disponibles dans le menu de construction. Le pivot central couvre une grande zone circulaire. La ligne de goutte-à-goutte assure une couverture précise le long d'une rangée. La pompe à eau alimente les systèmes et doit d'abord être placée près d'une source d'eau."/>
+    <text name="helpLine_cs_p5_schedule_title" text="Programme &amp; fonctionnement"/>
+    <text name="helpLine_cs_p5_schedule_text"  text="Sélectionnez un système d'irrigation et appuyez sur Maj+I pour ouvrir son programme. Choisissez les jours de la semaine et définissez des heures de début et de fin quotidiennes. Le bouton Irriguer maintenant permet d'arroser immédiatement les parcelles couvertes sans attendre le programme."/>
+
+    <!-- Page 6: Conseiller cultural -->
+    <text name="helpLine_cs_p6_title"          text="Conseiller cultural"/>
+    <text name="helpLine_cs_p6_what_title"     text="Ce que montre le Conseiller"/>
+    <text name="helpLine_cs_p6_what_text"      text="Appuyez sur Maj+C pour ouvrir le Conseiller cultural. Il affiche vos 5 parcelles les plus à risque classées par humidité et niveau de stress, ainsi qu'une recommandation claire pour les prochaines 24 heures et une prévision d'humidité sur 3 jours."/>
+    <text name="helpLine_cs_p6_act_title"      text="Agir sur les conseils"/>
+    <text name="helpLine_cs_p6_act_text"       text="Les parcelles marquées CRITIQUE doivent être irriguées aujourd'hui pour éviter des pertes de rendement. Les parcelles marquées AVERTISSEMENT devraient être irriguées dans un ou deux jours. Utilisez le bouton Ouvrir gestionnaire d'irrigation pour planifier rapidement l'arrosage de la parcelle la plus critique."/>
+    <text name="helpLine_cs_p6_npc_title"      text="En option : Alex Chen (Agronome)"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Si FS25_NPCFavor est installé, Alex Chen apparaît comme NPC Agronome. Développez votre relation avec Alex grâce à des services pour débloquer des alertes précoces de sécheresse et des conseils d'irrigation spécialisés."/>
     </texts>
 </l10n>

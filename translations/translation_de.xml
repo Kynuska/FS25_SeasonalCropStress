@@ -109,5 +109,54 @@
     <!-- ========== PRECISION FARMING DLC ========== -->
     <text name="cs_pf_moisture_overlay"      text="Bodenfeuchte"/>
     <text name="cs_pf_moisture_overlay_desc" text="Zeigt die aktuelle Bodenfeuchte auf Ihren Feldern an. Rot zeigt trockenen Boden, Grün optimale Feuchte und Blau gesättigten Boden an."/>
+
+    <!-- ========== HELP LINES ========== -->
+    <text name="helpLine_cs_category"          text="Saisonaler Pflanzenstress"/>
+
+    <!-- Seite 1: Übersicht -->
+    <text name="helpLine_cs_p1_title"          text="Übersicht"/>
+    <text name="helpLine_cs_p1_intro_title"    text="Was diese Mod hinzufügt"/>
+    <text name="helpLine_cs_p1_intro_text"     text="Saisonaler Pflanzenstress fügt jedem Feld eine Bodenfeuchtesimulation hinzu. Pflanzen brauchen Wasser in wichtigen Wachstumsphasen. Fehlt es, fällt die Ernte geringer aus. Bewässerungssysteme ermöglichen die Kontrolle über die Wasserversorgung."/>
+    <text name="helpLine_cs_p1_start_title"    text="Erste Schritte"/>
+    <text name="helpLine_cs_p1_start_text"     text="Shift+M öffnet das Feuchte-HUD mit einer Übersicht aller Felder. Rote Felder benötigen dringend Wasser, grüne Felder sind in Ordnung. Shift+C öffnet den Pflanzenberater mit detaillierten Empfehlungen und Risikowerten."/>
+
+    <!-- Seite 2: Bodenfeuchte -->
+    <text name="helpLine_cs_p2_title"          text="Bodenfeuchte"/>
+    <text name="helpLine_cs_p2_how_title"      text="Wie Feuchte funktioniert"/>
+    <text name="helpLine_cs_p2_how_text"       text="Regen füllt den Boden, Hitze trocknet ihn aus. Jedes Feld verfolgt seinen eigenen Feuchteanteil von 0% (knochentrocken) bis 100% (gesättigt). Die Austrocknungsrate hängt vom Wetter, der Jahreszeit und dem Bodentyp ab."/>
+    <text name="helpLine_cs_p2_soil_title"     text="Bodentypen"/>
+    <text name="helpLine_cs_p2_soil_text"      text="Sandboden trocknet schnell aus und benötigt häufige Bewässerung. Tonboden hält Wasser länger, kann aber staunass werden. Lehmboden liegt dazwischen und ist am einfachsten zu bewirtschaften. Der Bodentyp wird im HUD und im Pflanzenberater angezeigt."/>
+
+    <!-- Seite 3: Pflanzenstress & Ertrag -->
+    <text name="helpLine_cs_p3_title"          text="Pflanzenstress &amp; Ertrag"/>
+    <text name="helpLine_cs_p3_window_title"   text="Kritische Wachstumsphasen"/>
+    <text name="helpLine_cs_p3_window_text"    text="Jede Pflanze hat eine Phase, in der sie am meisten Wasser benötigt. Weizen ist im Frühling am empfindlichsten, Mais leidet bei Sommerhitze, Raps ist im Herbst sensibel. Zu wenig Feuchte in dieser Phase baut Stress auf dem Feld auf."/>
+    <text name="helpLine_cs_p3_yield_title"    text="Ertragsverluste bei der Ernte"/>
+    <text name="helpLine_cs_p3_yield_text"     text="Angesammelter Stress reduziert die Ernte. Geringer Stress bedeutet kleine Verluste. Schwerer Trockenstress kann die Ernte um bis zu 60% senken. Der Pflanzenberater zeigt das aktuelle Ertragsrisiko je Feld, damit du die Bewässerung priorisieren kannst."/>
+
+    <!-- Seite 4: HUD & Steuerung -->
+    <text name="helpLine_cs_p4_title"          text="HUD &amp; Steuerung"/>
+    <text name="helpLine_cs_p4_hud_title"      text="Feuchte-HUD-Overlay"/>
+    <text name="helpLine_cs_p4_hud_text"       text="Shift+M schaltet das Feuchte-HUD ein oder aus. Es listet alle Felder mit Feuchtestand, Fruchttyp und Stressstatus. Eine 5-Tage-Prognose zeigt, ob die Feuchte steigt oder sinkt, sodass du vorausplanen kannst."/>
+    <text name="helpLine_cs_p4_status_title"   text="Statusfarben"/>
+    <text name="helpLine_cs_p4_status_text"    text="Grün bedeutet gesundes Feld, kein Handlungsbedarf. Gelb ist eine Warnung: Feuchte sinkt, Bewässerung bald empfohlen. Rot ist kritisch: Die Pflanze leidet unter Trockenstress und der Ertragsverlust wächst — sofort bewässern."/>
+    <text name="helpLine_cs_p4_keys_title"     text="Tastenkürzel"/>
+    <text name="helpLine_cs_p4_keys_text"      text="Shift+M schaltet das Feuchte-HUD um. Shift+I öffnet den Bewässerungsmanager für ein ausgewähltes System. Shift+C öffnet den Pflanzenberater mit Feldrisiken und personalisierten Empfehlungen."/>
+
+    <!-- Seite 5: Bewässerung -->
+    <text name="helpLine_cs_p5_title"          text="Bewässerung"/>
+    <text name="helpLine_cs_p5_types_title"    text="Bewässerungstypen"/>
+    <text name="helpLine_cs_p5_types_text"     text="Im Baumenü stehen drei Bewässerungstypen zur Verfügung. Die Kreisbewässerung deckt eine große Kreisfläche ab. Die Tröpfchenbewässerung sorgt für gezielte Abdeckung entlang einer Feldreihe. Die Wasserpumpe treibt die Systeme an und muss zuerst in der Nähe einer Wasserquelle platziert werden."/>
+    <text name="helpLine_cs_p5_schedule_title" text="Zeitplan &amp; Betrieb"/>
+    <text name="helpLine_cs_p5_schedule_text"  text="Wähle ein Bewässerungssystem aus und drücke Shift+I, um den Zeitplan zu öffnen. Wähle Wochentage und stelle tägliche Start- und Endzeiten ein. Mit Jetzt bewässern kannst du die abgedeckten Felder sofort wässern, ohne auf den Zeitplan zu warten."/>
+
+    <!-- Seite 6: Pflanzenberater -->
+    <text name="helpLine_cs_p6_title"          text="Pflanzenberater"/>
+    <text name="helpLine_cs_p6_what_title"     text="Was der Berater zeigt"/>
+    <text name="helpLine_cs_p6_what_text"      text="Shift+C öffnet den Pflanzenberater. Er zeigt die fünf risikoreichsten Felder nach Feuchte und Stressniveau sowie eine verständliche Empfehlung für die nächsten 24 Stunden und eine 3-Tage-Feuchtprognose."/>
+    <text name="helpLine_cs_p6_act_title"      text="Empfehlungen umsetzen"/>
+    <text name="helpLine_cs_p6_act_text"       text="Mit KRITISCH markierte Felder müssen heute bewässert werden, um Ernteverluste zu verhindern. Mit WARNUNG markierte Felder sollten innerhalb von ein bis zwei Tagen bewässert werden. Nutze die Schaltfläche Bewässerungsmanager öffnen, um schnell einen Zeitplan für das schlimmste Feld einzurichten."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Optional: Alex Chen (Agronom)"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Wenn FS25_NPCFavor installiert ist, erscheint Alex Chen als Agronom-NPC. Baue deine Beziehung zu Alex durch Gefälligkeiten aus, um frühzeitige Dürrewarungen und Spezialberatung zu erhalten."/>
     </texts>
 </l10n>

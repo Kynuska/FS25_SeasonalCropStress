@@ -109,5 +109,54 @@
     <!-- ========== PRECISION FARMING DLC ========== -->
     <text name="cs_pf_moisture_overlay"      text="Grondvochtigheid"/>
     <text name="cs_pf_moisture_overlay_desc" text="Toont het vochtigheidsniveau van de grond op uw velden. Rood geeft droge grond aan, groen optimale vochtigheid en blauw verzadigde grond."/>
+
+    <!-- ========== HELP LINES ========== -->
+    <text name="helpLine_cs_category"          text="Seizoensgebonden gewassstress"/>
+
+    <!-- Pagina 1: Overzicht -->
+    <text name="helpLine_cs_p1_title"          text="Overzicht"/>
+    <text name="helpLine_cs_p1_intro_title"    text="Wat deze mod toevoegt"/>
+    <text name="helpLine_cs_p1_intro_text"     text="Seizoensgebonden gewassstress voegt een bodemvochtsimulatie toe aan elk veld. Gewassen hebben water nodig tijdens belangrijke groeifasen. Zonder water wordt de oogst kleiner. Irrigatiesystemen laten je de watertoevoer van je velden zelf regelen."/>
+    <text name="helpLine_cs_p1_start_title"    text="Aan de slag"/>
+    <text name="helpLine_cs_p1_start_text"     text="Druk op Shift+M om de vochtigheids-HUD te openen en alle velden in één oogopslag te zien. Rode velden hebben dringend water nodig, groene zijn in orde. Druk op Shift+C om de Gewasadviseur te openen voor gedetailleerd advies en risicowaarden."/>
+
+    <!-- Pagina 2: Bodemvochtigheid -->
+    <text name="helpLine_cs_p2_title"          text="Bodemvochtigheid"/>
+    <text name="helpLine_cs_p2_how_title"      text="Hoe vochtigheid werkt"/>
+    <text name="helpLine_cs_p2_how_text"       text="Regen vult de bodem, hitte droogt hem uit. Elk veld houdt zijn eigen vochtigheidsniveau bij van 0% (kurkdroog) tot 100% (verzadigd). De uitdrogingssnelheid hangt af van het weer, het seizoen en het bodemtype."/>
+    <text name="helpLine_cs_p2_soil_title"     text="Bodemtypen"/>
+    <text name="helpLine_cs_p2_soil_text"      text="Zandige bodem droogt snel uit en heeft vaak irrigatie nodig. Kleibodem houdt water langer vast maar kan waterlogged raken. Leembodem zit er tussenin en is het makkelijkst te beheren. Het bodemtype wordt weergegeven in de HUD en de Gewasadviseur."/>
+
+    <!-- Pagina 3: Gewassstress en opbrengst -->
+    <text name="helpLine_cs_p3_title"          text="Gewassstress &amp; opbrengst"/>
+    <text name="helpLine_cs_p3_window_title"   text="Kritieke groeiperioden"/>
+    <text name="helpLine_cs_p3_window_text"    text="Elk gewas heeft een periode in de groeicyclus waarbij het het meeste water nodig heeft. Tarwe is het kwetsbaarst in het voorjaar, mais lijdt onder zomerse hittegolven, koolzaad is gevoelig in de herfst. Te weinig vochtigheid in deze periode bouwt stress op in het veld."/>
+    <text name="helpLine_cs_p3_yield_title"    text="Opbrengstvermindering bij de oogst"/>
+    <text name="helpLine_cs_p3_yield_text"     text="Opgebouwde stress vermindert je oogst. Een beetje stress betekent een klein verlies. Ernstige droogte kan de oogst met wel 60% verminderen. De Gewasadviseur toont het huidige opbrengstrisico per veld zodat je de irrigatie kunt prioriteren."/>
+
+    <!-- Pagina 4: HUD en bediening -->
+    <text name="helpLine_cs_p4_title"          text="HUD &amp; bediening"/>
+    <text name="helpLine_cs_p4_hud_title"      text="Vochtigheids-HUD-overlay"/>
+    <text name="helpLine_cs_p4_hud_text"       text="Druk op Shift+M om de vochtigheids-HUD aan of uit te zetten. Hij toont elk veld met zijn vochtigheidsniveau, gewastype en stressstatus. Een 5-dagenprognose laat zien of de vochtigheid stijgt of daalt zodat je vooruit kunt plannen."/>
+    <text name="helpLine_cs_p4_status_title"   text="Statuskleuren"/>
+    <text name="helpLine_cs_p4_status_text"    text="Groen betekent dat het veld gezond is en geen actie nodig heeft. Geel is een waarschuwing: de vochtigheid daalt en irrigatie is binnenkort aan te raden. Rood is kritiek: het gewas lijdt aan droogtestress en oogstverlies neemt toe — direct irrigeren."/>
+    <text name="helpLine_cs_p4_keys_title"     text="Sneltoetsen"/>
+    <text name="helpLine_cs_p4_keys_text"      text="Shift+M schakelt de vochtigheids-HUD in of uit. Shift+I opent het irrigatiebeheer voor een geselecteerd systeem. Shift+C opent de Gewasadviseur met een risicooverzicht en persoonlijke aanbevelingen."/>
+
+    <!-- Pagina 5: Irrigatie -->
+    <text name="helpLine_cs_p5_title"          text="Irrigatie"/>
+    <text name="helpLine_cs_p5_types_title"    text="Irrigatietypen"/>
+    <text name="helpLine_cs_p5_types_text"     text="In het bouwmenu zijn drie irrigatietypen beschikbaar. De cirkelberegening dekt een groot cirkelvormig gebied. De druppelirrigatielijn biedt nauwkeurige dekking langs een veldrij. De waterpomp drijft de systemen aan en moet eerst in de buurt van een waterbron geplaatst worden."/>
+    <text name="helpLine_cs_p5_schedule_title" text="Planning &amp; gebruik"/>
+    <text name="helpLine_cs_p5_schedule_text"  text="Selecteer een irrigatiesysteem en druk op Shift+I om het schema te openen. Kies de dagen van de week en stel dagelijkse start- en eindtijden in. Met de knop Nu irrigeren kun je de gedekte velden direct bewateren zonder op het schema te wachten."/>
+
+    <!-- Pagina 6: Gewasadviseur -->
+    <text name="helpLine_cs_p6_title"          text="Gewasadviseur"/>
+    <text name="helpLine_cs_p6_what_title"     text="Wat de adviseur toont"/>
+    <text name="helpLine_cs_p6_what_text"      text="Druk op Shift+C om de Gewasadviseur te openen. Hij toont je 5 meest risicovolle velden gerangschikt op vochtigheid en stressniveau, met een begrijpelijke aanbeveling voor de komende 24 uur en een 3-dagenprognose voor de vochtigheid."/>
+    <text name="helpLine_cs_p6_act_title"      text="Handelen op advies"/>
+    <text name="helpLine_cs_p6_act_text"       text="Velden gemarkeerd KRITIEK moeten vandaag worden geïrrigeerd om oogstverlies te voorkomen. Velden gemarkeerd WAARSCHUWING moeten binnen een à twee dagen worden geïrrigeerd. Gebruik de knop Irrigatiebeheer openen in de adviseur om snel een schema in te stellen voor het slechtste veld."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Optioneel: Alex Chen (Agronoom)"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Als FS25_NPCFavor is geïnstalleerd, verschijnt Alex Chen als Agronoom-NPC. Bouw je relatie met Alex op via gunsten om vroege droogtewaarschuwingen en gespecialiseerd irrigatieadvies te ontgrendelen."/>
     </texts>
 </l10n>
