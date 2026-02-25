@@ -8,7 +8,7 @@
     async i3d load in FocusManager that returns a nil nodeId in FS25 v1.16, causing
     FocusManager.lua:94: table index is nil. Use +/- button pairs instead.
 -->
-<GUI onCreate="onCreate" onClose="onIrrigationDialogClose">
+<GUI onOpen="onOpen" onCreate="onCreate" onClose="onIrrigationDialogClose">
     <GuiElement profile="newLayer" />
     <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
     <GuiElement profile="dialogBg" id="dialogElement" size="780px 580px">
@@ -64,7 +64,7 @@
         <BoxLayout profile="fs25_dialogButtonBox" id="buttonBox">
             <Button profile="buttonActivate" id="btnIrrigateNow" text="$l10n_cs_irr_irrigate_now"  onClick="onIrrigateNow" />
             <Button profile="buttonActivate" id="btnSave"        text="$l10n_cs_irr_save_schedule" onClick="onSaveSchedule" />
-            <Button profile="buttonOK"       id="btnClose"       text="$l10n_cs_close"             onClick="onIrrigationDialogClose" />
+            <Button profile="buttonOK"       id="btnClose"       text="$l10n_cs_close"             onClick="onCloseClicked" />
         </BoxLayout>
     </GuiElement>
 </GUI>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <l10n>
+    <texts>
     <!-- ========== HUD OVERLAY ========== -->
     <text name="cs_hud_title"         text="HUMIDITÉ DU SOL"/>
     <text name="cs_hud_healthy"       text="Sain"/>
@@ -10,68 +11,57 @@
     <text name="cs_hud_first_run"     text="Moniteur d'humidité actif. Maj+M pour afficher/masquer."/>
 
     <!-- ========== FIELD STATUS ========== -->
-    <text name="cs_field_moisture"    text="Humidité"/>
-    <text name="cs_field_soil_type"   text="Type de sol"/>
-    <text name="cs_field_stress"      text="Stress accumulé"/>
-    <text name="cs_field_yield_impact" text="Impact rendement estimé"/>
+    <text name="cs_field_moisture"        text="Humidité"/>
+    <text name="cs_field_soil_type"       text="Type de sol"/>
+    <text name="cs_field_stress"          text="Stress accumulé"/>
+    <text name="cs_field_yield_impact"    text="Impact rendement estimé"/>
     <text name="cs_field_critical_window" text="Période critique: MAINTENANT"/>
     <text name="cs_field_nearest_water"   text="Point d'eau le plus proche"/>
 
     <!-- ========== SOIL TYPES ========== -->
-    <text name="cs_soil_sandy"        text="Sableux"/>
-    <text name="cs_soil_loamy"        text="Limoneux"/>
-    <text name="cs_soil_clay"         text="Argileux"/>
+    <text name="cs_soil_sandy"  text="Sableux"/>
+    <text name="cs_soil_loamy"  text="Limoneux"/>
+    <text name="cs_soil_clay"   text="Argileux"/>
 
     <!-- ========== ALERTS ========== -->
-    <text name="cs_alert_info"        text="Champ %d : %s humidité baisse — surveiller."/>
-    <text name="cs_alert_warning"     text="Champ %d : %s humidité faible — irrigation recommandée."/>
-    <text name="cs_alert_critical"    text="Champ %d : %s seuil de stress hydrique — irriguer !"/>
+    <text name="cs_alert_info"     text="Champ %d : %s humidité baisse — surveiller."/>
+    <text name="cs_alert_warning"  text="Champ %d : %s humidité faible — irrigation recommandée."/>
+    <text name="cs_alert_critical" text="Champ %d : %s seuil de stress hydrique — irriguer !"/>
 
-    <!-- ========== IRRIGATION (Phase 2) ========== -->
-    <text name="cs_irr_title"         text="Système d'irrigation — %s"/>
-    <text name="cs_irr_water_source"  text="Source d'eau"/>
-    <text name="cs_irr_connected"     text="Connecté"/>
-    <text name="cs_irr_disconnected"  text="Déconnecté"/>
-    <text name="cs_irr_schedule"      text="Programme"/>
-    <text name="cs_irr_flow_rate"     text="Débit"/>
-    <text name="cs_irr_efficiency"    text="Efficacité"/>
-    <text name="cs_irr_cost"          text="Coût estimé"/>
-    <text name="cs_irr_wear"          text="Usure"/>
+    <!-- ========== IRRIGATION ========== -->
+    <text name="cs_irr_title"          text="Système d'irrigation — %s"/>
+    <text name="cs_irr_water_source"   text="Source d'eau"/>
+    <text name="cs_irr_connected"      text="Connecté"/>
+    <text name="cs_irr_disconnected"   text="Déconnecté"/>
+    <text name="cs_irr_schedule"       text="Programme"/>
+    <text name="cs_irr_flow_rate"      text="Débit"/>
+    <text name="cs_irr_efficiency"     text="Efficacité"/>
+    <text name="cs_irr_cost"           text="Coût estimé"/>
+    <text name="cs_irr_wear"           text="Usure"/>
     <text name="cs_irr_covered_fields" text="Parcelles irriguées"/>
-    <text name="cs_irr_irrigate_now"  text="Irriguer maintenant"/>
-    <text name="cs_irr_save_schedule" text="Enregistrer le programme"/>
-    <text name="cs_irr_pivot"         text="Pivot central"/>
-    <text name="cs_irr_drip"          text="Goutte-à-goutte"/>
-    <text name="cs_irr_pump"          text="Pompe à eau"/>
-    <text name="cs_day_mon"           text="L"/>
-    <text name="cs_day_tue"           text="M"/>
-    <text name="cs_day_wed"           text="M"/>
-    <text name="cs_day_thu"           text="J"/>
-    <text name="cs_day_fri"           text="V"/>
-    <text name="cs_day_sat"           text="S"/>
-    <text name="cs_day_sun"           text="D"/>
-
-    <!-- ========== CONSULTANT (Phase 3) ========== -->
-    <text name="cs_consultant_name"   text="Alex Chen, Agronome"/>
-    <text name="cs_favor_soil_sample"     text="Prélever un échantillon de sol de la parcelle %d"/>
-    <text name="cs_favor_irr_check"       text="Inspecter le système d'irrigation près de la parcelle %d"/>
-    <text name="cs_favor_emergency_water" text="Irriguer la parcelle %d avant le coucher du soleil !"/>
-    <text name="cs_favor_seasonal_plan"   text="Revoir le plan d'irrigation saisonnier"/>
-
-    <!-- ========== INPUT ACTIONS ========== -->
-    <text name="input_CS_TOGGLE_HUD"      text="Afficher/masquer HUD humidité"/>
-    <text name="input_CS_OPEN_IRRIGATION" text="Ouvrir gestionnaire d'irrigation"/>
-    <text name="input_CS_OPEN_CONSULTANT" text="Ouvrir conseiller culturel"/>
-
-    <!-- Placeable shop names -->
-    <text name="cs_pivot_name"        text="Pivot central d'irrigation"/>
-    <text name="cs_pump_name"         text="Pompe à eau"/>
-    <text name="cs_drip_name"         text="Ligne de goutte-à-goutte"/>
-
-    <!-- E-key interaction -->
+    <text name="cs_irr_irrigate_now"   text="Irriguer maintenant"/>
+    <text name="cs_irr_save_schedule"  text="Enregistrer le programme"/>
+    <text name="cs_irr_pivot"          text="Pivot central"/>
+    <text name="cs_irr_drip"           text="Goutte-à-goutte"/>
+    <text name="cs_irr_pump"           text="Pompe à eau"/>
+    <text name="cs_irr_start_time"     text="Heure de début"/>
+    <text name="cs_irr_end_time"       text="Heure de fin"/>
+    <text name="cs_irr_performance"    text="Performance"/>
+    <text name="cs_irr_started"        text="Irrigation démarrée."/>
     <text name="cs_irr_open_schedule"  text="Ouvrir le programme d'irrigation"/>
+    <text name="cs_schedule_saved"     text="Programme enregistré."/>
 
-    <!-- ========== CONSULTANT DIALOG (Phase 3) ========== -->
+    <!-- ========== DAY LABELS ========== -->
+    <text name="cs_day_mon" text="L"/>
+    <text name="cs_day_tue" text="M"/>
+    <text name="cs_day_wed" text="M"/>
+    <text name="cs_day_thu" text="J"/>
+    <text name="cs_day_fri" text="V"/>
+    <text name="cs_day_sat" text="S"/>
+    <text name="cs_day_sun" text="D"/>
+
+    <!-- ========== CONSULTANT ========== -->
+    <text name="cs_consultant_name"            text="Alex Chen, Agronome"/>
     <text name="cs_consultant_subtitle"        text="État des parcelles &amp; Recommandations"/>
     <text name="cs_consultant_relationship"    text="Relation avec Alex :"/>
     <text name="cs_consultant_field_status"    text="Résumé des risques (Top 5)"/>
@@ -79,24 +69,26 @@
     <text name="cs_consultant_open_irrigation" text="Ouvrir gestionnaire d'irrigation"/>
     <text name="cs_consultant_no_data"         text="Aucune donnée disponible."/>
 
-    <!-- Additional strings -->
-    <text name="cs_irr_start_time"         text="Heure de début"/>
-    <text name="cs_irr_end_time"           text="Heure de fin"/>
-    <text name="cs_irr_performance"        text="Performance"/>
-    <text name="cs_close"                   text="Fermer"/>
-    <text name="cs_no_irrigation_systems"  text="Aucun système d'irrigation placé."/>
-    <text name="cs_irr_started"             text="Irrigation démarrée."/>
-    <text name="cs_schedule_saved"         text="Programme enregistré."/>
+    <!-- ========== NPC FAVOR QUESTS ========== -->
+    <text name="cs_favor_soil_sample"     text="Prélever un échantillon de sol de la parcelle %d"/>
+    <text name="cs_favor_irr_check"       text="Inspecter le système d'irrigation près de la parcelle %d"/>
+    <text name="cs_favor_emergency_water" text="Irriguer la parcelle %d avant le coucher du soleil !"/>
+    <text name="cs_favor_seasonal_plan"   text="Revoir le plan d'irrigation saisonnier"/>
 
-    <!-- ========== PERFORMANCES IRRIGATION (dynamique) ========== -->
-    <text name="cs_irr_flow_rate_value"  text="Débit : %.3f/h"/>
-    <text name="cs_irr_efficiency_value" text="Efficacité : %d%%"/>
-    <text name="cs_irr_cost_value"       text="Coût est. : €%d/h"/>
-    <text name="cs_irr_wear_value"       text="Usure : %d%%"/>
-    <text name="cs_irr_already_active"   text="Le système d'irrigation est déjà en cours."/>
+    <!-- ========== PLACEABLES ========== -->
+    <text name="cs_pivot_name" text="Pivot central d'irrigation"/>
+    <text name="cs_pump_name"  text="Pompe à eau"/>
+    <text name="cs_drip_name"  text="Ligne de goutte-à-goutte"/>
+
+    <!-- ========== IRRIGATION PERFORMANCE VALUES (dynamic, format strings) ========== -->
+    <text name="cs_irr_flow_rate_value"   text="Débit : %.3f/h"/>
+    <text name="cs_irr_efficiency_value"  text="Efficacité : %d%%"/>
+    <text name="cs_irr_cost_value"        text="Coût est. : €%d/h"/>
+    <text name="cs_irr_wear_value"        text="Usure : %d%%"/>
+    <text name="cs_irr_already_active"    text="Le système d'irrigation est déjà en cours."/>
     <text name="cs_irr_no_covered_fields" text="Aucune parcelle couverte par ce système."/>
 
-    <!-- ========== RECOMMANDATIONS CONSULTANT (dynamique) ========== -->
+    <!-- ========== CONSULTANT RECOMMENDATIONS (dynamic, format strings) ========== -->
     <text name="cs_rec_urgent"          text="URGENT : Champ %d à %.0f%% d'humidité — irriguer immédiatement !"/>
     <text name="cs_rec_warning"         text="Champ %d à %.0f%% d'humidité — irrigation recommandée sous 24h."/>
     <text name="cs_rec_ok"              text="Toutes les parcelles dans une plage d'humidité acceptable."/>
@@ -105,7 +97,17 @@
     <text name="cs_rec_no_systems"      text="Aucun système d'irrigation actif."/>
     <text name="cs_rec_all_healthy"     text="Toutes les parcelles semblent saines."/>
 
-    <!-- Precision Farming DLC -->
-    <text name="cs_pf_moisture_overlay" text="Humidité du sol"/>
+    <!-- ========== SHARED ========== -->
+    <text name="cs_close"                 text="Fermer"/>
+    <text name="cs_no_irrigation_systems" text="Aucun système d'irrigation placé."/>
+
+    <!-- ========== INPUT ACTION DESCRIPTIONS ========== -->
+    <text name="input_CS_TOGGLE_HUD"      text="Afficher/masquer HUD humidité"/>
+    <text name="input_CS_OPEN_IRRIGATION" text="Ouvrir gestionnaire d'irrigation"/>
+    <text name="input_CS_OPEN_CONSULTANT" text="Ouvrir conseiller culturel"/>
+
+    <!-- ========== PRECISION FARMING DLC ========== -->
+    <text name="cs_pf_moisture_overlay"      text="Humidité du sol"/>
     <text name="cs_pf_moisture_overlay_desc" text="Affiche le niveau d'humidité du sol sur vos champs. Rouge indique un sol sec, vert une humidité optimale et bleu un sol saturé."/>
+    </texts>
 </l10n>

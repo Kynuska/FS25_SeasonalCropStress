@@ -129,7 +129,7 @@ function IrrigationPivot:createProximityTrigger()
     -- FS25 calls: target[callbackName](target, triggerId, otherId, onEnter, onLeave, onStay)
     addTrigger(self.triggerNode, "onProximityTrigger", self)
 
-    csLog(string.format("centerPivot %s: proximity trigger created (r=%.1fm)", tostring(self.id), triggerRadius))
+    csLog(string.format("centerPivot %s: proximity trigger created (r=%.1fm)", tostring(self.id), IrrigationPivot.INTERACTION_RADIUS))
 end
 
 -- Trigger callback — fires when any entity enters/leaves the sphere

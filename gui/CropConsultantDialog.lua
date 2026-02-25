@@ -32,6 +32,19 @@ function CropConsultantDialog.new(target, customMt)
 end
 
 -- ============================================================
+-- onOpen — called by FS25 GUI system when dialog becomes visible.
+-- MUST call superClass().onOpen() to register focus/input handling.
+-- ============================================================
+function CropConsultantDialog:onOpen()
+    CropConsultantDialog:superClass().onOpen(self)
+end
+
+-- Initiated by close buttons — triggers the close sequence.
+function CropConsultantDialog:onCloseClicked()
+    self:close()
+end
+
+-- ============================================================
 -- onCreate — wire up elements by ID
 -- Called by FS25 GUI system after XML is parsed.
 -- ============================================================
@@ -248,7 +261,7 @@ end
 -- BUTTON HANDLERS
 -- ============================================================
 function CropConsultantDialog:onOpenIrrigationDialog()
-    self:onConsultantDialogClose()
+    self:close()
     -- Let CropStressManager open the irrigation dialog
     if g_cropStressManager ~= nil then
         g_cropStressManager:onOpenIrrigationDialog()
@@ -276,7 +289,9 @@ end
 
 -- ============================================================
 -- CLOSE
+-- Called by FS25 GUI system AFTER the dialog has been closed (cleanup only).
+-- Do NOT call self:close() or g_gui:closeDialog() here.
 -- ============================================================
 function CropConsultantDialog:onConsultantDialogClose()
-    g_gui:closeDialog(self)
+    CropConsultantDialog:superClass().onClose(self)
 end
