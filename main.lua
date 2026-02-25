@@ -101,6 +101,35 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
 
     g_csManager:initialize()
 
+    -- ── DIAGNOSTIC BLOCK (remove once FocusManager path is confirmed) ────────
+    -- Find the actual field name FS25 uses to store the FocusManager on g_gui,
+    -- and verify which scope exposes g_NPCSystem.
+    do
+        -- 1. FocusManager: search g_gui fields for an object with loadSharedI3DFileFinished
+        print("[CropStress] DIAG: g_gui type=" .. tostring(type(g_gui)))
+        if type(g_gui) == "table" then
+            print("[CropStress] DIAG: g_gui.focusManager=" .. tostring(g_gui.focusManager))
+            local fmKey = nil
+            for k, v in pairs(g_gui) do
+                if type(v) == "table" and type(v.loadSharedI3DFileFinished) == "function" then
+                    fmKey = k
+                    print("[CropStress] DIAG: FocusManager found at g_gui." .. tostring(k))
+                end
+            end
+            if fmKey == nil then
+                print("[CropStress] DIAG: FocusManager NOT found in top-level g_gui fields")
+            end
+        end
+
+        -- 2. NPCSystem: try multiple scopes
+        print("[CropStress] DIAG: g_NPCSystem(direct)=" .. tostring(g_NPCSystem))
+        local ok0, v0 = pcall(function() return getfenv(0)["g_NPCSystem"] end)
+        print("[CropStress] DIAG: g_NPCSystem(fenv0)=" .. tostring(ok0 and v0 or "ERR"))
+        local ok1, v1 = pcall(function() return getfenv(1)["g_NPCSystem"] end)
+        print("[CropStress] DIAG: g_NPCSystem(fenv1)=" .. tostring(ok1 and v1 or "ERR"))
+    end
+    -- ── END DIAGNOSTIC ────────────────────────────────────────────────────────
+
     -- Register dialogs with the GUI system.
     -- FIX: pass the CLASS TABLE, not a live instance (.new()).
     -- g_gui:loadGui() calls .new() itself after parsing the XML and wiring elements.
