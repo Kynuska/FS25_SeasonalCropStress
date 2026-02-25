@@ -36,13 +36,14 @@ do
     local fm = g_gui ~= nil and g_gui.focusManager or nil
     if fm ~= nil and type(fm.loadSharedI3DFileFinished) == "function" then
         local origFn = fm.loadSharedI3DFileFinished
-        fm.loadSharedI3DFileFinished = function(self, i3dNode, failedReason, args)
+        fm._cs_guardedFn = function(self, i3dNode, failedReason, args)
             if i3dNode == nil then
                 print("[CropStress] FocusManager nil-node guard triggered (FS25 v1.16 shared-i3d bug) — suppressed")
                 return
             end
             return origFn(self, i3dNode, failedReason, args)
         end
+        fm.loadSharedI3DFileFinished = fm._cs_guardedFn
         print("[CropStress] FocusManager nil-node guard applied at mod load time")
     else
         print("[CropStress] WARNING: FocusManager guard skipped — g_gui.focusManager unavailable at load time")
@@ -101,6 +102,27 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
     if g_csManager == nil then return end
 
     g_csManager:initialize()
+
+    -- FocusManager nil-node guard — fallback for when g_gui.focusManager was nil
+    -- at mod load time (g_gui is guaranteed available here).
+    -- Covers our own loadGui() calls below. Idempotent: safe to apply twice.
+    if g_gui ~= nil and g_gui.focusManager ~= nil then
+        local fm2 = g_gui.focusManager
+        local fn2 = fm2.loadSharedI3DFileFinished
+        -- Only wrap if not already wrapped by the mod-load-time guard
+        if type(fn2) == "function" and fn2 ~= fm2._cs_guardedFn then
+            local orig2 = fn2
+            fm2._cs_guardedFn = function(self, i3dNode, failedReason, args)
+                if i3dNode == nil then
+                    print("[CropStress] FocusManager nil-node guard triggered (loadMission00Finished) — suppressed")
+                    return
+                end
+                return orig2(self, i3dNode, failedReason, args)
+            end
+            fm2.loadSharedI3DFileFinished = fm2._cs_guardedFn
+            print("[CropStress] FocusManager nil-node guard applied at loadMission00Finished")
+        end
+    end
 
     -- Register dialogs with the GUI system.
     -- FIX: pass the CLASS TABLE, not a live instance (.new()).
