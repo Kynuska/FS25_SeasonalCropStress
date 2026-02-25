@@ -57,6 +57,22 @@ Phases 1, 2, and 3 are live. Phase 4 (FS25_UsedPlus integration, drip irrigation
 - **Crop Consultant dialog** (`Shift+C` or `csConsultant` console command) — top 5 fields by risk, recommended actions, 3-day forecast
 - Optional **FS25_NPCFavor integration**: Alex Chen, Agronomist NPC — generates favor quests (SOIL_SAMPLE, IRRIGATION_CHECK, EMERGENCY_WATER, SEASONAL_PLAN) and routes alerts through NPC dialog
 
+### Settings System ✅ Live
+
+A full in-game settings system lets you tune the simulation without editing files:
+
+- **ESC → Settings → Game Settings** — scroll to the "Seasonal Crop Stress" section
+- **Enable/disable the mod** at any time without uninstalling
+- **Difficulty** (Easy / Normal / Hard) — scales stress accumulation rate and evaporation speed
+- **Evaporation Rate** (Slow / Normal / Fast) — fine-tune independently of difficulty
+- **Max Yield Loss** (30% / 45% / 60% / 75%) — cap how much drought can hurt your harvest
+- **Critical Threshold** (15% / 25% / 35%) — moisture level that triggers stress accumulation
+- **Irrigation Costs** toggle — enable or disable running costs for active systems
+- **Crop Alerts** toggle and cooldown (4h / 8h / 12h / 24h) — control alert frequency
+- **Debug Mode** toggle — verbose simulation logging to `log.txt`
+- Settings persist per-savegame in `cropStressSettings.xml`
+- Multiplayer: settings are server-authoritative and pushed to all clients on join
+
 ### Phase 4 — Economy & Polish 🚧 In Development
 
 - FinanceIntegration: UsedPlus integration code written (awaiting in-game test)
@@ -65,28 +81,24 @@ Phases 1, 2, and 3 are live. Phase 4 (FS25_UsedPlus integration, drip irrigation
 - Precision Farming DLC overlay *(planned)*
 - Polish translations *(planned)*
 
-## Polish Pass Complete ✅
+---
 
-**Date:** February 24, 2026
+## Recent Fixes
 
-A comprehensive polish pass has been completed, resolving critical wiring issues that prevented core functionality from working:
+### February 26, 2026 — Settings Bug Fixes & ESC Menu
 
-### Critical Issues Fixed
-- ✅ **Missing Placeable Type Declarations** - Added center pivot and water pump placeable types to modDesc.xml
-- ✅ **Console Command Implementation** - Fixed missing consoleToggleDebug() function  
-- ✅ **Translation Keys** - Added 15 missing UI translation keys
-- ✅ **Event Bus Subscriptions** - Verified proper placement in initialize() methods
-- ✅ **GUI Dialog Registration** - Confirmed dialogs are properly registered
+- **Fixed:** Boolean save/load trap — disabling the mod, HUD, or alerts would silently re-enable on next load
+- **Fixed:** `settings.enabled` toggle now actually stops the simulation and hides the HUD
+- **Fixed:** Multiplayer clients now receive the host's settings on join
+- **Fixed:** ESC menu Settings section — previous version used a non-existent FS25 API and was completely invisible. Rewritten using the confirmed `BinaryOptionElement` / `MultiTextOptionElement` pattern
 
-### Files Modified
-- `modDesc.xml` - Added placeableTypes section
-- `src/CropStressManager.lua` - Fixed console command implementation
-- `translations/translation_en.xml` - Added missing translation keys
+### February 24, 2026 — Settings System
 
-### Current Status
-The mod is now in a much more stable state with all critical wiring issues resolved. The core functionality (soil moisture simulation, crop stress, HUD overlay) should work properly. The irrigation systems and GUI dialogs are now properly registered and should be functional.
+Full settings system added: 10 configurable options exposed in the ESC menu Game Settings page, with per-savegame XML persistence and multiplayer sync.
 
-**Next Steps:** Ready for in-game testing to verify all fixes work correctly and identify any remaining issues that may only appear during runtime.
+### February 24, 2026 — Core Polish Pass
+
+Resolved critical wiring issues from initial implementation: missing placeable type declarations, console command gaps, 15 missing translation keys, i3d root node naming conflicts, `addTrigger` signature fix.
 
 ---
 

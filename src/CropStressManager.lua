@@ -77,16 +77,16 @@ function CropStressManager.new()
     -- Hourly tick tracking (monotonic day * 24 + hour)
     self.lastHourKey   = -1
 
-    -- Settings (created here, loaded in :initialize())
+    -- Settings (created here with defaults; loaded and applied in onStartMission)
     self.settings = CropStressSettings.new()
 
-    -- Debug: Check if WeatherIntegration is available
+    -- Guard: WeatherIntegration must be loaded before CropStressManager (see main.lua phase order)
     if WeatherIntegration == nil then
-        print("[CropStress] ERROR: WeatherIntegration is nil!")
+        csLog("ERROR: WeatherIntegration is nil — check main.lua source() order")
         return nil
     end
     if WeatherIntegration.new == nil then
-        print("[CropStress] ERROR: WeatherIntegration.new is nil!")
+        csLog("ERROR: WeatherIntegration.new is nil — class definition incomplete")
         return nil
     end
 
@@ -144,14 +144,19 @@ function CropStressManager:initialize()
     -- Persistence handler
     self.saveLoad:initialize()
 
-    -- Capture first hour key so hourly tick fires correctly from the start
-    -- env.currentHour is a direct property — not a method call
+    -- Capture first hour key so hourly tick fires correctly from the start.
+    -- env.currentHour is a direct property — not a method call.
     local env = g_currentMission.environment
     if env ~= nil then
         local day  = env.currentMonotonicDay or 0
         local hour = env.currentHour or 0
         self.lastHourKey = day * 24 + hour
     end
+
+    -- NOTE: settings are NOT loaded or applied here.
+    -- onStartMission fires after fields are populated and is the correct
+    -- lifecycle point to load settings + call applySettings().
+    -- (main.lua onStartMission hook handles both.)
 
     self.isInitialized = true
 
@@ -174,13 +179,15 @@ function CropStressManager:lateInitialize()
     end
 end
 
--- Apply current settings to all subsystems
+-- Apply current settings to all subsystems.
+-- NOTE: settings.enabled is NOT pushed here; it is honoured as an early-return
+-- guard in onHourlyTick() and draw() so the simulation simply stops running.
 function CropStressManager:applySettings()
     if not self.isInitialized then return end
     if self.settings == nil then return end
-    
+
     -- Apply settings to subsystems
-    self.hudOverlay:setVisible(self.settings.hudVisible)
+    self.hudOverlay.isVisible = self.settings.hudVisible
     self.soilSystem:setEvapMultiplier(self.settings:getTotalEvapMultiplier())
     self.soilSystem:setCriticalThreshold(self.settings.criticalThreshold)
     self.stressModifier:setRateMultiplier(self.settings:getDifficultyStressMultiplier())
@@ -189,7 +196,7 @@ function CropStressManager:applySettings()
     self.consultant:setAlertsEnabled(self.settings.alertsEnabled)
     self.consultant:setAlertCooldown(self.settings.alertCooldown)
     self.debugMode = self.settings.debugMode
-    
+
     csLog("Settings applied to all subsystems")
 end
 
@@ -219,6 +226,9 @@ function CropStressManager:update(dt)
 end
 
 function CropStressManager:onHourlyTick()
+    -- Respect the player's master on/off toggle
+    if not self.settings.enabled then return end
+
     -- 1. Poll current weather state
     self.weatherIntegration:update()
 
@@ -249,6 +259,7 @@ end
 -- ============================================================
 function CropStressManager:draw()
     if not self.isInitialized then return end
+    if not self.settings.enabled then return end
     self.hudOverlay:draw()
 end
 
@@ -271,9 +282,12 @@ end
 function CropStressManager:sendInitialClientState(connection)
     if not self.isInitialized then return end
     if g_server == nil then return end  -- only server sends
-    -- Phase 2: implement full field moisture/stress sync via NetworkNode events.
-    -- Raw connection:getStream() does not exist in FS25 — use proper network messages.
-    csLog("MP: initial client state sync not yet implemented (Phase 2)")
+
+    -- Push current settings to the joining client so they stay in sync
+    -- with the host's configuration.  Field moisture/stress sync is Phase 2
+    -- (requires NetworkNode events — raw connection:getStream() is not available).
+    CropStressSettingsSyncEvent.sendAllToConnection(connection)
+    csLog("MP: sent current settings to new client")
 end
 
 -- ============================================================

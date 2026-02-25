@@ -1,8 +1,14 @@
 -- ============================================================
 -- CropStressSettingsIntegration.lua
--- ESC menu integration for mod settings.
--- Mirrors NPCSettingsIntegration.lua pattern exactly.
--- Injects "Seasonal Crop Stress" section into InGameMenuSettingsFrame.
+-- Injects "Seasonal Crop Stress" section into the ESC > Settings
+-- > Game Settings page.
+--
+-- Pattern: mirrors NPCSettingsIntegration.lua from FS25_NPCFavor
+--   - Uses actual FS25 element classes: TextElement, BitmapElement,
+--     BinaryOptionElement, MultiTextOptionElement
+--   - Loads built-in FS25 profiles via g_gui:getProfile()
+--   - Stores element references as frame.cropstress_* (per-instance guard)
+--   - Hooks both onFrameOpen (inject once) and updateGameSettings (refresh)
 -- ============================================================
 
 -- ============================================================
@@ -17,312 +23,398 @@ local function csLog(msg)
 end
 
 -- ============================================================
--- GLOBAL FLAG TO PREVENT DOUBLE-INIT
+-- CLASS DEFINITION
 -- ============================================================
-local cs_initDone = false
+CropStressSettingsIntegration = {}
+CropStressSettingsIntegration_mt = Class(CropStressSettingsIntegration)
+
+-- Multi-text option value tables (index → value, index → display text)
+CropStressSettingsIntegration.difficultyValues = { "easy", "normal", "hard" }
+CropStressSettingsIntegration.difficultyTexts  = { "Easy", "Normal", "Hard" }
+
+CropStressSettingsIntegration.evapValues = { "slow", "normal", "fast" }
+CropStressSettingsIntegration.evapTexts  = { "Slow", "Normal", "Fast" }
+
+CropStressSettingsIntegration.maxYieldLossValues = { 0.30, 0.45, 0.60, 0.75 }
+CropStressSettingsIntegration.maxYieldLossTexts  = { "30%", "45%", "60%", "75%" }
+
+CropStressSettingsIntegration.criticalThresholdValues = { 0.15, 0.25, 0.35 }
+CropStressSettingsIntegration.criticalThresholdTexts  = { "15%", "25%", "35%" }
+
+CropStressSettingsIntegration.alertCooldownValues = { 4, 8, 12, 24 }
+CropStressSettingsIntegration.alertCooldownTexts  = { "4h", "8h", "12h", "24h" }
 
 -- ============================================================
--- ESC MENU INTEGRATION
+-- FRAME OPEN HOOK
+-- 'self' is the InGameMenuSettingsFrame instance (appended fn)
 -- ============================================================
-local function onFrameOpen(self)
-    if cs_initDone then return end
-    cs_initDone = true
-    
-    -- Only inject if we have a manager and settings
-    if g_cropStressManager == nil or g_cropStressManager.settings == nil then
-        csLog("WARNING: CropStressManager or settings not available, skipping ESC menu injection")
+function CropStressSettingsIntegration:onFrameOpen()
+    -- Guard: inject only once per frame instance.
+    -- cropstress_initDone is stored ON the frame, so a new session's
+    -- new frame instance automatically starts without it.
+    if self.cropstress_initDone then
         return
     end
-    
-    addSettingsElements(self)
-    updateSettingsUI(self)
+
+    CropStressSettingsIntegration:addSettingsElements(self)
+
+    -- Refresh the layout so our new elements are sized/positioned
+    self.gameSettingsLayout:invalidateLayout()
+    if self.updateAlternatingElements then
+        self:updateAlternatingElements(self.gameSettingsLayout)
+    end
+    if self.updateGeneralSettings then
+        self:updateGeneralSettings(self.gameSettingsLayout)
+    end
+
+    self.cropstress_initDone = true
+    csLog("ESC menu: Seasonal Crop Stress section added")
+
+    -- Populate controls with current settings
+    CropStressSettingsIntegration:updateSettingsUI(self)
 end
 
 -- ============================================================
--- UI ELEMENT CREATION
+-- UPDATE GAME SETTINGS HOOK
+-- Called whenever the settings page refreshes its values.
+-- 'self' is the InGameMenuSettingsFrame instance.
 -- ============================================================
-local function addSectionHeader(frame, text)
-    local header = frame:createElement("CropStressHeader")
-    header:setText(text)
-    header:setColor(1, 1, 1, 1)
-    header:setFontSize(24)
-    header:setAlignment(AlignmentType.CENTER)
-    header:setPadding(0, 10, 0, 10)
-    frame.gameSettingsLayout:addElement(header)
-end
-
-local function addBinaryOption(frame, callbackName, shortText, longText)
-    local option = frame:createElement("CropStressBinaryOption")
-    option:setText(shortText)
-    option:setTooltip(longText)
-    option:setCallback(callbackName)
-    option:setWidth(1.0)
-    option:setHeight(0.05)
-    frame.gameSettingsLayout:addElement(option)
-    return option
-end
-
-local function addMultiTextOption(frame, callbackName, textsArray, shortText, longText)
-    local option = frame:createElement("CropStressMultiTextOption")
-    option:setText(shortText)
-    option:setTooltip(longText)
-    option:setCallback(callbackName)
-    option:setWidth(1.0)
-    option:setHeight(0.05)
-    option:setTexts(textsArray)
-    frame.gameSettingsLayout:addElement(option)
-    return option
+function CropStressSettingsIntegration:updateGameSettings()
+    CropStressSettingsIntegration:updateSettingsUI(self)
 end
 
 -- ============================================================
--- SETTINGS ELEMENTS
+-- ADD ALL SETTINGS ELEMENTS
 -- ============================================================
-local settingsElements = {}
+function CropStressSettingsIntegration:addSettingsElements(frame)
+    -- Section header
+    CropStressSettingsIntegration:addSectionHeader(frame,
+        (g_i18n and g_i18n:getText("cs_settings_section")) or "Seasonal Crop Stress"
+    )
 
-local function addSettingsElements(frame)
-    addSectionHeader(frame, g_i18n:getText("cs_settings_section"))
-    
     -- Enable Mod
-    settingsElements.enabled = addBinaryOption(
-        frame,
-        "onEnabledChanged",
-        g_i18n:getText("cs_settings_enabled_short"),
-        g_i18n:getText("cs_settings_enabled_long")
+    frame.cropstress_enabled = CropStressSettingsIntegration:addBinaryOption(
+        frame, "onEnabledChanged",
+        (g_i18n and g_i18n:getText("cs_settings_enabled_short")) or "Enable Mod",
+        (g_i18n and g_i18n:getText("cs_settings_enabled_long")) or "Enable or disable the crop stress simulation"
     )
-    
+
     -- Difficulty
-    settingsElements.difficulty = addMultiTextOption(
-        frame,
-        "onDifficultyChanged",
-        { "Easy", "Normal", "Hard" },
-        g_i18n:getText("cs_settings_difficulty_short"),
-        g_i18n:getText("cs_settings_difficulty_long")
+    frame.cropstress_difficulty = CropStressSettingsIntegration:addMultiTextOption(
+        frame, "onDifficultyChanged",
+        CropStressSettingsIntegration.difficultyTexts,
+        (g_i18n and g_i18n:getText("cs_settings_difficulty_short")) or "Difficulty",
+        (g_i18n and g_i18n:getText("cs_settings_difficulty_long")) or "How aggressively crops accumulate water stress"
     )
-    
+
     -- HUD Visible
-    settingsElements.hudVisible = addBinaryOption(
-        frame,
-        "onHudVisibleChanged",
-        g_i18n:getText("cs_settings_hud_short"),
-        g_i18n:getText("cs_settings_hud_long")
+    frame.cropstress_hudVisible = CropStressSettingsIntegration:addBinaryOption(
+        frame, "onHudVisibleChanged",
+        (g_i18n and g_i18n:getText("cs_settings_hud_short")) or "Show Moisture HUD",
+        (g_i18n and g_i18n:getText("cs_settings_hud_long")) or "Show the soil moisture overlay"
     )
-    
-    -- Evapotranspiration
-    settingsElements.evapotranspiration = addMultiTextOption(
-        frame,
-        "onEvapotranspirationChanged",
-        { "Slow", "Normal", "Fast" },
-        g_i18n:getText("cs_settings_evap_short"),
-        g_i18n:getText("cs_settings_evap_long")
+
+    -- Evapotranspiration rate
+    frame.cropstress_evapotranspiration = CropStressSettingsIntegration:addMultiTextOption(
+        frame, "onEvapotranspirationChanged",
+        CropStressSettingsIntegration.evapTexts,
+        (g_i18n and g_i18n:getText("cs_settings_evap_short")) or "Evaporation Rate",
+        (g_i18n and g_i18n:getText("cs_settings_evap_long")) or "How quickly soil moisture evaporates"
     )
-    
+
     -- Max Yield Loss
-    settingsElements.maxYieldLoss = addMultiTextOption(
-        frame,
-        "onMaxYieldLossChanged",
-        { "30%", "45%", "60%", "75%" },
-        g_i18n:getText("cs_settings_yield_loss_short"),
-        g_i18n:getText("cs_settings_yield_loss_long")
+    frame.cropstress_maxYieldLoss = CropStressSettingsIntegration:addMultiTextOption(
+        frame, "onMaxYieldLossChanged",
+        CropStressSettingsIntegration.maxYieldLossTexts,
+        (g_i18n and g_i18n:getText("cs_settings_yield_loss_short")) or "Max Yield Loss",
+        (g_i18n and g_i18n:getText("cs_settings_yield_loss_long")) or "Maximum harvest reduction from crop stress"
     )
-    
+
     -- Critical Threshold
-    settingsElements.criticalThreshold = addMultiTextOption(
-        frame,
-        "onCriticalThresholdChanged",
-        { "15%", "25%", "35%" },
-        g_i18n:getText("cs_settings_threshold_short"),
-        g_i18n:getText("cs_settings_threshold_long")
+    frame.cropstress_criticalThreshold = CropStressSettingsIntegration:addMultiTextOption(
+        frame, "onCriticalThresholdChanged",
+        CropStressSettingsIntegration.criticalThresholdTexts,
+        (g_i18n and g_i18n:getText("cs_settings_threshold_short")) or "Critical Threshold",
+        (g_i18n and g_i18n:getText("cs_settings_threshold_long")) or "Moisture level that triggers stress accumulation"
     )
-    
+
     -- Irrigation Costs
-    settingsElements.irrigationCosts = addBinaryOption(
-        frame,
-        "onIrrigationCostsChanged",
-        g_i18n:getText("cs_settings_irr_costs_short"),
-        g_i18n:getText("cs_settings_irr_costs_long")
+    frame.cropstress_irrigationCosts = CropStressSettingsIntegration:addBinaryOption(
+        frame, "onIrrigationCostsChanged",
+        (g_i18n and g_i18n:getText("cs_settings_irr_costs_short")) or "Irrigation Costs",
+        (g_i18n and g_i18n:getText("cs_settings_irr_costs_long")) or "Charge running costs for active irrigation systems"
     )
-    
+
     -- Alerts Enabled
-    settingsElements.alertsEnabled = addBinaryOption(
-        frame,
-        "onAlertsEnabledChanged",
-        g_i18n:getText("cs_settings_alerts_short"),
-        g_i18n:getText("cs_settings_alerts_long")
+    frame.cropstress_alertsEnabled = CropStressSettingsIntegration:addBinaryOption(
+        frame, "onAlertsEnabledChanged",
+        (g_i18n and g_i18n:getText("cs_settings_alerts_short")) or "Crop Alerts",
+        (g_i18n and g_i18n:getText("cs_settings_alerts_long")) or "Show alerts when fields reach critical moisture"
     )
-    
+
     -- Alert Cooldown
-    settingsElements.alertCooldown = addMultiTextOption(
-        frame,
-        "onAlertCooldownChanged",
-        { "4h", "8h", "12h", "24h" },
-        g_i18n:getText("cs_settings_cooldown_short"),
-        g_i18n:getText("cs_settings_cooldown_long")
+    frame.cropstress_alertCooldown = CropStressSettingsIntegration:addMultiTextOption(
+        frame, "onAlertCooldownChanged",
+        CropStressSettingsIntegration.alertCooldownTexts,
+        (g_i18n and g_i18n:getText("cs_settings_cooldown_short")) or "Alert Cooldown",
+        (g_i18n and g_i18n:getText("cs_settings_cooldown_long")) or "Minimum time between repeated alerts for the same field"
     )
-    
+
     -- Debug Mode
-    settingsElements.debugMode = addBinaryOption(
-        frame,
-        "onDebugModeChanged",
-        g_i18n:getText("cs_settings_debug_short"),
-        g_i18n:getText("cs_settings_debug_long")
+    frame.cropstress_debugMode = CropStressSettingsIntegration:addBinaryOption(
+        frame, "onDebugModeChanged",
+        (g_i18n and g_i18n:getText("cs_settings_debug_short")) or "Debug Mode",
+        (g_i18n and g_i18n:getText("cs_settings_debug_long")) or "Print verbose simulation info to the log"
     )
 end
 
 -- ============================================================
--- UI UPDATE
+-- GUI ELEMENT BUILDERS
+-- Uses actual FS25 element classes + built-in profile names.
+-- Confirmed working via NPCSettingsIntegration.lua (NPCFavor).
 -- ============================================================
-local function updateSettingsUI(frame)
+
+function CropStressSettingsIntegration:addSectionHeader(frame, text)
+    local textElement = TextElement.new()
+    local profile = g_gui:getProfile("fs25_settingsSectionHeader")
+    textElement.name = "sectionHeader"
+    textElement:loadProfile(profile, true)
+    textElement:setText(text)
+    frame.gameSettingsLayout:addElement(textElement)
+    textElement:onGuiSetupFinished()
+end
+
+function CropStressSettingsIntegration:addBinaryOption(frame, callbackName, title, tooltip)
+    local bitMap = BitmapElement.new()
+    local bitMapProfile = g_gui:getProfile("fs25_multiTextOptionContainer")
+    bitMap:loadProfile(bitMapProfile, true)
+
+    local binaryOption = BinaryOptionElement.new()
+    binaryOption.useYesNoTexts = true
+    local binaryOptionProfile = g_gui:getProfile("fs25_settingsBinaryOption")
+    binaryOption:loadProfile(binaryOptionProfile, true)
+    binaryOption.target = CropStressSettingsIntegration
+    binaryOption:setCallback("onClickCallback", callbackName)
+
+    local titleElement = TextElement.new()
+    local titleProfile = g_gui:getProfile("fs25_settingsMultiTextOptionTitle")
+    titleElement:loadProfile(titleProfile, true)
+    titleElement:setText(title)
+
+    local tooltipElement = TextElement.new()
+    local tooltipProfile = g_gui:getProfile("fs25_multiTextOptionTooltip")
+    tooltipElement.name = "ignore"
+    tooltipElement:loadProfile(tooltipProfile, true)
+    tooltipElement:setText(tooltip)
+
+    binaryOption:addElement(tooltipElement)
+    bitMap:addElement(binaryOption)
+    bitMap:addElement(titleElement)
+
+    binaryOption:onGuiSetupFinished()
+    titleElement:onGuiSetupFinished()
+    tooltipElement:onGuiSetupFinished()
+
+    frame.gameSettingsLayout:addElement(bitMap)
+    bitMap:onGuiSetupFinished()
+
+    return binaryOption
+end
+
+function CropStressSettingsIntegration:addMultiTextOption(frame, callbackName, texts, title, tooltip)
+    local bitMap = BitmapElement.new()
+    local bitMapProfile = g_gui:getProfile("fs25_multiTextOptionContainer")
+    bitMap:loadProfile(bitMapProfile, true)
+
+    local multiTextOption = MultiTextOptionElement.new()
+    local multiTextOptionProfile = g_gui:getProfile("fs25_settingsMultiTextOption")
+    multiTextOption:loadProfile(multiTextOptionProfile, true)
+    multiTextOption.target = CropStressSettingsIntegration
+    multiTextOption:setCallback("onClickCallback", callbackName)
+    multiTextOption:setTexts(texts)
+
+    local titleElement = TextElement.new()
+    local titleProfile = g_gui:getProfile("fs25_settingsMultiTextOptionTitle")
+    titleElement:loadProfile(titleProfile, true)
+    titleElement:setText(title)
+
+    local tooltipElement = TextElement.new()
+    local tooltipProfile = g_gui:getProfile("fs25_multiTextOptionTooltip")
+    tooltipElement.name = "ignore"
+    tooltipElement:loadProfile(tooltipProfile, true)
+    tooltipElement:setText(tooltip)
+
+    multiTextOption:addElement(tooltipElement)
+    bitMap:addElement(multiTextOption)
+    bitMap:addElement(titleElement)
+
+    multiTextOption:onGuiSetupFinished()
+    titleElement:onGuiSetupFinished()
+    tooltipElement:onGuiSetupFinished()
+
+    frame.gameSettingsLayout:addElement(bitMap)
+    bitMap:onGuiSetupFinished()
+
+    return multiTextOption
+end
+
+-- ============================================================
+-- UPDATE UI FROM CURRENT SETTINGS
+-- 'frame' is the InGameMenuSettingsFrame instance.
+-- ============================================================
+
+-- Returns the 1-based index of 'target' in 'values', or 1 if not found.
+local function findIndex(values, target)
+    for i, v in ipairs(values) do
+        if v == target then return i end
+    end
+    return 1
+end
+
+function CropStressSettingsIntegration:updateSettingsUI(frame)
+    if not frame.cropstress_initDone then return end
+
+    local settings = g_cropStressManager and g_cropStressManager.settings
+    if settings == nil then return end
+
+    -- Binary options: setIsChecked(bool, animateChange, sendCallback)
+    if frame.cropstress_enabled then
+        frame.cropstress_enabled:setIsChecked(settings.enabled == true, false, false)
+    end
+    if frame.cropstress_hudVisible then
+        frame.cropstress_hudVisible:setIsChecked(settings.hudVisible == true, false, false)
+    end
+    if frame.cropstress_irrigationCosts then
+        frame.cropstress_irrigationCosts:setIsChecked(settings.irrigationCosts == true, false, false)
+    end
+    if frame.cropstress_alertsEnabled then
+        frame.cropstress_alertsEnabled:setIsChecked(settings.alertsEnabled == true, false, false)
+    end
+    if frame.cropstress_debugMode then
+        frame.cropstress_debugMode:setIsChecked(settings.debugMode == true, false, false)
+    end
+
+    -- Multi-text options: setState(1-based index)
+    if frame.cropstress_difficulty then
+        frame.cropstress_difficulty:setState(
+            findIndex(CropStressSettingsIntegration.difficultyValues, settings.difficulty)
+        )
+    end
+    if frame.cropstress_evapotranspiration then
+        frame.cropstress_evapotranspiration:setState(
+            findIndex(CropStressSettingsIntegration.evapValues, settings.evapotranspiration)
+        )
+    end
+    if frame.cropstress_maxYieldLoss then
+        frame.cropstress_maxYieldLoss:setState(
+            findIndex(CropStressSettingsIntegration.maxYieldLossValues, settings.maxYieldLoss)
+        )
+    end
+    if frame.cropstress_criticalThreshold then
+        frame.cropstress_criticalThreshold:setState(
+            findIndex(CropStressSettingsIntegration.criticalThresholdValues, settings.criticalThreshold)
+        )
+    end
+    if frame.cropstress_alertCooldown then
+        frame.cropstress_alertCooldown:setState(
+            findIndex(CropStressSettingsIntegration.alertCooldownValues, settings.alertCooldown)
+        )
+    end
+end
+
+-- ============================================================
+-- SETTING APPLICATION HELPER
+-- Server/SP: apply + validate + push to subsystems + broadcast.
+-- Client: send to server (server validates and re-broadcasts).
+-- ============================================================
+local function applySetting(key, value)
     if g_cropStressManager == nil or g_cropStressManager.settings == nil then return end
-    
-    local settings = g_cropStressManager.settings
-    
-    -- Update binary options
-    if settingsElements.enabled then
-        settingsElements.enabled:setState(settings.enabled)
-    end
-    
-    if settingsElements.hudVisible then
-        settingsElements.hudVisible:setState(settings.hudVisible)
-    end
-    
-    if settingsElements.irrigationCosts then
-        settingsElements.irrigationCosts:setState(settings.irrigationCosts)
-    end
-    
-    if settingsElements.alertsEnabled then
-        settingsElements.alertsEnabled:setState(settings.alertsEnabled)
-    end
-    
-    if settingsElements.debugMode then
-        settingsElements.debugMode:setState(settings.debugMode)
-    end
-    
-    -- Update multi-text options
-    if settingsElements.difficulty then
-        local index = 2  -- default to Normal
-        if settings.difficulty == "easy" then index = 1
-        elseif settings.difficulty == "hard" then index = 3 end
-        settingsElements.difficulty:setState(index)
-    end
-    
-    if settingsElements.evapotranspiration then
-        local index = 2  -- default to Normal
-        if settings.evapotranspiration == "slow" then index = 1
-        elseif settings.evapotranspiration == "fast" then index = 3 end
-        settingsElements.evapotranspiration:setState(index)
-    end
-    
-    if settingsElements.maxYieldLoss then
-        local index = 3  -- default to 60%
-        if settings.maxYieldLoss == 0.30 then index = 1
-        elseif settings.maxYieldLoss == 0.45 then index = 2
-        elseif settings.maxYieldLoss == 0.75 then index = 4 end
-        settingsElements.maxYieldLoss:setState(index)
-    end
-    
-    if settingsElements.criticalThreshold then
-        local index = 2  -- default to 25%
-        if settings.criticalThreshold == 0.15 then index = 1
-        elseif settings.criticalThreshold == 0.35 then index = 3 end
-        settingsElements.criticalThreshold:setState(index)
-    end
-    
-    if settingsElements.alertCooldown then
-        local index = 3  -- default to 12h
-        if settings.alertCooldown == 4 then index = 1
-        elseif settings.alertCooldown == 8 then index = 2
-        elseif settings.alertCooldown == 24 then index = 4 end
-        settingsElements.alertCooldown:setState(index)
+
+    if g_server ~= nil then
+        g_cropStressManager.settings[key] = value
+        g_cropStressManager.settings:validateSettings()
+        g_cropStressManager:applySettings()
+        if CropStressSettingsSyncEvent ~= nil then
+            g_server:broadcastEvent(CropStressSettingsSyncEvent.newSingle(key, value), false)
+        end
+    else
+        if CropStressSettingsSyncEvent ~= nil then
+            CropStressSettingsSyncEvent.sendSingleToServer(key, value)
+        end
     end
 end
 
 -- ============================================================
 -- CALLBACK HANDLERS
+-- 'self' = CropStressSettingsIntegration (set as binaryOption.target)
+-- Binary: state == BinaryOptionElement.STATE_RIGHT → true
+-- Multi-text: state is a 1-based index
 -- ============================================================
-local function applySetting(key, value)
-    if g_server ~= nil then
-        -- Server-authoritative: apply locally and broadcast to all clients
-        g_cropStressManager.settings[key] = value
-        g_cropStressManager.settings:validateSettings()
-        g_cropStressManager:applySettings()
-        g_server:broadcastEvent(CropStressSettingsSyncEvent.newSingle(key, value), false)
-    else
-        -- Client: send to server
-        CropStressSettingsSyncEvent.sendSingleToServer(key, value)
-    end
+
+function CropStressSettingsIntegration:onEnabledChanged(state)
+    applySetting("enabled", state == BinaryOptionElement.STATE_RIGHT)
 end
 
--- Binary option callbacks
-function onEnabledChanged(self, state)
-    applySetting("enabled", state)
+function CropStressSettingsIntegration:onHudVisibleChanged(state)
+    applySetting("hudVisible", state == BinaryOptionElement.STATE_RIGHT)
 end
 
-function onHudVisibleChanged(self, state)
-    applySetting("hudVisible", state)
+function CropStressSettingsIntegration:onIrrigationCostsChanged(state)
+    applySetting("irrigationCosts", state == BinaryOptionElement.STATE_RIGHT)
 end
 
-function onIrrigationCostsChanged(self, state)
-    applySetting("irrigationCosts", state)
+function CropStressSettingsIntegration:onAlertsEnabledChanged(state)
+    applySetting("alertsEnabled", state == BinaryOptionElement.STATE_RIGHT)
 end
 
-function onAlertsEnabledChanged(self, state)
-    applySetting("alertsEnabled", state)
+function CropStressSettingsIntegration:onDebugModeChanged(state)
+    applySetting("debugMode", state == BinaryOptionElement.STATE_RIGHT)
 end
 
-function onDebugModeChanged(self, state)
-    applySetting("debugMode", state)
+function CropStressSettingsIntegration:onDifficultyChanged(state)
+    applySetting("difficulty", CropStressSettingsIntegration.difficultyValues[state] or "normal")
 end
 
--- Multi-text option callbacks
-function onDifficultyChanged(self, index)
-    local difficulty = "normal"
-    if index == 1 then difficulty = "easy"
-    elseif index == 3 then difficulty = "hard" end
-    applySetting("difficulty", difficulty)
+function CropStressSettingsIntegration:onEvapotranspirationChanged(state)
+    applySetting("evapotranspiration", CropStressSettingsIntegration.evapValues[state] or "normal")
 end
 
-function onEvapotranspirationChanged(self, index)
-    local evap = "normal"
-    if index == 1 then evap = "slow"
-    elseif index == 3 then evap = "fast" end
-    applySetting("evapotranspiration", evap)
+function CropStressSettingsIntegration:onMaxYieldLossChanged(state)
+    applySetting("maxYieldLoss", CropStressSettingsIntegration.maxYieldLossValues[state] or 0.60)
 end
 
-function onMaxYieldLossChanged(self, index)
-    local loss = 0.60
-    if index == 1 then loss = 0.30
-    elseif index == 2 then loss = 0.45
-    elseif index == 4 then loss = 0.75 end
-    applySetting("maxYieldLoss", loss)
+function CropStressSettingsIntegration:onCriticalThresholdChanged(state)
+    applySetting("criticalThreshold", CropStressSettingsIntegration.criticalThresholdValues[state] or 0.25)
 end
 
-function onCriticalThresholdChanged(self, index)
-    local threshold = 0.25
-    if index == 1 then threshold = 0.15
-    elseif index == 3 then threshold = 0.35 end
-    applySetting("criticalThreshold", threshold)
-end
-
-function onAlertCooldownChanged(self, index)
-    local cooldown = 12
-    if index == 1 then cooldown = 4
-    elseif index == 2 then cooldown = 8
-    elseif index == 4 then cooldown = 24 end
-    applySetting("alertCooldown", cooldown)
+function CropStressSettingsIntegration:onAlertCooldownChanged(state)
+    applySetting("alertCooldown", CropStressSettingsIntegration.alertCooldownValues[state] or 12)
 end
 
 -- ============================================================
--- INITIALIZATION
+-- HOOK INSTALLATION (runs at file load time)
 -- ============================================================
 local function initHooks()
-    -- Hook into InGameMenuSettingsFrame.onFrameOpen
-    if InGameMenuSettingsFrame ~= nil and InGameMenuSettingsFrame.onFrameOpen ~= nil then
-        InGameMenuSettingsFrame.onFrameOpen = Utils.appendedFunction(InGameMenuSettingsFrame.onFrameOpen, onFrameOpen)
-        csLog("ESC menu hook installed")
-    else
-        csLog("WARNING: InGameMenuSettingsFrame.onFrameOpen not found, ESC menu integration skipped")
+    if not InGameMenuSettingsFrame then
+        csLog("WARNING: InGameMenuSettingsFrame not available — ESC menu integration skipped")
+        return
     end
+
+    -- Inject our elements once when the frame opens
+    InGameMenuSettingsFrame.onFrameOpen = Utils.appendedFunction(
+        InGameMenuSettingsFrame.onFrameOpen,
+        CropStressSettingsIntegration.onFrameOpen
+    )
+
+    -- Refresh our values whenever the game refreshes its own settings UI
+    if InGameMenuSettingsFrame.updateGameSettings then
+        InGameMenuSettingsFrame.updateGameSettings = Utils.appendedFunction(
+            InGameMenuSettingsFrame.updateGameSettings,
+            CropStressSettingsIntegration.updateGameSettings
+        )
+    end
+
+    csLog("ESC menu hook installed")
 end
 
--- Initialize hooks at file load time
 initHooks()

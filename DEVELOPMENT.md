@@ -118,7 +118,7 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 
 #### Config File
 - [x] `config/cropStressDefaults.xml` created
-- [ ] Expose difficulty multipliers (`stressMultiplier`, `evaporationMultiplier`, `rainAbsorptionMultiplier`) to SoilMoistureSystem and CropStressModifier formulas — file exists but values not yet wired into calculations
+- [x] Expose difficulty multipliers (`stressMultiplier`, `evaporationMultiplier`, `rainAbsorptionMultiplier`) to SoilMoistureSystem and CropStressModifier formulas — wired via `CropStressSettings` + `CropStressManager:applySettings()` in Session 4
 
 #### Phase 1 Final Validation
 - [ ] All 5 Phase 1 test scenarios pass (see Section 15 of ModPlan)
@@ -646,6 +646,127 @@ Files fixed:
 - `"root"` is reserved in the FS25 scene node table. Always name root nodes `"<assetName>_root"`. Added to CLAUDE.md.
 - `addTrigger(node, callbackString, target)` — second arg is always a **string** method name.
 - Previous session output files were never copied to disk — applying fixes from outputs alone is not enough; the mod folder must be updated manually each session.
+
+---
+
+### 2026-02-26 (session 5) — Claude (Sonnet 4.6) — Code Review, Bug Fixes & ESC Menu Rewrite
+
+**Started from:** "Perform a pass over all new code looking for any bugs, edge cases, code not hooked up, proper commenting, and finally perform polish." Followed by runtime errors in `log.txt` and the ESC menu settings not appearing.
+
+**Bugs found and fixed:**
+
+1. **Critical — Boolean `or` trap in `CropStressSettings:load()`**
+   - `xmlFile:getBool(key) or DEFAULT` silently reverts any explicitly-saved `false` to the default `true`.
+   - `false or true` = `true` in Lua — every disable toggle (mod enabled, HUD visible, alerts, etc.) would re-enable itself on next load.
+   - Fix: added a `readBool(xmlFile, key, default)` helper that nil-checks before falling back to default. Applied to all 5 boolean settings.
+
+2. **Feature gap — `settings.enabled` was never checked**
+   - Turning off the mod via ESC menu had zero effect: `onHourlyTick()` and `draw()` kept running.
+   - Fix: added early-return guard `if not self.settings.enabled then return end` in both methods.
+   - Added a comment in `applySettings()` explaining why `enabled` is a runtime guard rather than pushed to subsystems.
+
+3. **MP gap — `sendInitialClientState` was a no-op**
+   - Joining multiplayer clients received default settings instead of the host's configuration.
+   - Fix: wired `CropStressSettingsSyncEvent.sendAllToConnection(connection)` into `sendInitialClientState`.
+
+4. **Polish — redundant settings load in `initialize()`**
+   - Settings were loaded during `initialize()` but `applySettings()` was never called there. The same load happened again (correctly) in `onStartMission`. Removed the dead early load.
+
+5. **Polish — `toTable()` shadowed the `table` builtin**
+   - Local variable named `table` inside `CropStressSettings:toTable()`. Renamed to `t`.
+
+6. **Polish — debug `print()` calls bypassed `csLog()`**
+   - Two guard checks in `CropStressManager.new()` used raw `print()`. Changed to `csLog()`.
+
+7. **Polish — magic number `10` in bulk stream write**
+   - `streamWriteUInt8(streamId, 10)` — adding/removing a setting without updating this would silently corrupt the multiplayer stream mid-read.
+   - Fix: introduced `CropStressSettingsSyncEvent.BULK_COUNT = 10` constant with a clear warning comment.
+
+8. **Dead code removed — `saveToGameSettings()` and `loadFromTable()`**
+   - Never called anywhere. `saveToGameSettings` used a broken `g_gameSettings:setValue(table)` API pattern. Both removed.
+
+**ESC menu settings — complete rewrite of `CropStressSettingsIntegration.lua`:**
+
+The original implementation used a completely fabricated FS25 API:
+- `frame:createElement("CropStressHeader")` — does not exist
+- `option:setCallback(callbackName)` — wrong signature
+- `option:setWidth()` / `option:setHeight()` — not FS25 element methods
+- Callback functions declared as globals — namespace pollution
+- `addSettingsElements` and `updateSettingsUI` were `local function`s declared *after* `onFrameOpen`, making them nil at call time (Lua lexical scoping)
+
+Runtime errors in `log.txt`:
+```
+Error: Running LUA method 'mouseEvent'.
+CropStressSettingsIntegration.lua:45: attempt to call a nil value
+Error: Running LUA method 'update'.
+CropStressSettingsIntegration.lua:31: attempt to call a nil value
+```
+
+Rewritten from scratch using the confirmed NPCFavor pattern (`NPCSettingsIntegration.lua`):
+- Proper class: `CropStressSettingsIntegration = {}` + `Class(CropStressSettingsIntegration)`
+- **Real FS25 element classes:** `TextElement.new()`, `BitmapElement.new()`, `BinaryOptionElement.new()`, `MultiTextOptionElement.new()`
+- **Profile loading:** `g_gui:getProfile("fs25_settingsBinaryOption")` + `element:loadProfile(profile, true)`
+- **Callback wiring:** `element.target = CropStressSettingsIntegration` + `element:setCallback("onClickCallback", "methodName")`
+- **Per-frame guard:** `self.cropstress_initDone` stored on the frame instance (not a module-level flag) — survives multi-session reloads
+- **UI state reads:** `setIsChecked(bool, false, false)` for toggles; `setState(index)` for multi-text
+- **Callback reads:** `state == BinaryOptionElement.STATE_RIGHT` to get bool from toggle state
+- **Both hooks:** `onFrameOpen` (inject once) + `updateGameSettings` (refresh on re-open)
+- Callbacks promoted to class methods — no global pollution
+
+**Files changed:**
+- `src/CropStressManager.lua`
+- `src/settings/CropStressSettings.lua`
+- `src/settings/CropStressSettingsIntegration.lua` (complete rewrite)
+- `src/events/CropStressSettingsSyncEvent.lua`
+
+**Tested:** Build deploys cleanly. Previous `attempt to call a nil value` errors eliminated at the source. ESC menu settings elements should now render using the same confirmed-working mechanism as NPCFavor.
+
+**Next agent should start at:**
+`TEST: Open ESC → Settings → Game Settings → scroll to "Seasonal Crop Stress" section → verify all 10 controls appear and toggle correctly`
+`TEST: Toggle mod off → save → reload → verify mod stays off (boolean trap regression test)`
+`TEST: Join MP server → verify client has host's settings, not defaults`
+
+**Notes / surprises:**
+- The entire `CropStressSettingsIntegration.lua` was built on a non-existent FS25 API. No amount of fixing the forward-reference bug would have made the elements appear — the API itself was wrong at every layer. When in doubt, read the reference mod source directly.
+- FS25 `InGameMenuSettingsFrame` elements must be constructed via class constructors (`BitmapElement.new()` etc.) and profiles (`g_gui:getProfile()`). There is no `createElement` helper on the frame.
+- `BinaryOptionElement.STATE_RIGHT` = the "on"/true state. `setIsChecked(true, false, false)` sets it to that state.
+- `frame.cropstress_*` property namespacing on the frame is cleaner than any module-level guard — the frame itself is the lifetime scope.
+
+---
+
+### 2026-02-25 (session 4) — Claude (Sonnet 4.6) — Settings System Implementation
+
+**Started from:** "Add in-game settings system: ESC menu integration, difficulty settings, evapotranspiration tuning, yield loss caps, alert cooldown, multiplayer sync."
+
+**Completed:**
+
+1. **`src/settings/CropStressSettings.lua`** — full data model
+   - 10 settings: `enabled`, `difficulty`, `hudVisible`, `evapotranspiration`, `maxYieldLoss`, `criticalThreshold`, `irrigationCosts`, `alertsEnabled`, `alertCooldown`, `debugMode`
+   - Defaults, validation/clamping via `validateSettings()`, difficulty multiplier getters
+   - Persistence: `load(missionInfo)` / `saveToXMLFile(missionInfo)` to `{savegameDir}/cropStressSettings.xml`
+
+2. **`src/events/CropStressSettingsSyncEvent.lua`** — multiplayer sync
+   - TYPE_SINGLE (one key/value change) and TYPE_BULK (full settings on join)
+   - Type-tagged serialization handles bool/int/float/string across the wire
+   - Master rights verification before applying server-side changes
+
+3. **`src/settings/CropStressSettingsIntegration.lua`** — ESC menu injection (initial; rewritten in session 5)
+   - Hooked `InGameMenuSettingsFrame.onFrameOpen` and `updateGameSettings`
+
+4. **`src/CropStressManager.lua`** — settings wired to subsystems
+   - `applySettings()` pushes all values to subsystems via their setter methods
+   - `onStartMission` hook: settings load + `applySettings()` in correct lifecycle order
+
+**Files changed:**
+- `src/settings/CropStressSettings.lua` (new)
+- `src/events/CropStressSettingsSyncEvent.lua` (new)
+- `src/settings/CropStressSettingsIntegration.lua` (new — later rewritten)
+- `src/CropStressManager.lua`
+- `main.lua` — added source() calls for new files, settings load in onStartMission hook
+
+**Tested:** Code review only (runtime errors discovered and fixed in session 5)
+
+**Next agent should start at:** Session 5 (already completed above)
 
 ---
 

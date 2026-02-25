@@ -66,51 +66,74 @@ function CropStressSettings:resetToDefaults()
     end
 end
 
+-- Safe boolean reader: preserves explicitly-saved false values.
+-- The Lua pattern `getBool(key) or default` is WRONG for booleans:
+-- if the saved value is false, `false or default` evaluates to default,
+-- silently reverting the user's choice. Use this helper instead.
+local function readBool(xmlFile, key, default)
+    local v = xmlFile:getBool(key)
+    if v == nil then return default end
+    return v
+end
+
 -- Load settings from savegame XML file
 function CropStressSettings:load(missionInfo)
     if missionInfo == nil then
         csLog("WARNING: missionInfo is nil, using defaults")
         return
     end
-    
+
     local savegameDir = missionInfo.savegameDirectory
     if savegameDir == nil then
         csLog("WARNING: savegameDirectory is nil, using defaults")
         return
     end
-    
+
     local xmlPath = savegameDir .. "/cropStressSettings.xml"
-    
+
     -- Check if file exists
     if not fileExists(xmlPath) then
         csLog("Settings file not found, using defaults")
         return
     end
-    
+
     local xmlFile = XMLFile.load("CropStressSettings", xmlPath)
     if xmlFile == nil then
         csLog("WARNING: Failed to load settings XML, using defaults")
         return
     end
-    
-    -- Read all settings with type-appropriate getters
-    self.enabled = xmlFile:getBool("cropStressSettings.enabled") or DEFAULTS.enabled
-    self.difficulty = xmlFile:getString("cropStressSettings.difficulty") or DEFAULTS.difficulty
-    self.hudVisible = xmlFile:getBool("cropStressSettings.hudVisible") or DEFAULTS.hudVisible
+
+    -- Read all settings.  Booleans use readBool() — not the 'or' pattern —
+    -- to correctly restore false values (see helper comment above).
+    self.enabled            = readBool(xmlFile, "cropStressSettings.enabled",           DEFAULTS.enabled)
+    self.difficulty         = xmlFile:getString("cropStressSettings.difficulty")         or DEFAULTS.difficulty
+    self.hudVisible         = readBool(xmlFile, "cropStressSettings.hudVisible",         DEFAULTS.hudVisible)
     self.evapotranspiration = xmlFile:getString("cropStressSettings.evapotranspiration") or DEFAULTS.evapotranspiration
-    self.maxYieldLoss = xmlFile:getFloat("cropStressSettings.maxYieldLoss") or DEFAULTS.maxYieldLoss
-    self.criticalThreshold = xmlFile:getFloat("cropStressSettings.criticalThreshold") or DEFAULTS.criticalThreshold
-    self.irrigationCosts = xmlFile:getBool("cropStressSettings.irrigationCosts") or DEFAULTS.irrigationCosts
-    self.alertsEnabled = xmlFile:getBool("cropStressSettings.alertsEnabled") or DEFAULTS.alertsEnabled
-    self.alertCooldown = xmlFile:getInt("cropStressSettings.alertCooldown") or DEFAULTS.alertCooldown
-    self.debugMode = xmlFile:getBool("cropStressSettings.debugMode") or DEFAULTS.debugMode
-    
+    self.maxYieldLoss       = xmlFile:getFloat("cropStressSettings.maxYieldLoss")        or DEFAULTS.maxYieldLoss
+    self.criticalThreshold  = xmlFile:getFloat("cropStressSettings.criticalThreshold")   or DEFAULTS.criticalThreshold
+    self.irrigationCosts    = readBool(xmlFile, "cropStressSettings.irrigationCosts",    DEFAULTS.irrigationCosts)
+    self.alertsEnabled      = readBool(xmlFile, "cropStressSettings.alertsEnabled",      DEFAULTS.alertsEnabled)
+    self.alertCooldown      = xmlFile:getInt("cropStressSettings.alertCooldown")         or DEFAULTS.alertCooldown
+    self.debugMode          = readBool(xmlFile, "cropStressSettings.debugMode",          DEFAULTS.debugMode)
+
     xmlFile:delete()
-    
+
     -- Validate and clamp values
     self:validateSettings()
-    
+
     csLog("Settings loaded from " .. xmlPath)
+end
+
+-- Convert settings to a plain table (used for bulk network sync).
+-- NOTE: local named 't', not 'table' — shadowing the builtin is a footgun.
+function CropStressSettings:toTable()
+    local t = {}
+    for key, value in pairs(self) do
+        if type(value) ~= "function" and key ~= "__index" then
+            t[key] = value
+        end
+    end
+    return t
 end
 
 -- Save settings to savegame XML file
