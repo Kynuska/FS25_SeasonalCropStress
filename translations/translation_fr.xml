@@ -110,6 +110,35 @@
     <text name="cs_pf_moisture_overlay"      text="Humidité du sol"/>
     <text name="cs_pf_moisture_overlay_desc" text="Affiche le niveau d'humidité du sol sur vos champs. Rouge indique un sol sec, vert une humidité optimale et bleu un sol saturé."/>
 
+    <!-- ========== SETTINGS ========== -->
+    <text name="cs_settings_section"           text="Stress des Cultures Saisonnières"/>
+    <text name="cs_settings_enabled_short"     text="Activer le Mod"/>
+    <text name="cs_settings_enabled_long"      text="Activer ou désactiver l'ensemble du système Stress des Cultures Saisonnières"/>
+    <text name="cs_settings_difficulty_short"  text="Difficulté"/>
+    <text name="cs_settings_difficulty_long"   text="Ajuster l'accumulation de stress et les taux d'évapotranspiration"/>
+    <text name="cs_settings_diff_easy"         text="Facile"/>
+    <text name="cs_settings_diff_normal"       text="Normal"/>
+    <text name="cs_settings_diff_hard"         text="Difficile"/>
+    <text name="cs_settings_hud_short"         text="HUD Visible"/>
+    <text name="cs_settings_hud_long"          text="Afficher ou masquer la superposition d'humidité sur la liste des champs"/>
+    <text name="cs_settings_evap_short"        text="Évapotranspiration"/>
+    <text name="cs_settings_evap_long"         text="Taux de base de perte d'humidité du sol"/>
+    <text name="cs_settings_evap_slow"         text="Lent"/>
+    <text name="cs_settings_evap_normal"       text="Normal"/>
+    <text name="cs_settings_evap_fast"         text="Rapide"/>
+    <text name="cs_settings_yield_loss_short"  text="Perte de Rendement Max"/>
+    <text name="cs_settings_yield_loss_long"   text="Pourcentage maximal de rendement pouvant être perdu à cause du stress de sécheresse"/>
+    <text name="cs_settings_threshold_short"   text="Seuil Critique"/>
+    <text name="cs_settings_threshold_long"    text="Niveau d'humidité en dessous duquel le stress s'accumule"/>
+    <text name="cs_settings_irr_costs_short"   text="Coûts d'Irrigation"/>
+    <text name="cs_settings_irr_costs_long"    text="Activer ou désactiver les coûts financiers du fonctionnement des systèmes d'irrigation"/>
+    <text name="cs_settings_alerts_short"      text="Alertes Activées"/>
+    <text name="cs_settings_alerts_long"       text="Afficher les notifications d'alerte lorsque les champs ont besoin d'eau"/>
+    <text name="cs_settings_cooldown_short"    text="Délai d'Alerte"/>
+    <text name="cs_settings_cooldown_long"     text="Heures minimales entre les alertes pour le même champ"/>
+    <text name="cs_settings_debug_short"       text="Mode Débogage"/>
+    <text name="cs_settings_debug_long"        text="Activer la journalisation détaillée pour le dépannage"/>
+
     <!-- ========== HELP LINES ========== -->
     <text name="helpLine_cs_category"          text="Stress saisonnier des cultures"/>
 

@@ -266,3 +266,13 @@ function CropConsultant:delete()
     self.alertCooldowns = {}
     self.isInitialized  = false
 end
+
+-- Set alerts enabled flag from settings
+function CropConsultant:setAlertsEnabled(enabled)
+    self.alertsEnabled = not not enabled
+end
+
+-- Set alert cooldown from settings
+function CropConsultant:setAlertCooldown(hours)
+    self.alertCooldown = math.max(4, math.min(24, hours or 12))
+end

@@ -306,3 +306,18 @@ function CropStressModifier:delete()
     -- Note: the harvest hook patch cannot be uninstalled without storing the original.
     -- On mod reload, the whole game restarts so this is not a concern.
 end
+
+-- Set stress rate multiplier from settings
+function CropStressModifier:setRateMultiplier(multiplier)
+    self.rateMultiplier = multiplier or 1.0
+end
+
+-- Set maximum yield loss from settings
+function CropStressModifier:setMaxYieldLoss(loss)
+    self.maxYieldLoss = math.max(0.30, math.min(0.75, loss or 0.60))
+end
+
+-- Override MAX_YIELD_LOSS for settings compatibility
+function CropStressModifier:getMaxYieldLoss()
+    return self.maxYieldLoss or CropStressModifier.MAX_YIELD_LOSS
+end

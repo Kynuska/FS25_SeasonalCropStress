@@ -77,6 +77,9 @@ function CropStressManager.new()
     -- Hourly tick tracking (monotonic day * 24 + hour)
     self.lastHourKey   = -1
 
+    -- Settings (created here, loaded in :initialize())
+    self.settings = CropStressSettings.new()
+
     -- Debug: Check if WeatherIntegration is available
     if WeatherIntegration == nil then
         print("[CropStress] ERROR: WeatherIntegration is nil!")
@@ -169,6 +172,25 @@ function CropStressManager:lateInitialize()
             "CropStressManager lateInit: %d fields now tracked", found
         ))
     end
+end
+
+-- Apply current settings to all subsystems
+function CropStressManager:applySettings()
+    if not self.isInitialized then return end
+    if self.settings == nil then return end
+    
+    -- Apply settings to subsystems
+    self.hudOverlay:setVisible(self.settings.hudVisible)
+    self.soilSystem:setEvapMultiplier(self.settings:getTotalEvapMultiplier())
+    self.soilSystem:setCriticalThreshold(self.settings.criticalThreshold)
+    self.stressModifier:setRateMultiplier(self.settings:getDifficultyStressMultiplier())
+    self.stressModifier:setMaxYieldLoss(self.settings.maxYieldLoss)
+    self.irrigationManager:setCostsEnabled(self.settings.irrigationCosts)
+    self.consultant:setAlertsEnabled(self.settings.alertsEnabled)
+    self.consultant:setAlertCooldown(self.settings.alertCooldown)
+    self.debugMode = self.settings.debugMode
+    
+    csLog("Settings applied to all subsystems")
 end
 
 -- ============================================================

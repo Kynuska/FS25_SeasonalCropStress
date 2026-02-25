@@ -56,6 +56,10 @@ source(modDir .. "src/SoilMoistureSystem.lua")
 source(modDir .. "src/CropStressModifier.lua")
 source(modDir .. "src/IrrigationManager.lua")
 
+-- Phase 2.5: Settings
+source(modDir .. "src/settings/CropStressSettings.lua")
+source(modDir .. "src/settings/CropStressSettingsIntegration.lua")
+
 -- Phase 3: Player-facing systems
 source(modDir .. "src/HUDOverlay.lua")
 source(modDir .. "src/CropConsultant.lua")
@@ -65,6 +69,9 @@ source(modDir .. "src/NPCIntegration.lua")
 source(modDir .. "src/FinanceIntegration.lua")
 source(modDir .. "src/UsedEquipmentMarketplace.lua")  -- FIX: was missing, caused nil crash in CropStressManager.new()
 source(modDir .. "src/PrecisionFarmingOverlay.lua")   -- FIX: was missing, caused nil crash in CropStressManager.new()
+
+-- Phase 4.5: Events
+source(modDir .. "src/events/CropStressSettingsSyncEvent.lua")
 
 -- Phase 5: Persistence
 source(modDir .. "src/SaveLoadHandler.lua")
@@ -248,6 +255,12 @@ end)
 -- 7. Load saved state (fires after fields are populated)
 Mission00.onStartMission = Utils.appendedFunction(Mission00.onStartMission, function(self, ...)
     if g_csManager ~= nil then
+        -- Load settings from savegame first
+        if self.missionInfo ~= nil then
+            g_csManager.settings:load(self.missionInfo)
+            g_csManager:applySettings()
+        end
+        
         -- Enumerate fields first (fieldManager is guaranteed ready at this lifecycle stage).
         -- lateInitialize() is a no-op if fields were already found during loadMission00Finished.
         g_csManager:lateInitialize()

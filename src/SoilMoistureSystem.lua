@@ -253,3 +253,18 @@ end
 function SoilMoistureSystem:delete()
     self.isInitialized = false
 end
+
+-- Set evapotranspiration multiplier from settings
+function SoilMoistureSystem:setEvapMultiplier(multiplier)
+    self.evapMultiplier = multiplier or 1.0
+end
+
+-- Set critical moisture threshold from settings
+function SoilMoistureSystem:setCriticalThreshold(threshold)
+    self.criticalMoisture = math.max(0.15, math.min(0.35, threshold or 0.25))
+end
+
+-- Override CRITICAL_MOISTURE for settings compatibility
+function SoilMoistureSystem:getCriticalMoisture()
+    return self.criticalMoisture or SoilMoistureSystem.CRITICAL_MOISTURE
+end

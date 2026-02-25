@@ -110,6 +110,35 @@
     <text name="cs_pf_moisture_overlay"      text="Soil Moisture"/>
     <text name="cs_pf_moisture_overlay_desc" text="Displays current soil moisture levels across your fields. Red indicates dry soil, green indicates optimal moisture, and blue indicates saturated soil."/>
 
+    <!-- ========== SETTINGS ========== -->
+    <text name="cs_settings_section"           text="Seasonal Crop Stress"/>
+    <text name="cs_settings_enabled_short"     text="Enable Mod"/>
+    <text name="cs_settings_enabled_long"      text="Toggle the entire Seasonal Crop Stress system on or off"/>
+    <text name="cs_settings_difficulty_short"  text="Difficulty"/>
+    <text name="cs_settings_difficulty_long"   text="Adjust stress accumulation and evapotranspiration rates"/>
+    <text name="cs_settings_diff_easy"         text="Easy"/>
+    <text name="cs_settings_diff_normal"       text="Normal"/>
+    <text name="cs_settings_diff_hard"         text="Hard"/>
+    <text name="cs_settings_hud_short"         text="HUD Visible"/>
+    <text name="cs_settings_hud_long"          text="Show or hide the moisture overlay on the field list"/>
+    <text name="cs_settings_evap_short"        text="Evapotranspiration"/>
+    <text name="cs_settings_evap_long"         text="Base rate of moisture loss from soil"/>
+    <text name="cs_settings_evap_slow"         text="Slow"/>
+    <text name="cs_settings_evap_normal"       text="Normal"/>
+    <text name="cs_settings_evap_fast"         text="Fast"/>
+    <text name="cs_settings_yield_loss_short"  text="Max Yield Loss"/>
+    <text name="cs_settings_yield_loss_long"   text="Maximum percentage of yield that can be lost to drought stress"/>
+    <text name="cs_settings_threshold_short"   text="Critical Threshold"/>
+    <text name="cs_settings_threshold_long"    text="Moisture level below which stress accumulates"/>
+    <text name="cs_settings_irr_costs_short"   text="Irrigation Costs"/>
+    <text name="cs_settings_irr_costs_long"    text="Enable or disable financial costs for running irrigation systems"/>
+    <text name="cs_settings_alerts_short"      text="Alerts Enabled"/>
+    <text name="cs_settings_alerts_long"       text="Show warning notifications when fields need water"/>
+    <text name="cs_settings_cooldown_short"    text="Alert Cooldown"/>
+    <text name="cs_settings_cooldown_long"     text="Minimum hours between alerts for the same field"/>
+    <text name="cs_settings_debug_short"       text="Debug Mode"/>
+    <text name="cs_settings_debug_long"        text="Enable verbose logging for troubleshooting"/>
+
     <!-- ========== HELP LINES ========== -->
     <text name="helpLine_cs_category"          text="Seasonal Crop Stress"/>
 

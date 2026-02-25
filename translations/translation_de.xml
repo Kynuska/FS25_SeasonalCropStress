@@ -110,6 +110,35 @@
     <text name="cs_pf_moisture_overlay"      text="Bodenfeuchte"/>
     <text name="cs_pf_moisture_overlay_desc" text="Zeigt die aktuelle Bodenfeuchte auf Ihren Feldern an. Rot zeigt trockenen Boden, Grün optimale Feuchte und Blau gesättigten Boden an."/>
 
+    <!-- ========== SETTINGS ========== -->
+    <text name="cs_settings_section"           text="Seasonal Crop Stress"/>
+    <text name="cs_settings_enabled_short"     text="Mod aktivieren"/>
+    <text name="cs_settings_enabled_long"      text="Aktivieren oder deaktivieren Sie das gesamte Seasonal Crop Stress-System"/>
+    <text name="cs_settings_difficulty_short"  text="Schwierigkeit"/>
+    <text name="cs_settings_difficulty_long"   text="Stellen Sie die Stressakkumulation und Verdunstungsraten ein"/>
+    <text name="cs_settings_diff_easy"         text="Einfach"/>
+    <text name="cs_settings_diff_normal"       text="Normal"/>
+    <text name="cs_settings_diff_hard"         text="Schwer"/>
+    <text name="cs_settings_hud_short"         text="HUD sichtbar"/>
+    <text name="cs_settings_hud_long"          text="Zeigen oder verbergen Sie das Feuchtigkeits-Overlay auf der Feldliste"/>
+    <text name="cs_settings_evap_short"        text="Evapotranspiration"/>
+    <text name="cs_settings_evap_long"         text="Grundrate des Feuchtigkeitsverlusts aus dem Boden"/>
+    <text name="cs_settings_evap_slow"         text="Langsam"/>
+    <text name="cs_settings_evap_normal"       text="Normal"/>
+    <text name="cs_settings_evap_fast"         text="Schnell"/>
+    <text name="cs_settings_yield_loss_short"  text="Max. Ertragsverlust"/>
+    <text name="cs_settings_yield_loss_long"   text="Maximaler Prozentsatz des Ertrags, der durch Dürrestress verloren gehen kann"/>
+    <text name="cs_settings_threshold_short"   text="Kritische Schwelle"/>
+    <text name="cs_settings_threshold_long"    text="Feuchtigkeitsniveau, unterhalb dessen Stress akkumuliert"/>
+    <text name="cs_settings_irr_costs_short"   text="Bewässerungskosten"/>
+    <text name="cs_settings_irr_costs_long"    text="Aktivieren oder deaktivieren Sie die finanziellen Kosten für den Betrieb von Bewässerungssystemen"/>
+    <text name="cs_settings_alerts_short"      text="Warnungen aktiviert"/>
+    <text name="cs_settings_alerts_long"       text="Zeigen Sie Warnhinweise an, wenn Felder Wasser benötigen"/>
+    <text name="cs_settings_cooldown_short"    text="Warnungs-Cooldown"/>
+    <text name="cs_settings_cooldown_long"     text="Mindeststunden zwischen Warnungen für dasselbe Feld"/>
+    <text name="cs_settings_debug_short"       text="Debug-Modus"/>
+    <text name="cs_settings_debug_long"        text="Aktivieren Sie ausführliche Protokollierung zur Fehlerbehebung"/>
+
     <!-- ========== HELP LINES ========== -->
     <text name="helpLine_cs_category"          text="Saisonaler Pflanzenstress"/>
 
