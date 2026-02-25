@@ -16,7 +16,7 @@
 local modDir = g_currentModDirectory
 
 -- ============================================================
--- FOCUSMANAGER NIL-NODE GUARD — applied at earliest possible time.
+-- FOCUSMANAGER NIL-NODE GUARD — patch the CLASS, not the instance.
 --
 -- Root cause (FS25 v1.16 regression):
 --   When any mod calls g_gui:loadGui() the GUI system calls
@@ -27,26 +27,24 @@ local modDir = g_currentModDirectory
 --   → "table index is nil" crash, which leaves currentFocusElement
 --   in a corrupt state → FocusManager.lua:126 cascade every frame.
 --
--- This guard must be applied at MOD LOAD TIME (here), not inside
--- a lifecycle hook — the crash fires from async i3d callbacks
--- triggered by earlier mods (e.g. FS25_NPCFavor) that complete
--- while our own source() calls are still executing.
+-- Why CLASS-level (not instance): g_gui.focusManager is nil at both
+-- mod load time AND loadMission00Finished in FS25 v1.16. Patching
+-- FocusManager (the class table) covers all instances via Lua __index
+-- dispatch and is unaffected by when g_gui initialises its fields.
 -- ============================================================
 do
-    local fm = g_gui ~= nil and g_gui.focusManager or nil
-    if fm ~= nil and type(fm.loadSharedI3DFileFinished) == "function" then
-        local origFn = fm.loadSharedI3DFileFinished
-        fm._cs_guardedFn = function(self, i3dNode, failedReason, args)
+    if type(FocusManager) == "table" and type(FocusManager.loadSharedI3DFileFinished) == "function" then
+        local origFn = FocusManager.loadSharedI3DFileFinished
+        FocusManager.loadSharedI3DFileFinished = function(self, i3dNode, failedReason, args)
             if i3dNode == nil then
-                print("[CropStress] FocusManager nil-node guard triggered (FS25 v1.16 shared-i3d bug) — suppressed")
+                print("[CropStress] FocusManager nil-node guard triggered — suppressed")
                 return
             end
             return origFn(self, i3dNode, failedReason, args)
         end
-        fm.loadSharedI3DFileFinished = fm._cs_guardedFn
-        print("[CropStress] FocusManager nil-node guard applied at mod load time")
+        print("[CropStress] FocusManager nil-node guard applied to FocusManager class")
     else
-        print("[CropStress] WARNING: FocusManager guard skipped — g_gui.focusManager unavailable at load time")
+        print("[CropStress] WARNING: FocusManager class guard skipped — FocusManager not available at load time")
     end
 end
 
@@ -102,27 +100,6 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
     if g_csManager == nil then return end
 
     g_csManager:initialize()
-
-    -- FocusManager nil-node guard — fallback for when g_gui.focusManager was nil
-    -- at mod load time (g_gui is guaranteed available here).
-    -- Covers our own loadGui() calls below. Idempotent: safe to apply twice.
-    if g_gui ~= nil and g_gui.focusManager ~= nil then
-        local fm2 = g_gui.focusManager
-        local fn2 = fm2.loadSharedI3DFileFinished
-        -- Only wrap if not already wrapped by the mod-load-time guard
-        if type(fn2) == "function" and fn2 ~= fm2._cs_guardedFn then
-            local orig2 = fn2
-            fm2._cs_guardedFn = function(self, i3dNode, failedReason, args)
-                if i3dNode == nil then
-                    print("[CropStress] FocusManager nil-node guard triggered (loadMission00Finished) — suppressed")
-                    return
-                end
-                return orig2(self, i3dNode, failedReason, args)
-            end
-            fm2.loadSharedI3DFileFinished = fm2._cs_guardedFn
-            print("[CropStress] FocusManager nil-node guard applied at loadMission00Finished")
-        end
-    end
 
     -- Register dialogs with the GUI system.
     -- FIX: pass the CLASS TABLE, not a live instance (.new()).

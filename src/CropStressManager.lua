@@ -258,21 +258,23 @@ end
 -- OPTIONAL MOD DETECTION
 -- ============================================================
 function CropStressManager:detectOptionalMods()
-    -- NPCFavor exports g_NPCSystem (not g_npcFavorSystem)
-    if getfenv(0)["g_NPCSystem"] ~= nil then
+    -- Use plain global access (not getfenv) — FS25 mod sandboxing means getfenv(0)
+    -- reads from our mod's own environment, not the shared game global table where
+    -- other mods export their globals via getfenv(0)["x"] = val.
+    if g_NPCSystem ~= nil then
         csLog("FS25_NPCFavor detected — enabling NPC integration")
         self.npcIntegration.npcFavorActive = true
         -- Also enable NPCFavor mode on the consultant so alerts route through Alex Chen
         self.consultant:enableNPCFavorMode()
     end
 
-    if getfenv(0)["g_usedPlusManager"] ~= nil then
+    if g_usedPlusManager ~= nil then
         csLog("FS25_UsedPlus detected — enabling finance integration")
         self.financeIntegration:enableUsedPlusMode()
         self.usedEquipmentMarketplace:enableUsedPlusMode()
     end
 
-    if getfenv(0)["g_precisionFarming"] ~= nil then
+    if g_precisionFarming ~= nil then
         csLog("Precision Farming DLC detected — enabling PF compat (Phase 4)")
         self.precisionFarmingOverlay:enablePrecisionFarmingMode()
     end
