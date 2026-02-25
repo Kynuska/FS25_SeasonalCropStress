@@ -15,6 +15,40 @@
 
 local modDir = g_currentModDirectory
 
+-- ============================================================
+-- FOCUSMANAGER NIL-NODE GUARD — applied at earliest possible time.
+--
+-- Root cause (FS25 v1.16 regression):
+--   When any mod calls g_gui:loadGui() the GUI system calls
+--   loadSharedI3DFile for the button focus-ring indicator i3d.
+--   In v1.16 that callback fires with nil as i3dNode when the
+--   file is already cached as a shared i3d.
+--   FocusManager.lua:94 then does elementsByNodeId[nil] = element
+--   → "table index is nil" crash, which leaves currentFocusElement
+--   in a corrupt state → FocusManager.lua:126 cascade every frame.
+--
+-- This guard must be applied at MOD LOAD TIME (here), not inside
+-- a lifecycle hook — the crash fires from async i3d callbacks
+-- triggered by earlier mods (e.g. FS25_NPCFavor) that complete
+-- while our own source() calls are still executing.
+-- ============================================================
+do
+    local fm = g_gui ~= nil and g_gui.focusManager or nil
+    if fm ~= nil and type(fm.loadSharedI3DFileFinished) == "function" then
+        local origFn = fm.loadSharedI3DFileFinished
+        fm.loadSharedI3DFileFinished = function(self, i3dNode, failedReason, args)
+            if i3dNode == nil then
+                print("[CropStress] FocusManager nil-node guard triggered (FS25 v1.16 shared-i3d bug) — suppressed")
+                return
+            end
+            return origFn(self, i3dNode, failedReason, args)
+        end
+        print("[CropStress] FocusManager nil-node guard applied at mod load time")
+    else
+        print("[CropStress] WARNING: FocusManager guard skipped — g_gui.focusManager unavailable at load time")
+    end
+end
+
 -- Phase 1: Weather bridge
 source(modDir .. "src/WeatherIntegration.lua")
 
@@ -67,27 +101,6 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
     if g_csManager == nil then return end
 
     g_csManager:initialize()
-
-    -- FIX: FS25 v1.16 FocusManager nil-node guard.
-    -- When g_gui:loadGui() is called mid-session (after the game's own GUI init phase),
-    -- loadSharedI3DFile for button focus-ring indicators calls back with nil as the
-    -- i3dNode (shared file already cached, v1.16 regression). FocusManager.lua:94 does
-    -- self.elementsByNodeId[nil] = element → "table index is nil" crash, which leaves
-    -- currentFocusElement in a corrupt state → FocusManager.lua:126 cascade every frame.
-    -- Guard: if the node is nil the load failed; there is nothing to register, so return.
-    if g_gui ~= nil and g_gui.focusManager ~= nil then
-        local fm = g_gui.focusManager
-        local origFn = fm.loadSharedI3DFileFinished
-        if type(origFn) == "function" then
-            fm.loadSharedI3DFileFinished = function(self, i3dNode, failedReason, args)
-                if i3dNode == nil then
-                    print("[CropStress] FocusManager nil-node guard triggered (FS25 v1.16 shared-i3d bug) — suppressed")
-                    return
-                end
-                return origFn(self, i3dNode, failedReason, args)
-            end
-        end
-    end
 
     -- Register dialogs with the GUI system.
     -- FIX: pass the CLASS TABLE, not a live instance (.new()).
