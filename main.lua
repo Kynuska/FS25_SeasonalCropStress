@@ -101,52 +101,36 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
 
     g_csManager:initialize()
 
-    -- ── DIAGNOSTIC BLOCK (remove once FocusManager path is confirmed) ────────
-    -- Find the actual field name FS25 uses to store the FocusManager on g_gui,
-    -- and verify which scope exposes g_NPCSystem.
-    do
-        -- 1. FocusManager: search g_gui fields for an object with loadSharedI3DFileFinished
-        print("[CropStress] DIAG: g_gui type=" .. tostring(type(g_gui)))
-        if type(g_gui) == "table" then
-            print("[CropStress] DIAG: g_gui.focusManager=" .. tostring(g_gui.focusManager))
-            local fmKey = nil
-            for k, v in pairs(g_gui) do
-                if type(v) == "table" and type(v.loadSharedI3DFileFinished) == "function" then
-                    fmKey = k
-                    print("[CropStress] DIAG: FocusManager found at g_gui." .. tostring(k))
-                end
-            end
-            if fmKey == nil then
-                print("[CropStress] DIAG: FocusManager NOT found in top-level g_gui fields")
+    -- Register dialogs with the GUI system.
+    -- PATTERN (from FS25_NPCFavor/DialogLoader.lua — confirmed working):
+    --   g_gui:loadGui(xml, name, instance)  ← 3 args: xml, name string, pre-created instance
+    --   Do NOT pass a 4th arg (false) — that code path triggers the FS25 v1.16
+    --   shared-i3d nil-node bug (FocusManager.lua:94) on any dialog loaded after
+    --   the first mod has already cached the button focus-ring i3d.
+    -- Wrap in pcall and verify via g_gui.guis[name] (matches NPCFavor pattern).
+    if g_gui ~= nil then
+        local function safeLoadDialog(xmlPath, name, instance)
+            local ok, err = pcall(function()
+                g_gui:loadGui(xmlPath, name, instance)
+            end)
+            if not ok then
+                print("[CropStress] WARNING: " .. name .. " load error: " .. tostring(err))
+            elseif g_gui.guis and g_gui.guis[name] then
+                print("[CropStress] " .. name .. " loaded OK")
+            else
+                print("[CropStress] WARNING: " .. name .. " not in g_gui.guis after loadGui")
             end
         end
 
-        -- 2. NPCSystem: try multiple scopes
-        print("[CropStress] DIAG: g_NPCSystem(direct)=" .. tostring(g_NPCSystem))
-        local ok0, v0 = pcall(function() return getfenv(0)["g_NPCSystem"] end)
-        print("[CropStress] DIAG: g_NPCSystem(fenv0)=" .. tostring(ok0 and v0 or "ERR"))
-        local ok1, v1 = pcall(function() return getfenv(1)["g_NPCSystem"] end)
-        print("[CropStress] DIAG: g_NPCSystem(fenv1)=" .. tostring(ok1 and v1 or "ERR"))
-    end
-    -- ── END DIAGNOSTIC ────────────────────────────────────────────────────────
-
-    -- Register dialogs with the GUI system.
-    -- FIX: pass the CLASS TABLE, not a live instance (.new()).
-    -- g_gui:loadGui() calls .new() itself after parsing the XML and wiring elements.
-    -- Passing a pre-built instance leaves focusElement nil and causes
-    -- FocusManager.lua:126 on the next update frame.
-    if g_gui ~= nil then
-        g_gui:loadGui(
+        safeLoadDialog(
             modDir .. "gui/IrrigationScheduleDialog.xml",
-            nil,
-            IrrigationScheduleDialog,
-            false
+            "IrrigationScheduleDialog",
+            IrrigationScheduleDialog.new()
         )
-        g_gui:loadGui(
+        safeLoadDialog(
             modDir .. "gui/CropConsultantDialog.xml",
-            nil,
-            CropConsultantDialog,
-            false
+            "CropConsultantDialog",
+            CropConsultantDialog.new()
         )
     end
 
