@@ -5,6 +5,11 @@
 -- Phase 4: will integrate with UsedPlus.
 -- ============================================================
 
+local function csLog(msg)
+    if g_logManager ~= nil then g_logManager:devInfo("[CropStress]", msg)
+    else print("[CropStress] " .. tostring(msg)) end
+end
+
 FinanceIntegration = {}
 FinanceIntegration.__index = FinanceIntegration
 
@@ -43,8 +48,11 @@ function FinanceIntegration:chargeHourlyCosts()
                 -- We also obtain the correct farmId rather than defaulting to farm 0.
                 if g_currentMission ~= nil then
                     local reasonType = (FundsReasonType ~= nil and FundsReasonType.OTHER) or 0
+                    -- AccessHandler.EVERYBODY may be nil on some builds/platforms; fall back to
+                    -- farm 0 (which is the spectator/server farm — effectively "all farms").
+                    local everybody = (AccessHandler ~= nil and AccessHandler.EVERYBODY) or 0
                     local farmId = (g_currentMission.player ~= nil and g_currentMission.player:getOwnerFarmId())
-                        or AccessHandler.EVERYBODY
+                        or everybody
                     g_currentMission:updateFunds(farmId, -cost, reasonType, true)
                 end
             end

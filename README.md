@@ -150,14 +150,14 @@ Open the developer console with the `~` (tilde) key.
 
 | Crop | Critical Window | Moisture Threshold | Max Yield Loss |
 |------|----------------|--------------------|----------------|
-| Wheat | Heading (stage 5–6) | 35% | 60% |
-| Barley | Heading (stage 5–6) | 35% | 55% |
+| Wheat | Heading (stage 3–4) | 35% | 60% |
+| Barley | Heading (stage 3–4) | 30% | 55% |
 | Corn | Pollination (stage 4–5) | 40% | 60% |
-| Canola | Flowering (stage 4–5) | 30% | 50% |
-| Sunflower | Head fill (stage 5–6) | 35% | 55% |
-| Soybeans | Pod fill (stage 5–6) | 40% | 60% |
-| Sugar Beet | Bulking (stage 4–6) | 30% | 45% |
-| Potato | Tuber fill (stage 4–6) | 45% | 50% |
+| Canola | Flowering (stage 2–3) | 45% | 50% |
+| Sunflower | Head fill (stage 3–4) | 30% | 55% |
+| Soybeans | Pod fill (stage 3–4) | 40% | 60% |
+| Sugar Beet | Bulking (stage 2–4) | 50% | 45% |
+| Potato | Tuber fill (stage 2–4) | 55% | 50% |
 
 ---
 

@@ -4,6 +4,11 @@
 -- irrigation equipment to the used equipment marketplace.
 -- ============================================================
 
+local function csLog(msg)
+    if g_logManager ~= nil then g_logManager:devInfo("[CropStress]", msg)
+    else print("[CropStress] " .. tostring(msg)) end
+end
+
 UsedEquipmentMarketplace = {}
 UsedEquipmentMarketplace.__index = UsedEquipmentMarketplace
 
@@ -125,15 +130,4 @@ end
 
 function UsedEquipmentMarketplace:delete()
     self.isInitialized = false
-end
-
--- ============================================================
--- LOGGING HELPER
--- ============================================================
-local function csLog(msg)
-    if g_logManager ~= nil then
-        g_logManager:devInfo("[CropStress]", msg)
-    else
-        print("[CropStress] " .. tostring(msg))
-    end
 end

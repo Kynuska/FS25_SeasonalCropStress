@@ -136,11 +136,10 @@ function HUDOverlay:update(dt)
         end
     end
 
-    -- Rebuild display rows
-    self:rebuildDisplayRows()
-
-    -- Click detection for field row selection (only when HUD is visible)
+    -- Rebuild display rows only while visible — no need to pay the field lookup
+    -- cost every frame when the HUD is hidden.
     if self.isVisible then
+        self:rebuildDisplayRows()
         self:detectRowClick()
     end
 

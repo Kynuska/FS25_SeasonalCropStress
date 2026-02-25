@@ -4,6 +4,11 @@
 -- soil moisture overlay on the PF soil analysis map screen.
 -- ============================================================
 
+local function csLog(msg)
+    if g_logManager ~= nil then g_logManager:devInfo("[CropStress]", msg)
+    else print("[CropStress] " .. tostring(msg)) end
+end
+
 PrecisionFarmingOverlay = {}
 PrecisionFarmingOverlay.__index = PrecisionFarmingOverlay
 
@@ -34,8 +39,8 @@ function PrecisionFarmingOverlay:registerMoistureOverlay()
 
     local overlayConfig = {
         name = "CropStress_Moisture",
-        displayName = g_i18n:getText("cs_pf_moisture_overlay"),
-        description = g_i18n:getText("cs_pf_moisture_overlay_desc"),
+        displayName = (g_i18n ~= nil) and g_i18n:getText("cs_pf_moisture_overlay")      or "Soil Moisture",
+        description = (g_i18n ~= nil) and g_i18n:getText("cs_pf_moisture_overlay_desc") or "",
         category = "IRRIGATION",
         -- Color gradient: dry (red) -> optimal (green) -> saturated (blue)
         colorMap = {
@@ -130,15 +135,4 @@ end
 
 function PrecisionFarmingOverlay:delete()
     self.isInitialized = false
-end
-
--- ============================================================
--- LOGGING HELPER
--- ============================================================
-local function csLog(msg)
-    if g_logManager ~= nil then
-        g_logManager:devInfo("[CropStress]", msg)
-    else
-        print("[CropStress] " .. tostring(msg))
-    end
 end

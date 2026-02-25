@@ -158,6 +158,19 @@ function CropStressManager:initialize()
     ))
 end
 
+-- Called from onStartMission (after fields and save data are available).
+-- Re-runs field enumeration if the initial attempt during loadMission00Finished
+-- found zero fields (fieldManager was nil too early in the lifecycle).
+function CropStressManager:lateInitialize()
+    if not self.isInitialized then return end
+    if self.soilSystem:getFieldCount() == 0 then
+        local found = self.soilSystem:enumerateFields()
+        csLog(string.format(
+            "CropStressManager lateInit: %d fields now tracked", found
+        ))
+    end
+end
+
 -- ============================================================
 -- PER-FRAME UPDATE (called from FSBaseMission.update hook)
 -- ============================================================
@@ -245,20 +258,23 @@ end
 -- OPTIONAL MOD DETECTION
 -- ============================================================
 function CropStressManager:detectOptionalMods()
-    if getfenv(0)["g_npcFavorSystem"] ~= nil then
+    -- Use plain global access (not getfenv) — FS25 mod sandboxing means getfenv(0)
+    -- reads from our mod's own environment, not the shared game global table where
+    -- other mods export their globals via getfenv(0)["x"] = val.
+    if g_NPCSystem ~= nil then
         csLog("FS25_NPCFavor detected — enabling NPC integration")
         self.npcIntegration.npcFavorActive = true
         -- Also enable NPCFavor mode on the consultant so alerts route through Alex Chen
         self.consultant:enableNPCFavorMode()
     end
 
-    if getfenv(0)["g_usedPlusManager"] ~= nil then
+    if g_usedPlusManager ~= nil then
         csLog("FS25_UsedPlus detected — enabling finance integration")
         self.financeIntegration:enableUsedPlusMode()
         self.usedEquipmentMarketplace:enableUsedPlusMode()
     end
 
-    if getfenv(0)["g_precisionFarming"] ~= nil then
+    if g_precisionFarming ~= nil then
         csLog("Precision Farming DLC detected — enabling PF compat (Phase 4)")
         self.precisionFarmingOverlay:enablePrecisionFarmingMode()
     end

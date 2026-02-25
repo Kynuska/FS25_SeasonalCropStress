@@ -67,9 +67,26 @@ function SoilMoistureSystem.new(manager)
 end
 
 function SoilMoistureSystem:initialize()
+    -- Subscribe to irrigation events immediately (don't depend on fieldManager being ready)
+    if self.manager ~= nil and self.manager.eventBus ~= nil then
+        self.manager.eventBus.subscribe("CS_IRRIGATION_STARTED", self.onIrrigationStarted, self)
+        self.manager.eventBus.subscribe("CS_IRRIGATION_STOPPED", self.onIrrigationStopped, self)
+    end
+
+    self.isInitialized = true
+
+    -- Try to enumerate fields now; if fieldManager isn't ready, CropStressManager
+    -- will call enumerateFields() again in lateInitialize() during onStartMission.
+    self:enumerateFields()
+end
+
+-- Populate fieldData for every field on the map.
+-- Safe to call multiple times — skips fields already in fieldData (preserves save data).
+-- Returns the number of NEW fields added.
+function SoilMoistureSystem:enumerateFields()
     if g_currentMission == nil or g_currentMission.fieldManager == nil then
-        csLog("SoilMoistureSystem: fieldManager unavailable at init")
-        return
+        csLog("SoilMoistureSystem: fieldManager unavailable — field enumeration deferred")
+        return 0
     end
 
     -- currentSeason is a direct property on the environment object, not a method call
@@ -84,7 +101,8 @@ function SoilMoistureSystem:initialize()
 
     for _, field in pairs(fields) do
         local fid = field.fieldId
-        if fid ~= nil then
+        if fid ~= nil and self.fieldData[fid] == nil then
+            -- Only create entry if not already present — preserves any save data loaded earlier
             self.fieldData[fid] = {
                 fieldId        = fid,
                 moisture       = startMoisture,
@@ -95,17 +113,13 @@ function SoilMoistureSystem:initialize()
         end
     end
 
-    -- Subscribe to irrigation events once here — never inside the hourly loop
-    if self.manager ~= nil and self.manager.eventBus ~= nil then
-        self.manager.eventBus.subscribe("CS_IRRIGATION_STARTED", self.onIrrigationStarted, self)
-        self.manager.eventBus.subscribe("CS_IRRIGATION_STOPPED", self.onIrrigationStopped, self)
+    if count > 0 then
+        csLog(string.format(
+            "SoilMoistureSystem: %d fields enumerated (season %d, start moisture=%.0f%%)",
+            count, season, startMoisture * 100
+        ))
     end
-
-    self.isInitialized = true
-    csLog(string.format(
-        "SoilMoistureSystem initialized. %d fields tracked. Start moisture=%.0f%% (season %d)",
-        count, startMoisture * 100, season
-    ))
+    return count
 end
 
 -- Called every in-game hour
@@ -209,10 +223,10 @@ function SoilMoistureSystem:onIrrigationStarted(data)
 end
 
 function SoilMoistureSystem:onIrrigationStopped(data)
-    self.irrigationGains[data.fieldId] = (self.irrigationGains[data.fieldId] or 0) - data.ratePerHour
-    if self.irrigationGains[data.fieldId] < 0.001 then
-        self.irrigationGains[data.fieldId] = nil
-    end
+    -- math.max ensures the gain never goes negative on a rate mismatch
+    -- (e.g. if stopped fires twice or the rate differs from what was added).
+    local remaining = math.max(0, (self.irrigationGains[data.fieldId] or 0) - data.ratePerHour)
+    self.irrigationGains[data.fieldId] = (remaining > 0.001) and remaining or nil
 end
 
 -- Detect soil type from FS25 map metadata.

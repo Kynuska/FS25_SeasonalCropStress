@@ -66,6 +66,7 @@
     <!-- Placeable shop names -->
     <text name="cs_pivot_name"        text="Pivot central d'irrigation"/>
     <text name="cs_pump_name"         text="Pompe à eau"/>
+    <text name="cs_drip_name"         text="Ligne de goutte-à-goutte"/>
 
     <!-- E-key interaction -->
     <text name="cs_irr_open_schedule"  text="Ouvrir le programme d'irrigation"/>
@@ -86,6 +87,23 @@
     <text name="cs_no_irrigation_systems"  text="Aucun système d'irrigation placé."/>
     <text name="cs_irr_started"             text="Irrigation démarrée."/>
     <text name="cs_schedule_saved"         text="Programme enregistré."/>
+
+    <!-- ========== PERFORMANCES IRRIGATION (dynamique) ========== -->
+    <text name="cs_irr_flow_rate_value"  text="Débit : %.3f/h"/>
+    <text name="cs_irr_efficiency_value" text="Efficacité : %d%%"/>
+    <text name="cs_irr_cost_value"       text="Coût est. : €%d/h"/>
+    <text name="cs_irr_wear_value"       text="Usure : %d%%"/>
+    <text name="cs_irr_already_active"   text="Le système d'irrigation est déjà en cours."/>
+    <text name="cs_irr_no_covered_fields" text="Aucune parcelle couverte par ce système."/>
+
+    <!-- ========== RECOMMANDATIONS CONSULTANT (dynamique) ========== -->
+    <text name="cs_rec_urgent"          text="URGENT : Champ %d à %.0f%% d'humidité — irriguer immédiatement !"/>
+    <text name="cs_rec_warning"         text="Champ %d à %.0f%% d'humidité — irrigation recommandée sous 24h."/>
+    <text name="cs_rec_ok"              text="Toutes les parcelles dans une plage d'humidité acceptable."/>
+    <text name="cs_rec_forecast"        text="Prévision : J+1 %.0f%%  J+2 %.0f%%  J+3 %.0f%%"/>
+    <text name="cs_rec_systems_running" text="%d système(s) d'irrigation en cours."/>
+    <text name="cs_rec_no_systems"      text="Aucun système d'irrigation actif."/>
+    <text name="cs_rec_all_healthy"     text="Toutes les parcelles semblent saines."/>
 
     <!-- Precision Farming DLC -->
     <text name="cs_pf_moisture_overlay" text="Humidité du sol"/>

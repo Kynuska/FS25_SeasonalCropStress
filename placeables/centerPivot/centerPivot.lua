@@ -119,14 +119,15 @@ function IrrigationPivot:createProximityTrigger()
     link(self.nodeId, self.triggerNode)
     setTranslation(self.triggerNode, 0, 0, 0)
 
-    -- Add a sphere collider for the trigger
-    -- FS25 addSphere syntax: addSphere(node, radius, useForCollision, collisionMask, triggerMask)
-    -- For a trigger volume, we need addTrigger instead
-    local triggerRadius = IrrigationPivot.INTERACTION_RADIUS
-    
-    -- Use addTrigger to create a proper trigger volume
-    -- addTrigger(node, callback, userData) - creates a trigger that calls callback on enter/leave
-    addTrigger(self.triggerNode, self)
+    -- IMPORTANT: addTrigger registers the callback but does NOT create a physics shape.
+    -- The actual trigger volume (sphere collider) must be defined in the i3d file as a
+    -- trigger node with the appropriate collision mask. This createTransformGroup node
+    -- acts as a parent for the i3d trigger node, or alternatively the i3d's own trigger
+    -- node should be looked up here via I3DUtil.getChildIndex and used directly.
+    -- Without a physics shape in the i3d, onProximityTrigger will never fire.
+    -- Use addTrigger(node, callbackName, target) — callbackName is a STRING method name.
+    -- FS25 calls: target[callbackName](target, triggerId, otherId, onEnter, onLeave, onStay)
+    addTrigger(self.triggerNode, "onProximityTrigger", self)
 
     csLog(string.format("centerPivot %s: proximity trigger created (r=%.1fm)", tostring(self.id), triggerRadius))
 end
@@ -216,9 +217,11 @@ function IrrigationPivot:onUpdate(dt)
     local sys = mgr ~= nil and mgr.systems[self.id] or nil
     self.isActive = sys ~= nil and sys.isActive == true
 
-    -- Arm animation: client-only, only when active and i3d node exists
+    -- Arm animation: client-only, only when active and i3d node exists.
+    -- Modulo 2π keeps the value in [0, 2π) to prevent floating-point precision
+    -- drift during long play sessions.
     if self.isClient and self.isActive and self.armNode ~= nil then
-        self.armRotation = self.armRotation + 0.5 * dt
+        self.armRotation = (self.armRotation + 0.5 * dt) % (math.pi * 2)
         setRotation(self.armNode, 0, self.armRotation, 0)
     end
 

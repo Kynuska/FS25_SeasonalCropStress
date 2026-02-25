@@ -92,7 +92,12 @@ function DripIrrigationLine:onLoad(savegame)
         end
     end
 
-    -- Get position from root node
+    -- Get position from root node.
+    -- NOTE (Phase 3): The end position is currently always computed along the X axis
+    -- (endX = x + lineLength, endZ = z). This ignores the placeable's Y-rotation,
+    -- so coverage won't match the visual if the player rotates the object during placement.
+    -- Phase 3 fix: read the root node's rotation via getRotation(self.nodeId) and project
+    -- the line direction accordingly.
     local x, y, z = getWorldTranslation(self.nodeId)
     self.startX = x
     self.startZ = z
@@ -135,6 +140,9 @@ function DripIrrigationLine:createProximityTrigger()
     link(self.nodeId, self.triggerNode)
     setTranslation(self.triggerNode, 0, 0, 0)
 
+    -- IMPORTANT: addTrigger registers the callback but does NOT create a physics shape.
+    -- The actual trigger volume must be defined in the i3d file. Without a physics
+    -- shape, onProximityTrigger will never fire. See centerPivot.lua for identical note.
     -- addTrigger second arg MUST be a string method name, not the table itself.
     -- FS25 calls: self["onProximityTrigger"](self, triggerId, otherId, onEnter, onLeave, onStay)
     addTrigger(self.triggerNode, "onProximityTrigger", self)

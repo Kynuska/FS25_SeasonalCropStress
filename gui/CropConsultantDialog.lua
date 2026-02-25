@@ -17,14 +17,17 @@
 -- ============================================================
 
 CropConsultantDialog = {}
-local CropConsultantDialog_mt = Class(CropConsultantDialog, DialogElement)
+local CropConsultantDialog_mt = Class(CropConsultantDialog, MessageDialog)
 
 -- ============================================================
 -- CONSTRUCTOR
 -- ============================================================
 function CropConsultantDialog.new(target, customMt)
-    local self = DialogElement.new(target, customMt or CropConsultantDialog_mt)
-    self.lastRefreshTime = 0
+    -- Called by g_gui:loadGui() with no arguments — target and customMt will both be nil.
+    -- Base class MUST be MessageDialog (not the deprecated DialogElement) so that
+    -- focusElement is properly initialised during XML wiring and FocusManager:update()
+    -- does not crash with "attempt to index nil with 'focusElement'" on the first frame.
+    local self = MessageDialog.new(target, customMt or CropConsultantDialog_mt)
     return self
 end
 
@@ -182,6 +185,8 @@ function CropConsultantDialog:buildRecommendation()
     local soilSystem   = g_cropStressManager and g_cropStressManager.soilSystem
     local weatherInteg = g_cropStressManager and g_cropStressManager.weatherIntegration
 
+    local function t(key, ...) return (g_i18n ~= nil and string.format(g_i18n:getText(key), ...)) or key end
+
     if soilSystem == nil or soilSystem.fieldData == nil then
         self.recommendText:setText("—")
         return
@@ -196,35 +201,29 @@ function CropConsultantDialog:buildRecommendation()
     end
 
     if worst == nil then
-        self.recommendText:setText("All fields appear healthy.")
+        self.recommendText:setText(t("cs_rec_all_healthy"))
         return
     end
 
-    -- Generate a simple recommendation string
+    -- Generate a localized recommendation string
     local lines = {}
 
     if worst.moisture < 0.25 then
-        table.insert(lines, string.format(
-            "URGENT: Field %d at %.0f%% moisture — irrigate immediately!",
-            worst.fieldId, worst.moisture * 100))
+        table.insert(lines, t("cs_rec_urgent",  worst.fieldId, worst.moisture * 100))
     elseif worst.moisture < 0.40 then
-        table.insert(lines, string.format(
-            "Field %d at %.0f%% moisture — irrigation recommended within 24h.",
-            worst.fieldId, worst.moisture * 100))
+        table.insert(lines, t("cs_rec_warning", worst.fieldId, worst.moisture * 100))
     else
-        table.insert(lines, "All fields within acceptable moisture range.")
+        table.insert(lines, t("cs_rec_ok"))
     end
 
     -- 3-day forecast hint for worst field
     if weatherInteg ~= nil then
         local proj = weatherInteg:getMoistureForecast(worst.fieldId, 3)
         if proj ~= nil and #proj >= 3 then
-            table.insert(lines, string.format(
-                "Forecast: Day+1 %.0f%%  Day+2 %.0f%%  Day+3 %.0f%%",
+            table.insert(lines, t("cs_rec_forecast",
                 (proj[1] or 0) * 100,
                 (proj[2] or 0) * 100,
-                (proj[3] or 0) * 100
-            ))
+                (proj[3] or 0) * 100))
         end
     end
 
@@ -236,9 +235,9 @@ function CropConsultantDialog:buildRecommendation()
             if sys.isActive then active = active + 1 end
         end
         if active > 0 then
-            table.insert(lines, string.format("%d irrigation system(s) currently running.", active))
+            table.insert(lines, t("cs_rec_systems_running", active))
         else
-            table.insert(lines, "No irrigation systems are currently active.")
+            table.insert(lines, t("cs_rec_no_systems"))
         end
     end
 
