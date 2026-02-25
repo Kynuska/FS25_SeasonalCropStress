@@ -11,21 +11,24 @@
     </title>
 
     <description>
-        <en><![CDATA[Adds soil moisture tracking and crop stress simulation to Farming Simulator 25.
+        <en><![CDATA[Adds soil moisture tracking, crop stress simulation, and irrigation management to Farming Simulator 25.
 
 Each field tracks a soil moisture percentage (0-100%) that rises with rain and falls through evapotranspiration driven by temperature, season, and soil type. When moisture drops below crop-specific thresholds during critical growth windows, yield stress accumulates and reduces your harvest at season's end.
 
-PHASE 1 FEATURES:
+FEATURES:
 • Per-field soil moisture simulation driven by real weather
 • Seasonal & temperature-adjusted evapotranspiration
 • Soil type modifiers: sandy drains fast, clay holds moisture
 • Crop-specific critical growth windows (wheat, corn, barley, canola, and more)
 • Yield reduction at harvest — up to 60% loss at maximum stress
-• Field moisture HUD overlay (press Shift+M to toggle)
-• Full save/load persistence of all field state
+• Field moisture HUD overlay with 5-day forecast (press Shift+M to toggle)
+• Center-pivot and drip irrigation placeables with water pump infrastructure
+• Irrigation scheduling dialog — set active days and hourly window (Shift+I)
+• Crop Consultant dialog with risk summary and recommendations (Shift+C)
+• Optional integration with FS25_NPCFavor (Alex Chen, Agronomist NPC)
+• Optional integration with FS25_UsedPlus (used equipment marketplace)
+• Full save/load persistence of all field and irrigation state
 • Debug console commands (type csHelp in developer console)
-
-COMING SOON: Center-pivot & drip irrigation systems, scheduling UI, Crop Consultant NPC, optional FS25_NPCFavor and FS25_UsedPlus integration.
         ]]></en>
         <de><![CDATA[Fügt Bodenfeuchteverfolgung und Pflanzenstresssimulation zu FS25 hinzu.
 

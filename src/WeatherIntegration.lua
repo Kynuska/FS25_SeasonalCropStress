@@ -11,21 +11,14 @@
 -- - FS25_RealisticWeather: Detected at runtime, uses enhanced temperature/rain if present
 -- ============================================================
 
--- Store the module in a local variable first
-local WeatherIntegrationModule = {}
-WeatherIntegrationModule.__index = WeatherIntegrationModule
+-- Export to the global environment so other modules can access it.
+-- getfenv(0) writes to the shared mod-global table, which is required because
+-- plain module-level assignments stay in this file's local scope in FS25.
+WeatherIntegration = {}
+WeatherIntegration.__index = WeatherIntegration
+getfenv(0)["WeatherIntegration"] = WeatherIntegration
 
--- Debug: Ensure the module is being loaded
 print("[CropStress] WeatherIntegration module loaded")
-
--- Export to global environment so other modules can access it
-getfenv(0)["WeatherIntegration"] = WeatherIntegrationModule
-
--- Also store in a persistent global to prevent garbage collection issues
-getfenv(0)["g_cropStress_WeatherIntegration"] = WeatherIntegrationModule
-
--- Now assign the local variable to the global name for backward compatibility
-WeatherIntegration = WeatherIntegrationModule
 
 -- Season indices (matches g_currentMission.environment.currentSeason)
 WeatherIntegration.SEASON_SPRING = 0
@@ -102,7 +95,10 @@ function WeatherIntegration:detectOptionalMods()
         self.realisticWeatherActive = true
         csLog("FS25_RealisticWeather detected — using enhanced weather data")
     elseif getfenv(0)["g_weatherSystem"] ~= nil then
-        -- Alternative global name some weather mods use
+        -- NOTE: g_weatherSystem might be a vanilla FS25 global on some builds.
+        -- If the RealisticWeather API methods don't exist on it, getTemperatureFromWeather()
+        -- and getHumidity() will return nil from the RW path and fall through to vanilla
+        -- automatically — so this detection fails safe even if it's a false positive.
         self.realisticWeatherActive = true
         csLog("Weather mod detected (g_weatherSystem) — using enhanced weather data")
     end
@@ -136,26 +132,23 @@ end
 -- WEATHER DATA ACCESSORS (with RealisticWeather support)
 -- ============================================================
 function WeatherIntegration:getTemperatureFromWeather()
-    local temp = 15.0
-
-    -- Try RealisticWeather first if active
+    -- Try RealisticWeather first if active.
+    -- Use an explicit boolean rather than comparing against a sentinel value
+    -- (15.0°C is a valid real temperature and would incorrectly trigger fallback).
     if self.realisticWeatherActive then
         local rw = g_realisticWeather or g_weatherSystem
         if rw ~= nil then
-            -- RealisticWeather typically exposes these methods
+            local val = nil
             if type(rw.getTemperature) == "function" then
-                temp = rw:getTemperature() or 15.0
+                val = rw:getTemperature()
             elseif type(rw.getCurrentTemperature) == "function" then
-                temp = rw:getCurrentTemperature() or 15.0
+                val = rw:getCurrentTemperature()
             elseif rw.temperature ~= nil then
-                temp = rw.temperature
+                val = rw.temperature
             elseif rw.currentTemp ~= nil then
-                temp = rw.currentTemp
+                val = rw.currentTemp
             end
-            -- Return early if we got a valid temperature from RW
-            if temp ~= 15.0 then
-                return temp
-            end
+            if val ~= nil then return val end
         end
     end
 
@@ -163,42 +156,40 @@ function WeatherIntegration:getTemperatureFromWeather()
     local env = g_currentMission.environment
     if env ~= nil and env.weather ~= nil then
         if env.weather.temperature ~= nil then
-            temp = env.weather.temperature
+            return env.weather.temperature
         elseif type(env.weather.getCurrentTemperature) == "function" then
-            temp = env.weather:getCurrentTemperature() or 15.0
+            return env.weather:getCurrentTemperature() or 15.0
         end
     end
 
-    return temp
+    return 15.0
 end
 
 function WeatherIntegration:getHumidity()
-    local humidity = 0.5
-
-    -- Try RealisticWeather first if active
+    -- Try RealisticWeather first if active.
+    -- Use an explicit boolean rather than a sentinel value (0.5 is valid humidity).
     if self.realisticWeatherActive then
         local rw = g_realisticWeather or g_weatherSystem
         if rw ~= nil then
+            local val = nil
             if type(rw.getHumidity) == "function" then
-                humidity = rw:getHumidity() or 0.5
+                val = rw:getHumidity()
             elseif rw.humidity ~= nil then
-                humidity = rw.humidity
+                val = rw.humidity
             elseif rw.relativeHumidity ~= nil then
-                humidity = rw.relativeHumidity
+                val = rw.relativeHumidity
             end
-            if humidity ~= 0.5 then
-                return humidity
-            end
+            if val ~= nil then return val end
         end
     end
 
     -- Fall back to vanilla
     local env = g_currentMission.environment
     if env ~= nil and env.weather ~= nil and env.weather.relativeHumidity ~= nil then
-        humidity = env.weather.relativeHumidity
+        return env.weather.relativeHumidity
     end
 
-    return humidity
+    return 0.5
 end
 
 function WeatherIntegration:getRainFromWeather()

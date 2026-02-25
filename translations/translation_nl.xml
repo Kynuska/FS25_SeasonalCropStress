@@ -37,7 +37,7 @@
     <text name="cs_irr_efficiency"    text="Efficiëntie"/>
     <text name="cs_irr_cost"          text="Geschatte kosten"/>
     <text name="cs_irr_wear"          text="Slijtage"/>
-    <text name="cs_irr_covered_fields" text="Berigde velden"/>
+    <text name="cs_irr_covered_fields" text="Geïrrigeerde velden"/>
     <text name="cs_irr_irrigate_now"  text="Nu irrigeren"/>
     <text name="cs_irr_save_schedule" text="Schema opslaan"/>
     <text name="cs_irr_pivot"         text="Cirkelberegening"/>
@@ -66,6 +66,7 @@
     <!-- Placeable shop names -->
     <text name="cs_pivot_name"        text="Cirkelberegening"/>
     <text name="cs_pump_name"         text="Waterpomp"/>
+    <text name="cs_drip_name"         text="Druppelirrigatielijn"/>
 
     <!-- E-key interaction -->
     <text name="cs_irr_open_schedule"  text="Irrigatieschema openen"/>
@@ -86,6 +87,23 @@
     <text name="cs_no_irrigation_systems"  text="Nog geen irrigatiesystemen geplaatst."/>
     <text name="cs_irr_started"             text="Irrigatie gestart."/>
     <text name="cs_schedule_saved"         text="Schema opgeslagen."/>
+
+    <!-- ========== IRRIGATIEPRESTATIES (dynamisch) ========== -->
+    <text name="cs_irr_flow_rate_value"  text="Doorvoer: %.3f/u"/>
+    <text name="cs_irr_efficiency_value" text="Efficiëntie: %d%%"/>
+    <text name="cs_irr_cost_value"       text="Gesch. kosten: €%d/u"/>
+    <text name="cs_irr_wear_value"       text="Slijtage: %d%%"/>
+    <text name="cs_irr_already_active"   text="Het irrigatiesysteem is al actief."/>
+    <text name="cs_irr_no_covered_fields" text="Geen velden gedekt door dit systeem."/>
+
+    <!-- ========== ADVIEZEN CONSULTANT (dynamisch) ========== -->
+    <text name="cs_rec_urgent"          text="DRINGEND: Veld %d op %.0f%% vochtigheid — onmiddellijk irrigeren!"/>
+    <text name="cs_rec_warning"         text="Veld %d op %.0f%% vochtigheid — irrigatie aanbevolen binnen 24u."/>
+    <text name="cs_rec_ok"              text="Alle velden binnen aanvaardbaar vochtigheidsbereik."/>
+    <text name="cs_rec_forecast"        text="Prognose: D+1 %.0f%%  D+2 %.0f%%  D+3 %.0f%%"/>
+    <text name="cs_rec_systems_running" text="%d irrigatiesysteem/systemen actief."/>
+    <text name="cs_rec_no_systems"      text="Geen irrigatiesystemen actief."/>
+    <text name="cs_rec_all_healthy"     text="Alle velden zien er gezond uit."/>
 
     <!-- Precision Farming DLC -->
     <text name="cs_pf_moisture_overlay" text="Grondvochtigheid"/>

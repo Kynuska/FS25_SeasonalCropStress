@@ -39,8 +39,8 @@ function PrecisionFarmingOverlay:registerMoistureOverlay()
 
     local overlayConfig = {
         name = "CropStress_Moisture",
-        displayName = g_i18n:getText("cs_pf_moisture_overlay"),
-        description = g_i18n:getText("cs_pf_moisture_overlay_desc"),
+        displayName = (g_i18n ~= nil) and g_i18n:getText("cs_pf_moisture_overlay")      or "Soil Moisture",
+        description = (g_i18n ~= nil) and g_i18n:getText("cs_pf_moisture_overlay_desc") or "",
         category = "IRRIGATION",
         -- Color gradient: dry (red) -> optimal (green) -> saturated (blue)
         colorMap = {

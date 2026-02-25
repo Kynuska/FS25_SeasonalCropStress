@@ -155,10 +155,11 @@ end
 function IrrigationScheduleDialog:updatePerformance(system)
     local effectiveRate = system.flowRatePerHour * system.pressureMultiplier * (1.0 - system.wearLevel * 0.3)
     local efficiency    = math.floor(system.pressureMultiplier * 100)
-    if self.flowRateText  ~= nil then self.flowRateText:setText(string.format("Flow Rate: %.3f/hr", effectiveRate)) end
-    if self.efficiencyText ~= nil then self.efficiencyText:setText(string.format("Efficiency: %d%%", efficiency)) end
-    if self.costText      ~= nil then self.costText:setText(string.format("Est. Cost: $%d/hr", system.operationalCostPerHour)) end
-    if self.wearText      ~= nil then self.wearText:setText(string.format("Wear Level: %d%%", math.floor(system.wearLevel * 100))) end
+    local function t(key, ...) return (g_i18n ~= nil and string.format(g_i18n:getText(key), ...)) or key end
+    if self.flowRateText   ~= nil then self.flowRateText:setText(t("cs_irr_flow_rate_value",  effectiveRate)) end
+    if self.efficiencyText ~= nil then self.efficiencyText:setText(t("cs_irr_efficiency_value", efficiency)) end
+    if self.costText       ~= nil then self.costText:setText(t("cs_irr_cost_value",  system.operationalCostPerHour)) end
+    if self.wearText       ~= nil then self.wearText:setText(t("cs_irr_wear_value",  math.floor(system.wearLevel * 100))) end
 end
 
 function IrrigationScheduleDialog:updateCoveredFields(system)
@@ -173,6 +174,16 @@ function IrrigationScheduleDialog:updateCoveredFields(system)
     end
 
     if self.coveredFieldsContainer == nil then return end
+
+    -- Show a placeholder when no fields are covered (system placed away from fields)
+    if #system.coveredFields == 0 then
+        local noFields = GuiElement.new(self.coveredFieldsContainer)
+        noFields:setProfile("fs25_dialogText")
+        noFields:setPosition(5, 0)
+        noFields:setText((g_i18n ~= nil and g_i18n:getText("cs_irr_no_covered_fields")) or "No fields covered.")
+        self.coveredFieldsContainer:addElement(noFields)
+        return
+    end
 
     local y = 0
     for _, fieldId in ipairs(system.coveredFields) do
@@ -221,13 +232,26 @@ end
 
 function IrrigationScheduleDialog:onIrrigateNow()
     local system = self:getCurrentSystem()
-    if system ~= nil and not system.isActive then
-        if g_cropStressManager ~= nil and g_cropStressManager.irrigationManager ~= nil then
-            g_cropStressManager.irrigationManager:activateSystem(self.systemId)
-        end
+    if system == nil then
+        self:onIrrigationDialogClose()
+        return
+    end
+
+    if system.isActive then
+        -- Already running — inform the player instead of silently closing
         if g_currentMission ~= nil then
-            g_currentMission:showBlinkingWarning(g_i18n:getText("cs_irr_started"), 3000)
+            g_currentMission:showBlinkingWarning(
+                (g_i18n ~= nil and g_i18n:getText("cs_irr_already_active")) or "Already active.", 3000)
         end
+        return
+    end
+
+    if g_cropStressManager ~= nil and g_cropStressManager.irrigationManager ~= nil then
+        g_cropStressManager.irrigationManager:activateSystem(self.systemId)
+    end
+    if g_currentMission ~= nil then
+        g_currentMission:showBlinkingWarning(
+            (g_i18n ~= nil and g_i18n:getText("cs_irr_started")) or "Irrigation started.", 3000)
     end
     self:onIrrigationDialogClose()
 end
@@ -235,7 +259,8 @@ end
 function IrrigationScheduleDialog:onSaveSchedule()
     -- Schedule is already live in IrrigationManager; it persists on the next game save.
     if g_currentMission ~= nil then
-        g_currentMission:showBlinkingWarning(g_i18n:getText("cs_schedule_saved"), 2000)
+        g_currentMission:showBlinkingWarning(
+            (g_i18n ~= nil and g_i18n:getText("cs_schedule_saved")) or "Schedule saved.", 2000)
     end
     self:onIrrigationDialogClose()
 end

@@ -223,10 +223,10 @@ function SoilMoistureSystem:onIrrigationStarted(data)
 end
 
 function SoilMoistureSystem:onIrrigationStopped(data)
-    self.irrigationGains[data.fieldId] = (self.irrigationGains[data.fieldId] or 0) - data.ratePerHour
-    if self.irrigationGains[data.fieldId] < 0.001 then
-        self.irrigationGains[data.fieldId] = nil
-    end
+    -- math.max ensures the gain never goes negative on a rate mismatch
+    -- (e.g. if stopped fires twice or the rate differs from what was added).
+    local remaining = math.max(0, (self.irrigationGains[data.fieldId] or 0) - data.ratePerHour)
+    self.irrigationGains[data.fieldId] = (remaining > 0.001) and remaining or nil
 end
 
 -- Detect soil type from FS25 map metadata.
