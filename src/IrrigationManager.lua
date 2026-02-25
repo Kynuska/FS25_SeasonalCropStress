@@ -352,3 +352,8 @@ function IrrigationManager:delete()
     self.waterSources = {}
     self.isInitialized = false
 end
+
+-- Set irrigation costs enabled flag from settings
+function IrrigationManager:setCostsEnabled(enabled)
+    self.costsEnabled = not not enabled
+end

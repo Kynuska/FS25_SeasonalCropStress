@@ -135,5 +135,34 @@
     <!-- Precision Farming DLC -->
     <text name="cs_pf_moisture_overlay"      text="Wilgotność gleby"/>
     <text name="cs_pf_moisture_overlay_desc" text="Wyświetla poziom wilgotności gleby na Twoich polach. Czerwony oznacza suchą glebę, zielony optymalną wilgotność, a niebieski nasycenie wodą."/>
+
+    <!-- ========== SETTINGS ========== -->
+    <text name="cs_settings_section"           text="Sezonowy stres upraw"/>
+    <text name="cs_settings_enabled_short"     text="Włącz mod"/>
+    <text name="cs_settings_enabled_long"      text="Włącz lub wyłącz cały system Sezonowego stresu upraw"/>
+    <text name="cs_settings_difficulty_short"  text="Trudność"/>
+    <text name="cs_settings_difficulty_long"   text="Dostosuj tempo akumulacji stresu i tempo transpiracji"/>
+    <text name="cs_settings_diff_easy"         text="Łatwy"/>
+    <text name="cs_settings_diff_normal"       text="Normalny"/>
+    <text name="cs_settings_diff_hard"         text="Trudny"/>
+    <text name="cs_settings_hud_short"         text="HUD widoczny"/>
+    <text name="cs_settings_hud_long"          text="Pokaż lub ukryj nakładkę wilgotności na liście pól"/>
+    <text name="cs_settings_evap_short"        text="Transpiracja"/>
+    <text name="cs_settings_evap_long"         text="Podstawowa szybkość utraty wilgotności z gleby"/>
+    <text name="cs_settings_evap_slow"         text="Wolno"/>
+    <text name="cs_settings_evap_normal"       text="Normalnie"/>
+    <text name="cs_settings_evap_fast"         text="Szybko"/>
+    <text name="cs_settings_yield_loss_short"  text="Maks. utrata plonu"/>
+    <text name="cs_settings_yield_loss_long"   text="Maksymalny procent plonu, który może zostać utracony z powodu stresu suszy"/>
+    <text name="cs_settings_threshold_short"   text="Próg krytyczny"/>
+    <text name="cs_settings_threshold_long"    text="Poziom wilgotności, poniżej którego gromadzi się stres"/>
+    <text name="cs_settings_irr_costs_short"   text="Koszty irygacji"/>
+    <text name="cs_settings_irr_costs_long"    text="Włącz lub wyłącz koszty finansowe uruchamiania systemów irygacyjnych"/>
+    <text name="cs_settings_alerts_short"      text="Alerty włączone"/>
+    <text name="cs_settings_alerts_long"       text="Wyświetlaj powiadomienia alarmowe, gdy pola potrzebują wody"/>
+    <text name="cs_settings_cooldown_short"    text="Czas oczekiwania na alerty"/>
+    <text name="cs_settings_cooldown_long"     text="Minimalna liczba godzin między alertami dla tego samego pola"/>
+    <text name="cs_settings_debug_short"       text="Tryb debugowania"/>
+    <text name="cs_settings_debug_long"        text="Włącz szczegółowe logowanie w celu rozwiązywania problemów"/>
     </texts>
 </l10n>

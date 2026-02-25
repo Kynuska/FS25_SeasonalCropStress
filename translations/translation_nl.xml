@@ -110,6 +110,35 @@
     <text name="cs_pf_moisture_overlay"      text="Grondvochtigheid"/>
     <text name="cs_pf_moisture_overlay_desc" text="Toont het vochtigheidsniveau van de grond op uw velden. Rood geeft droge grond aan, groen optimale vochtigheid en blauw verzadigde grond."/>
 
+    <!-- ========== SETTINGS ========== -->
+    <text name="cs_settings_section"           text="Seizoensgebonden Gewasstress"/>
+    <text name="cs_settings_enabled_short"     text="Mod inschakelen"/>
+    <text name="cs_settings_enabled_long"      text="Schakel het volledige Seizoensgebonden Gewasstress-systeem in of uit"/>
+    <text name="cs_settings_difficulty_short"  text="Moeilijkheidsgraad"/>
+    <text name="cs_settings_difficulty_long"   text="Pas de stressaccumulatie en evapotranspiratietarieven aan"/>
+    <text name="cs_settings_diff_easy"         text="Gemakkelijk"/>
+    <text name="cs_settings_diff_normal"       text="Normaal"/>
+    <text name="cs_settings_diff_hard"         text="Moeilijk"/>
+    <text name="cs_settings_hud_short"         text="HUD zichtbaar"/>
+    <text name="cs_settings_hud_long"          text="Toon of verberg de vochtigheidsoverlay op de veldlijst"/>
+    <text name="cs_settings_evap_short"        text="Evapotranspiratie"/>
+    <text name="cs_settings_evap_long"         text="Bastarief van vochtverlies uit de grond"/>
+    <text name="cs_settings_evap_slow"         text="Traag"/>
+    <text name="cs_settings_evap_normal"       text="Normaal"/>
+    <text name="cs_settings_evap_fast"         text="Snel"/>
+    <text name="cs_settings_yield_loss_short"  text="Max. Opbrengstverlies"/>
+    <text name="cs_settings_yield_loss_long"   text="Maximaal percentage opbrengst dat verloren kan gaan door droogtestress"/>
+    <text name="cs_settings_threshold_short"   text="Kritieke drempel"/>
+    <text name="cs_settings_threshold_long"    text="Vochtigheidsniveau waaronder stress zich ophoopt"/>
+    <text name="cs_settings_irr_costs_short"   text="Irrigatiekosten"/>
+    <text name="cs_settings_irr_costs_long"    text="Schakel financiële kosten voor het bedienen van irrigatiesystemen in of uit"/>
+    <text name="cs_settings_alerts_short"      text="Waarschuwingen ingeschakeld"/>
+    <text name="cs_settings_alerts_long"       text="Toon waarschuwingsnotificaties wanneer velden water nodig hebben"/>
+    <text name="cs_settings_cooldown_short"    text="Waarschuwings-cooldown"/>
+    <text name="cs_settings_cooldown_long"     text="Minimale uren tussen waarschuwingen voor hetzelfde veld"/>
+    <text name="cs_settings_debug_short"       text="Debug-modus"/>
+    <text name="cs_settings_debug_long"        text="Schakel uitgebreide logboekregistratie in voor probleemoplossing"/>
+
     <!-- ========== HELP LINES ========== -->
     <text name="helpLine_cs_category"          text="Seizoensgebonden gewassstress"/>
 
