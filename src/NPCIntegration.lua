@@ -266,6 +266,41 @@ function NPCIntegration:getRelationshipLevel()
 end
 
 -- ============================================================
+-- FAVOR CALLBACK GLOBALS
+-- NPCFavor may invoke these by name (via _G[onAccept](data)) when the
+-- player accepts or completes a favor quest. These stubs are minimal
+-- no-ops that prevent a nil-call crash. Full implementation is Phase 4
+-- (requires verified NPCFavor callback API + field-level task tracking).
+--
+-- If NPCFavor does not call globals by string name (unverified — see
+-- LUADOC NOTEs above), these stubs are harmless dead code.
+-- ============================================================
+cs_favor_onSoilSample = function(data)
+    csLog(string.format("cs_favor_onSoilSample called (field=%s)", tostring(data and data.fieldId)))
+end
+cs_favor_onSoilSampleDone = function(data)
+    csLog(string.format("cs_favor_onSoilSampleDone called (field=%s)", tostring(data and data.fieldId)))
+end
+cs_favor_onIrrigationCheck = function(data)
+    csLog(string.format("cs_favor_onIrrigationCheck called (field=%s)", tostring(data and data.fieldId)))
+end
+cs_favor_onIrrigationCheckDone = function(data)
+    csLog(string.format("cs_favor_onIrrigationCheckDone called (field=%s)", tostring(data and data.fieldId)))
+end
+cs_favor_onEmergencyWater = function(data)
+    csLog(string.format("cs_favor_onEmergencyWater called (field=%s)", tostring(data and data.fieldId)))
+end
+cs_favor_onEmergencyWaterDone = function(data)
+    csLog(string.format("cs_favor_onEmergencyWaterDone called (field=%s)", tostring(data and data.fieldId)))
+end
+cs_favor_onSeasonalPlan = function(data)
+    csLog(string.format("cs_favor_onSeasonalPlan called (field=%s)", tostring(data and data.fieldId)))
+end
+cs_favor_onSeasonalPlanDone = function(data)
+    csLog(string.format("cs_favor_onSeasonalPlanDone called (field=%s)", tostring(data and data.fieldId)))
+end
+
+-- ============================================================
 -- CLEANUP
 -- ============================================================
 function NPCIntegration:delete()

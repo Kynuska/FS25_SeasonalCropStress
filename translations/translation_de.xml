@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <l10n>
+    <texts>
     <!-- ========== HUD OVERLAY ========== -->
     <text name="cs_hud_title"         text="BODENFEUCHTE"/>
     <text name="cs_hud_healthy"       text="Gesund"/>
@@ -10,68 +11,57 @@
     <text name="cs_hud_first_run"     text="Bodenfeuchte-Monitor ist jetzt aktiv. Shift+M zum Ein-/Ausblenden."/>
 
     <!-- ========== FIELD STATUS ========== -->
-    <text name="cs_field_moisture"    text="Feuchte"/>
-    <text name="cs_field_soil_type"   text="Bodentyp"/>
-    <text name="cs_field_stress"      text="Akkumulierter Stress"/>
-    <text name="cs_field_yield_impact" text="Gesch. Ertragseinbuße"/>
+    <text name="cs_field_moisture"        text="Feuchte"/>
+    <text name="cs_field_soil_type"       text="Bodentyp"/>
+    <text name="cs_field_stress"          text="Akkumulierter Stress"/>
+    <text name="cs_field_yield_impact"    text="Gesch. Ertragseinbuße"/>
     <text name="cs_field_critical_window" text="Kritisches Fenster: JETZT"/>
     <text name="cs_field_nearest_water"   text="Nächstes Wasser"/>
 
     <!-- ========== SOIL TYPES ========== -->
-    <text name="cs_soil_sandy"        text="Sandig"/>
-    <text name="cs_soil_loamy"        text="Lehmig"/>
-    <text name="cs_soil_clay"         text="Tonig"/>
+    <text name="cs_soil_sandy"  text="Sandig"/>
+    <text name="cs_soil_loamy"  text="Lehmig"/>
+    <text name="cs_soil_clay"   text="Tonig"/>
 
     <!-- ========== ALERTS ========== -->
-    <text name="cs_alert_info"        text="Feld %d: %s Feuchte sinkt — Lage beobachten."/>
-    <text name="cs_alert_warning"     text="Feld %d: %s Feuchte niedrig — Bewässerung empfohlen."/>
-    <text name="cs_alert_critical"    text="Feld %d: %s Trockenstress-Grenzwert — jetzt bewässern!"/>
+    <text name="cs_alert_info"     text="Feld %d: %s Feuchte sinkt — Lage beobachten."/>
+    <text name="cs_alert_warning"  text="Feld %d: %s Feuchte niedrig — Bewässerung empfohlen."/>
+    <text name="cs_alert_critical" text="Feld %d: %s Trockenstress-Grenzwert — jetzt bewässern!"/>
 
-    <!-- ========== IRRIGATION (Phase 2) ========== -->
-    <text name="cs_irr_title"         text="Bewässerungssystem — %s"/>
-    <text name="cs_irr_water_source"  text="Wasserquelle"/>
-    <text name="cs_irr_connected"     text="Angeschlossen"/>
-    <text name="cs_irr_disconnected"  text="Nicht angeschlossen"/>
-    <text name="cs_irr_schedule"      text="Zeitplan"/>
-    <text name="cs_irr_flow_rate"     text="Durchflussrate"/>
-    <text name="cs_irr_efficiency"    text="Effizienz"/>
-    <text name="cs_irr_cost"          text="Gesch. Kosten"/>
-    <text name="cs_irr_wear"          text="Verschleiß"/>
+    <!-- ========== IRRIGATION ========== -->
+    <text name="cs_irr_title"          text="Bewässerungssystem — %s"/>
+    <text name="cs_irr_water_source"   text="Wasserquelle"/>
+    <text name="cs_irr_connected"      text="Angeschlossen"/>
+    <text name="cs_irr_disconnected"   text="Nicht angeschlossen"/>
+    <text name="cs_irr_schedule"       text="Zeitplan"/>
+    <text name="cs_irr_flow_rate"      text="Durchflussrate"/>
+    <text name="cs_irr_efficiency"     text="Effizienz"/>
+    <text name="cs_irr_cost"           text="Gesch. Kosten"/>
+    <text name="cs_irr_wear"           text="Verschleiß"/>
     <text name="cs_irr_covered_fields" text="Bewässerte Felder"/>
-    <text name="cs_irr_irrigate_now"  text="Jetzt bewässern"/>
-    <text name="cs_irr_save_schedule" text="Zeitplan speichern"/>
-    <text name="cs_irr_pivot"         text="Kreisbewässerung"/>
-    <text name="cs_irr_drip"          text="Tröpfchenbewässerung"/>
-    <text name="cs_irr_pump"          text="Wasserpumpe"/>
-    <text name="cs_day_mon"           text="M"/>
-    <text name="cs_day_tue"           text="D"/>
-    <text name="cs_day_wed"           text="M"/>
-    <text name="cs_day_thu"           text="D"/>
-    <text name="cs_day_fri"           text="F"/>
-    <text name="cs_day_sat"           text="S"/>
-    <text name="cs_day_sun"           text="S"/>
-
-    <!-- ========== CONSULTANT (Phase 3) ========== -->
-    <text name="cs_consultant_name"   text="Alex Chen, Agronom"/>
-    <text name="cs_favor_soil_sample"     text="Bodenprobe von Feld %d nehmen"/>
-    <text name="cs_favor_irr_check"       text="Bewässerungssystem bei Feld %d inspizieren"/>
-    <text name="cs_favor_emergency_water" text="Feld %d vor Sonnenuntergang bewässern!"/>
-    <text name="cs_favor_seasonal_plan"   text="Saisonalen Bewässerungsplan überprüfen"/>
-
-    <!-- ========== INPUT ACTIONS ========== -->
-    <text name="input_CS_TOGGLE_HUD"      text="Feuchte-HUD umschalten"/>
-    <text name="input_CS_OPEN_IRRIGATION" text="Bewässerungsmanager öffnen"/>
-    <text name="input_CS_OPEN_CONSULTANT" text="Pflanzenberater öffnen"/>
-
-    <!-- Placeable shop names -->
-    <text name="cs_pivot_name"        text="Kreisbewässerung"/>
-    <text name="cs_pump_name"         text="Wasserpumpe"/>
-    <text name="cs_drip_name"         text="Tropfbewässerungsleitung"/>
-
-    <!-- E-key interaction -->
+    <text name="cs_irr_irrigate_now"   text="Jetzt bewässern"/>
+    <text name="cs_irr_save_schedule"  text="Zeitplan speichern"/>
+    <text name="cs_irr_pivot"          text="Kreisbewässerung"/>
+    <text name="cs_irr_drip"           text="Tröpfchenbewässerung"/>
+    <text name="cs_irr_pump"           text="Wasserpumpe"/>
+    <text name="cs_irr_start_time"     text="Startzeit"/>
+    <text name="cs_irr_end_time"       text="Endzeit"/>
+    <text name="cs_irr_performance"    text="Leistung"/>
+    <text name="cs_irr_started"        text="Bewässerung gestartet."/>
     <text name="cs_irr_open_schedule"  text="Bewässerungszeitplan öffnen"/>
+    <text name="cs_schedule_saved"     text="Zeitplan gespeichert."/>
 
-    <!-- ========== CONSULTANT DIALOG (Phase 3) ========== -->
+    <!-- ========== DAY LABELS ========== -->
+    <text name="cs_day_mon" text="M"/>
+    <text name="cs_day_tue" text="D"/>
+    <text name="cs_day_wed" text="M"/>
+    <text name="cs_day_thu" text="D"/>
+    <text name="cs_day_fri" text="F"/>
+    <text name="cs_day_sat" text="S"/>
+    <text name="cs_day_sun" text="S"/>
+
+    <!-- ========== CONSULTANT ========== -->
+    <text name="cs_consultant_name"            text="Alex Chen, Agronom"/>
     <text name="cs_consultant_subtitle"        text="Feldstatus &amp; Empfehlungen"/>
     <text name="cs_consultant_relationship"    text="Beziehung zu Alex:"/>
     <text name="cs_consultant_field_status"    text="Feldrisiko-Zusammenfassung (Top 5)"/>
@@ -79,24 +69,26 @@
     <text name="cs_consultant_open_irrigation" text="Bewässerungsmanager öffnen"/>
     <text name="cs_consultant_no_data"         text="Keine Felddaten verfügbar."/>
 
-    <!-- Additional strings -->
-    <text name="cs_irr_start_time"         text="Startzeit"/>
-    <text name="cs_irr_end_time"           text="Endzeit"/>
-    <text name="cs_irr_performance"        text="Leistung"/>
-    <text name="cs_close"                   text="Schließen"/>
-    <text name="cs_no_irrigation_systems"  text="Noch keine Bewässerungssysteme platziert."/>
-    <text name="cs_irr_started"             text="Bewässerung gestartet."/>
-    <text name="cs_schedule_saved"         text="Zeitplan gespeichert."/>
+    <!-- ========== NPC FAVOR QUESTS ========== -->
+    <text name="cs_favor_soil_sample"     text="Bodenprobe von Feld %d nehmen"/>
+    <text name="cs_favor_irr_check"       text="Bewässerungssystem bei Feld %d inspizieren"/>
+    <text name="cs_favor_emergency_water" text="Feld %d vor Sonnenuntergang bewässern!"/>
+    <text name="cs_favor_seasonal_plan"   text="Saisonalen Bewässerungsplan überprüfen"/>
 
-    <!-- ========== BEWÄSSERUNGSLEISTUNG (dynamisch) ========== -->
-    <text name="cs_irr_flow_rate_value"  text="Durchfluss: %.3f/Std."/>
-    <text name="cs_irr_efficiency_value" text="Effizienz: %d%%"/>
-    <text name="cs_irr_cost_value"       text="Gesch. Kosten: €%d/Std."/>
-    <text name="cs_irr_wear_value"       text="Verschleiß: %d%%"/>
-    <text name="cs_irr_already_active"   text="Bewässerungssystem läuft bereits."/>
+    <!-- ========== PLACEABLES ========== -->
+    <text name="cs_pivot_name" text="Kreisbewässerung"/>
+    <text name="cs_pump_name"  text="Wasserpumpe"/>
+    <text name="cs_drip_name"  text="Tropfbewässerungsleitung"/>
+
+    <!-- ========== IRRIGATION PERFORMANCE VALUES (dynamic, format strings) ========== -->
+    <text name="cs_irr_flow_rate_value"   text="Durchfluss: %.3f/Std."/>
+    <text name="cs_irr_efficiency_value"  text="Effizienz: %d%%"/>
+    <text name="cs_irr_cost_value"        text="Gesch. Kosten: €%d/Std."/>
+    <text name="cs_irr_wear_value"        text="Verschleiß: %d%%"/>
+    <text name="cs_irr_already_active"    text="Bewässerungssystem läuft bereits."/>
     <text name="cs_irr_no_covered_fields" text="Keine Felder durch dieses System abgedeckt."/>
 
-    <!-- ========== BERATUNGSEMPFEHLUNGEN (dynamisch) ========== -->
+    <!-- ========== CONSULTANT RECOMMENDATIONS (dynamic, format strings) ========== -->
     <text name="cs_rec_urgent"          text="DRINGEND: Feld %d bei %.0f%% Feuchte — sofort bewässern!"/>
     <text name="cs_rec_warning"         text="Feld %d bei %.0f%% Feuchte — Bewässerung innerhalb von 24h empfohlen."/>
     <text name="cs_rec_ok"              text="Alle Felder im akzeptablen Feuchtebereich."/>
@@ -105,7 +97,66 @@
     <text name="cs_rec_no_systems"      text="Keine Bewässerungssysteme aktiv."/>
     <text name="cs_rec_all_healthy"     text="Alle Felder erscheinen gesund."/>
 
-    <!-- Precision Farming DLC -->
-    <text name="cs_pf_moisture_overlay" text="Bodenfeuchte"/>
+    <!-- ========== SHARED ========== -->
+    <text name="cs_close"                 text="Schließen"/>
+    <text name="cs_no_irrigation_systems" text="Noch keine Bewässerungssysteme platziert."/>
+
+    <!-- ========== INPUT ACTION DESCRIPTIONS ========== -->
+    <text name="input_CS_TOGGLE_HUD"      text="Feuchte-HUD umschalten"/>
+    <text name="input_CS_OPEN_IRRIGATION" text="Bewässerungsmanager öffnen"/>
+    <text name="input_CS_OPEN_CONSULTANT" text="Pflanzenberater öffnen"/>
+
+    <!-- ========== PRECISION FARMING DLC ========== -->
+    <text name="cs_pf_moisture_overlay"      text="Bodenfeuchte"/>
     <text name="cs_pf_moisture_overlay_desc" text="Zeigt die aktuelle Bodenfeuchte auf Ihren Feldern an. Rot zeigt trockenen Boden, Grün optimale Feuchte und Blau gesättigten Boden an."/>
+
+    <!-- ========== HELP LINES ========== -->
+    <text name="helpLine_cs_category"          text="Saisonaler Pflanzenstress"/>
+
+    <!-- Seite 1: Übersicht -->
+    <text name="helpLine_cs_p1_title"          text="Übersicht"/>
+    <text name="helpLine_cs_p1_intro_title"    text="Was diese Mod hinzufügt"/>
+    <text name="helpLine_cs_p1_intro_text"     text="Saisonaler Pflanzenstress fügt jedem Feld eine Bodenfeuchtesimulation hinzu. Pflanzen brauchen Wasser in wichtigen Wachstumsphasen. Fehlt es, fällt die Ernte geringer aus. Bewässerungssysteme ermöglichen die Kontrolle über die Wasserversorgung."/>
+    <text name="helpLine_cs_p1_start_title"    text="Erste Schritte"/>
+    <text name="helpLine_cs_p1_start_text"     text="Shift+M öffnet das Feuchte-HUD mit einer Übersicht aller Felder. Rote Felder benötigen dringend Wasser, grüne Felder sind in Ordnung. Shift+C öffnet den Pflanzenberater mit detaillierten Empfehlungen und Risikowerten."/>
+
+    <!-- Seite 2: Bodenfeuchte -->
+    <text name="helpLine_cs_p2_title"          text="Bodenfeuchte"/>
+    <text name="helpLine_cs_p2_how_title"      text="Wie Feuchte funktioniert"/>
+    <text name="helpLine_cs_p2_how_text"       text="Regen füllt den Boden, Hitze trocknet ihn aus. Jedes Feld verfolgt seinen eigenen Feuchteanteil von 0% (knochentrocken) bis 100% (gesättigt). Die Austrocknungsrate hängt vom Wetter, der Jahreszeit und dem Bodentyp ab."/>
+    <text name="helpLine_cs_p2_soil_title"     text="Bodentypen"/>
+    <text name="helpLine_cs_p2_soil_text"      text="Sandboden trocknet schnell aus und benötigt häufige Bewässerung. Tonboden hält Wasser länger, kann aber staunass werden. Lehmboden liegt dazwischen und ist am einfachsten zu bewirtschaften. Der Bodentyp wird im HUD und im Pflanzenberater angezeigt."/>
+
+    <!-- Seite 3: Pflanzenstress & Ertrag -->
+    <text name="helpLine_cs_p3_title"          text="Pflanzenstress &amp; Ertrag"/>
+    <text name="helpLine_cs_p3_window_title"   text="Kritische Wachstumsphasen"/>
+    <text name="helpLine_cs_p3_window_text"    text="Jede Pflanze hat eine Phase, in der sie am meisten Wasser benötigt. Weizen ist im Frühling am empfindlichsten, Mais leidet bei Sommerhitze, Raps ist im Herbst sensibel. Zu wenig Feuchte in dieser Phase baut Stress auf dem Feld auf."/>
+    <text name="helpLine_cs_p3_yield_title"    text="Ertragsverluste bei der Ernte"/>
+    <text name="helpLine_cs_p3_yield_text"     text="Angesammelter Stress reduziert die Ernte. Geringer Stress bedeutet kleine Verluste. Schwerer Trockenstress kann die Ernte um bis zu 60% senken. Der Pflanzenberater zeigt das aktuelle Ertragsrisiko je Feld, damit du die Bewässerung priorisieren kannst."/>
+
+    <!-- Seite 4: HUD & Steuerung -->
+    <text name="helpLine_cs_p4_title"          text="HUD &amp; Steuerung"/>
+    <text name="helpLine_cs_p4_hud_title"      text="Feuchte-HUD-Overlay"/>
+    <text name="helpLine_cs_p4_hud_text"       text="Shift+M schaltet das Feuchte-HUD ein oder aus. Es listet alle Felder mit Feuchtestand, Fruchttyp und Stressstatus. Eine 5-Tage-Prognose zeigt, ob die Feuchte steigt oder sinkt, sodass du vorausplanen kannst."/>
+    <text name="helpLine_cs_p4_status_title"   text="Statusfarben"/>
+    <text name="helpLine_cs_p4_status_text"    text="Grün bedeutet gesundes Feld, kein Handlungsbedarf. Gelb ist eine Warnung: Feuchte sinkt, Bewässerung bald empfohlen. Rot ist kritisch: Die Pflanze leidet unter Trockenstress und der Ertragsverlust wächst — sofort bewässern."/>
+    <text name="helpLine_cs_p4_keys_title"     text="Tastenkürzel"/>
+    <text name="helpLine_cs_p4_keys_text"      text="Shift+M schaltet das Feuchte-HUD um. Shift+I öffnet den Bewässerungsmanager für ein ausgewähltes System. Shift+C öffnet den Pflanzenberater mit Feldrisiken und personalisierten Empfehlungen."/>
+
+    <!-- Seite 5: Bewässerung -->
+    <text name="helpLine_cs_p5_title"          text="Bewässerung"/>
+    <text name="helpLine_cs_p5_types_title"    text="Bewässerungstypen"/>
+    <text name="helpLine_cs_p5_types_text"     text="Im Baumenü stehen drei Bewässerungstypen zur Verfügung. Die Kreisbewässerung deckt eine große Kreisfläche ab. Die Tröpfchenbewässerung sorgt für gezielte Abdeckung entlang einer Feldreihe. Die Wasserpumpe treibt die Systeme an und muss zuerst in der Nähe einer Wasserquelle platziert werden."/>
+    <text name="helpLine_cs_p5_schedule_title" text="Zeitplan &amp; Betrieb"/>
+    <text name="helpLine_cs_p5_schedule_text"  text="Wähle ein Bewässerungssystem aus und drücke Shift+I, um den Zeitplan zu öffnen. Wähle Wochentage und stelle tägliche Start- und Endzeiten ein. Mit Jetzt bewässern kannst du die abgedeckten Felder sofort wässern, ohne auf den Zeitplan zu warten."/>
+
+    <!-- Seite 6: Pflanzenberater -->
+    <text name="helpLine_cs_p6_title"          text="Pflanzenberater"/>
+    <text name="helpLine_cs_p6_what_title"     text="Was der Berater zeigt"/>
+    <text name="helpLine_cs_p6_what_text"      text="Shift+C öffnet den Pflanzenberater. Er zeigt die fünf risikoreichsten Felder nach Feuchte und Stressniveau sowie eine verständliche Empfehlung für die nächsten 24 Stunden und eine 3-Tage-Feuchtprognose."/>
+    <text name="helpLine_cs_p6_act_title"      text="Empfehlungen umsetzen"/>
+    <text name="helpLine_cs_p6_act_text"       text="Mit KRITISCH markierte Felder müssen heute bewässert werden, um Ernteverluste zu verhindern. Mit WARNUNG markierte Felder sollten innerhalb von ein bis zwei Tagen bewässert werden. Nutze die Schaltfläche Bewässerungsmanager öffnen, um schnell einen Zeitplan für das schlimmste Feld einzurichten."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Optional: Alex Chen (Agronom)"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Wenn FS25_NPCFavor installiert ist, erscheint Alex Chen als Agronom-NPC. Baue deine Beziehung zu Alex durch Gefälligkeiten aus, um frühzeitige Dürrewarungen und Spezialberatung zu erhalten."/>
+    </texts>
 </l10n>

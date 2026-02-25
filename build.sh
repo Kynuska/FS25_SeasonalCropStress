@@ -31,14 +31,17 @@ fi
 cd "$SCRIPT_DIR"
 
 if command -v zip &>/dev/null; then
+    # Paths inside zip are relative to CWD (already cd'd to SCRIPT_DIR).
+    # Exclude patterns must use the same relative form.
     zip -r "$ZIP_PATH" . \
-        --exclude "*.sh" \
-        --exclude ".claude/*" \
-        --exclude ".git/*" \
-        --exclude "*.md" \
-        --exclude ".gitignore" \
-        --exclude "__MACOSX/*" \
-        --exclude "*.DS_Store"
+        --exclude "./*.sh" \
+        --exclude "./.claude/*" \
+        --exclude "./.git/*" \
+        --exclude "./*.md" \
+        --exclude "./.gitignore" \
+        --exclude "./__MACOSX/*" \
+        --exclude "./*.DS_Store" \
+        --exclude "./*.zip"
     echo "  Built via zip"
 else
     # Python fallback — try python3 first, then Windows launcher (py)
@@ -67,7 +70,8 @@ with zipfile.ZipFile(ZIP_PATH, "w", zipfile.ZIP_DEFLATED) as zf:
             if any(fname.endswith(ext) for ext in EXCLUDE_EXTS):
                 continue
             full_path = os.path.join(root, fname)
-            arc_name = os.path.relpath(full_path, os.path.dirname(MOD_DIR))
+            # Paths relative to MOD_DIR → files land at ZIP root (not in a subfolder)
+            arc_name = os.path.relpath(full_path, MOD_DIR)
             # Enforce forward slashes (FS25 requirement)
             arc_name = arc_name.replace("\\", "/")
             zf.write(full_path, arc_name)

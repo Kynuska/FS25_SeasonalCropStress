@@ -253,10 +253,12 @@ Profile MUST have `imageSliceId value="noSlice"` and extend `baseReference`.
 | `addTrigger(node, tableRef)` | Second arg must be a **string** method name, not a table | `addTrigger(node, "onProximityTrigger", self)` |
 | `g_gui:loadGui()` with 4-arg `nil`-name form | `loadGui(xml, nil, MyDialog, false)` triggers FS25 v1.16 shared-i3d nil-node bug → `FocusManager:94` on any dialog loaded after focus-ring i3d is cached | Use 3-arg form with name + pre-created instance: `loadGui(xml, "MyDialog", MyDialog.new())` — wrap in pcall, verify via `g_gui.guis["MyDialog"]` |
 | `DialogElement` base | Deprecated — `focusElement` is never set → `FocusManager:update()` crashes on first frame with "attempt to index nil with 'focusElement'" | Use `MessageDialog`: `Class(MyDialog, MessageDialog)` and `MessageDialog.new(target, mt)` — XML root stays `<GUI>` |
-| Dialog XML naming callbacks `onClose`/`onOpen` | System lifecycle conflict — causes stack overflow | Use different callback names |
+| Missing `onOpen()` in MessageDialog subclass | `superClass().onOpen()` never called → focus/input system not initialized → dialog steals input, nothing works, forced to quit | Always define `onOpen()` and call `superClass().onOpen(self)` first |
+| Close button calling `g_gui:closeDialog(self)` + XML `onClose` pointing to same handler | Re-entry loop: button → closeDialog → system calls onClose callback → closeDialog again → freeze | XML `onClose` callback = cleanup only, call `superClass().onClose(self)`. Buttons call `self:close()` to initiate close sequence |
 | XML `imageFilename` for mod images | Can't load from ZIP | Set dynamically via `setImageFilename()` in Lua |
 | `MapHotspot` base class | Abstract class has no icon — markers invisible | Use `PlaceableHotspot.new()` + `Overlay.new()` |
-| `registerActionEvent` without `beginActionEventsModification` wrapper | Duplicate keybinds | Use full RVB pattern |
+| `registerActionEvent` called in `loadMission00Finished` | Not inside player input context — silently does nothing | Hook `PlayerInputComponent.registerActionEvents`, use `beginActionEventsModification(PlayerInputComponent.INPUT_CONTEXT_NAME)` / `endActionEventsModification()` inside, check `inputComponent.player.isOwner` |
+| `axisType`/`isSink` on `<action>` in modDesc.xml | Not needed for keyboard bindings, may interfere | Use bare `<action name="..."/>` (NPCFavor pattern) |
 | `parent="handTool"` in specs | Game prefixes mod name | Use `parent="base"` |
 | `setTextColorByName()` | Doesn't exist in FS25 | Use `setTextColor(r, g, b, a)` |
 | PowerShell `Compress-Archive` | Creates backslash paths in zip | Use `bash` zip or `archiver` npm |
@@ -274,7 +276,7 @@ Profile MUST have `imageSliceId value="noSlice"` and extend `baseReference`.
 ### GUI Dialogs
 - XML root MUST be `<GUI>`, never `<MessageDialog>`
 - Custom profiles: `with="anchorTopCenter"` for dialog content positioning
-- **NEVER** name callbacks `onClose`/`onOpen` — they conflict with system lifecycle and cause stack overflow
+- `onOpen`/`onClose` method names ARE valid for `MessageDialog` subclasses — NPCFavor uses them. XML `onOpen="onOpen"` triggers `onOpen()` on show; `onClose="myCleanup"` triggers cleanup after close.
 - Use `buttonActivate` profile, not `fs25_buttonSmall` (doesn't exist)
 - Add 10-15px padding to section heights to prevent text clipping
 

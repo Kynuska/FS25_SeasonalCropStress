@@ -17,6 +17,17 @@ function IrrigationScheduleDialog.new(target, customMt)
     return self
 end
 
+-- Called by FS25 GUI system when the dialog becomes visible.
+-- MUST call superClass().onOpen() to register focus/input handling (Escape key etc.)
+function IrrigationScheduleDialog:onOpen()
+    IrrigationScheduleDialog:superClass().onOpen(self)
+end
+
+-- Initiated by close buttons — triggers the close sequence.
+function IrrigationScheduleDialog:onCloseClicked()
+    self:close()
+end
+
 function IrrigationScheduleDialog:onCreate()
     -- FS25: elements wired by name via getDescendantByName()
     self.titleElement           = self:getDescendantByName("title")
@@ -233,7 +244,7 @@ end
 function IrrigationScheduleDialog:onIrrigateNow()
     local system = self:getCurrentSystem()
     if system == nil then
-        self:onIrrigationDialogClose()
+        self:close()
         return
     end
 
@@ -253,7 +264,7 @@ function IrrigationScheduleDialog:onIrrigateNow()
         g_currentMission:showBlinkingWarning(
             (g_i18n ~= nil and g_i18n:getText("cs_irr_started")) or "Irrigation started.", 3000)
     end
-    self:onIrrigationDialogClose()
+    self:close()
 end
 
 function IrrigationScheduleDialog:onSaveSchedule()
@@ -262,7 +273,7 @@ function IrrigationScheduleDialog:onSaveSchedule()
         g_currentMission:showBlinkingWarning(
             (g_i18n ~= nil and g_i18n:getText("cs_schedule_saved")) or "Schedule saved.", 2000)
     end
-    self:onIrrigationDialogClose()
+    self:close()
 end
 
 function IrrigationScheduleDialog:getCurrentSystem()
@@ -271,6 +282,8 @@ function IrrigationScheduleDialog:getCurrentSystem()
     return g_cropStressManager.irrigationManager.systems[self.systemId]
 end
 
+-- Called by FS25 GUI system AFTER the dialog has been closed (cleanup only).
+-- Do NOT call self:close() or g_gui:closeDialog() here — the dialog is already closing.
 function IrrigationScheduleDialog:onIrrigationDialogClose()
-    g_gui:closeDialog(self)
+    IrrigationScheduleDialog:superClass().onClose(self)
 end

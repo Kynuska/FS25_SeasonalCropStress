@@ -49,39 +49,34 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
         <sourceFile filename="main.lua"/>
     </extraSourceFiles>
 
+    <actions>
+        <action name="CS_TOGGLE_HUD"/>
+        <action name="CS_OPEN_IRRIGATION"/>
+        <action name="CS_OPEN_CONSULTANT"/>
+    </actions>
+
     <inputBinding>
         <actionBinding action="CS_TOGGLE_HUD">
-            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_m"
-                     axisComponent="+" index="1" isInverted="false" isTurnAxis="false"/>
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_m"/>
         </actionBinding>
         <actionBinding action="CS_OPEN_IRRIGATION">
-            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_i"
-                     axisComponent="+" index="1" isInverted="false" isTurnAxis="false"/>
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_i"/>
         </actionBinding>
         <actionBinding action="CS_OPEN_CONSULTANT">
-            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_c"
-                     axisComponent="+" index="1" isInverted="false" isTurnAxis="false"/>
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_c"/>
         </actionBinding>
     </inputBinding>
 
-    <actions>
-        <action name="CS_TOGGLE_HUD"      axisType="HALF_POSITIVE_AXIS" isSink="true"/>
-        <action name="CS_OPEN_IRRIGATION" axisType="HALF_POSITIVE_AXIS" isSink="true"/>
-        <action name="CS_OPEN_CONSULTANT"  axisType="HALF_POSITIVE_AXIS" isSink="true"/>
-    </actions>
-
     <!--
-        Inline l10n for input action descriptions.
-        These must be available at modDesc parse time — BEFORE the external
-        translation file is loaded — so the key binding screen shows correct names.
-        The external file is also loaded below for all other strings.
+        All strings — including input action descriptions (input_CS_*) —
+        are defined in the external translation files. No inline l10n block
+        is needed and none is used.
+        NOTE: FS25 only processes the FIRST <l10n> element. Two separate
+        <l10n> blocks cause the filenamePrefix file to be silently ignored.
+        NOTE: Inline <text> children inside a filenamePrefix element may also
+        prevent the external file from loading. Use self-closing form only.
     -->
-    <l10n>
-        <text name="input_CS_TOGGLE_HUD"><en>Toggle Moisture HUD</en></text>
-        <text name="input_CS_OPEN_IRRIGATION"><en>Open Irrigation Manager</en></text>
-        <text name="input_CS_OPEN_CONSULTANT"><en>Open Crop Consultant</en></text>
-    </l10n>
-    <l10n filenamePrefix="translations/translation"/>
+    <l10n filenamePrefix="translations/translation" defaultLanguage="en"/>
 
     <placeableTypes>
         <placeableType name="irrigationPivot" parent="simplePlaceable"
@@ -91,4 +86,95 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
         <placeableType name="dripLine" parent="simplePlaceable"
             filename="placeables/dripIrrigationLine/dripLine.lua"/>
     </placeableTypes>
+
+    <!--
+        In-game help pages accessible from the pause menu → Help.
+        One category with six pages covering the full player journey:
+        overview → moisture → stress → HUD → irrigation → consultant.
+    -->
+    <helpLines>
+        <category title="$l10n_helpLine_cs_category">
+
+            <!-- ── Page 1: Overview ──────────────────────────── -->
+            <page title="$l10n_helpLine_cs_p1_title" iconSliceId="icon_crops">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p1_intro_title" />
+                    <text  text="$l10n_helpLine_cs_p1_intro_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p1_start_title" />
+                    <text  text="$l10n_helpLine_cs_p1_start_text"  />
+                </paragraph>
+            </page>
+
+            <!-- ── Page 2: Soil Moisture ─────────────────────── -->
+            <page title="$l10n_helpLine_cs_p2_title" iconSliceId="icon_crops">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p2_how_title" />
+                    <text  text="$l10n_helpLine_cs_p2_how_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p2_soil_title" />
+                    <text  text="$l10n_helpLine_cs_p2_soil_text"  />
+                </paragraph>
+            </page>
+
+            <!-- ── Page 3: Crop Stress & Yield ──────────────── -->
+            <page title="$l10n_helpLine_cs_p3_title" iconSliceId="icon_crops">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p3_window_title" />
+                    <text  text="$l10n_helpLine_cs_p3_window_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p3_yield_title" />
+                    <text  text="$l10n_helpLine_cs_p3_yield_text"  />
+                </paragraph>
+            </page>
+
+            <!-- ── Page 4: HUD & Controls ───────────────────── -->
+            <page title="$l10n_helpLine_cs_p4_title" iconSliceId="icon_crops">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p4_hud_title" />
+                    <text  text="$l10n_helpLine_cs_p4_hud_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p4_status_title" />
+                    <text  text="$l10n_helpLine_cs_p4_status_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p4_keys_title" />
+                    <text  text="$l10n_helpLine_cs_p4_keys_text"  />
+                </paragraph>
+            </page>
+
+            <!-- ── Page 5: Irrigation ────────────────────────── -->
+            <page title="$l10n_helpLine_cs_p5_title" iconSliceId="icon_crops">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p5_types_title" />
+                    <text  text="$l10n_helpLine_cs_p5_types_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p5_schedule_title" />
+                    <text  text="$l10n_helpLine_cs_p5_schedule_text"  />
+                </paragraph>
+            </page>
+
+            <!-- ── Page 6: Crop Consultant ───────────────────── -->
+            <page title="$l10n_helpLine_cs_p6_title" iconSliceId="icon_crops">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p6_what_title" />
+                    <text  text="$l10n_helpLine_cs_p6_what_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p6_act_title" />
+                    <text  text="$l10n_helpLine_cs_p6_act_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p6_npc_title" />
+                    <text  text="$l10n_helpLine_cs_p6_npc_text"  />
+                </paragraph>
+            </page>
+
+        </category>
+    </helpLines>
 </modDesc>

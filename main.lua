@@ -78,10 +78,70 @@ source(modDir .. "gui/CropConsultantDialog.lua")
 source(modDir .. "src/CropStressManager.lua")
 
 -- ============================================================
--- Install harvest yield hook (patches HarvestingMachine at load time,
--- before any vehicles are created -- correct timing for function patching)
+-- Install harvest yield hook.
+-- Attempt 1: at source() load time. HarvestingMachine is a base-game
+-- global that SHOULD be available here, but log evidence shows it can
+-- be nil on some FS25 builds/load orders. The flag prevents double-install.
+-- Attempt 2 (retry) happens inside loadMission00Finished below.
 -- ============================================================
 CropStressModifier.installHarvestHook()
+
+-- ============================================================
+-- INPUT BINDING (NPCFavor pattern — confirmed working)
+-- Hook PlayerInputComponent.registerActionEvents. This is the ONLY
+-- correct point to register action events in FS25; calling
+-- g_inputBinding:registerActionEvent directly in loadMission00Finished
+-- is not inside the player input context and silently does nothing.
+-- ============================================================
+local function csToggleHUDCallback(_, _, inputValue)
+    if (inputValue or 0) <= 0 then return end
+    if g_cropStressManager ~= nil then g_cropStressManager:onToggleHUD() end
+end
+
+local function csOpenIrrigationCallback(_, _, inputValue)
+    if (inputValue or 0) <= 0 then return end
+    if g_cropStressManager ~= nil then g_cropStressManager:onOpenIrrigationDialog() end
+end
+
+local function csOpenConsultantCallback(_, _, inputValue)
+    if (inputValue or 0) <= 0 then return end
+    if g_cropStressManager ~= nil then g_cropStressManager:onOpenConsultantDialog() end
+end
+
+do
+    if PlayerInputComponent ~= nil and PlayerInputComponent.registerActionEvents ~= nil then
+        local origFn = PlayerInputComponent.registerActionEvents
+        PlayerInputComponent.registerActionEvents = function(inputComponent, ...)
+            origFn(inputComponent, ...)
+            if inputComponent.player ~= nil and inputComponent.player.isOwner then
+                g_inputBinding:beginActionEventsModification(PlayerInputComponent.INPUT_CONTEXT_NAME)
+
+                local function reg(actionId, callback, labelKey, labelFallback)
+                    if actionId == nil then return end
+                    local ok, eventId = g_inputBinding:registerActionEvent(
+                        actionId, CropStressManager, callback,
+                        false, true, false, false, nil, true
+                    )
+                    if ok and eventId ~= nil then
+                        g_inputBinding:setActionEventActive(eventId, true)
+                        g_inputBinding:setActionEventTextPriority(eventId, GS_PRIO_NORMAL)
+                        local label = (g_i18n ~= nil and g_i18n:getText(labelKey)) or labelFallback
+                        g_inputBinding:setActionEventText(eventId, label)
+                    end
+                end
+
+                reg(InputAction.CS_TOGGLE_HUD,     csToggleHUDCallback,      "input_CS_TOGGLE_HUD",      "Toggle Moisture HUD")
+                reg(InputAction.CS_OPEN_IRRIGATION, csOpenIrrigationCallback, "input_CS_OPEN_IRRIGATION", "Open Irrigation Manager")
+                reg(InputAction.CS_OPEN_CONSULTANT, csOpenConsultantCallback, "input_CS_OPEN_CONSULTANT", "Open Crop Consultant")
+
+                g_inputBinding:endActionEventsModification()
+            end
+        end
+        print("[CropStress] PlayerInputComponent hook installed")
+    else
+        print("[CropStress] WARNING: PlayerInputComponent.registerActionEvents not available — keybinds will not work")
+    end
+end
 
 -- ============================================================
 -- Lifecycle reference -- set in Mission00.load, cleared in FSBaseMission.delete
@@ -98,6 +158,12 @@ end)
 -- 2. Mission fully loaded: initialize all systems
 Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00Finished, function(self, ...)
     if g_csManager == nil then return end
+
+    -- Retry harvest hook if it was skipped at load time (HarvestingMachine was nil).
+    -- By loadMission00Finished all base-game classes are guaranteed in scope.
+    if not CropStressModifier.harvestHookInstalled then
+        CropStressModifier.installHarvestHook()
+    end
 
     g_csManager:initialize()
 
@@ -132,31 +198,6 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
             "CropConsultantDialog",
             CropConsultantDialog.new()
         )
-    end
-
-    -- Register input actions
-    if g_inputBinding ~= nil and InputAction ~= nil then
-        if InputAction.CS_TOGGLE_HUD ~= nil then
-            g_inputBinding:registerActionEvent(
-                InputAction.CS_TOGGLE_HUD,
-                g_csManager, CropStressManager.onToggleHUD,
-                false, true, false, true
-            )
-        end
-        if InputAction.CS_OPEN_IRRIGATION ~= nil then
-            g_inputBinding:registerActionEvent(
-                InputAction.CS_OPEN_IRRIGATION,
-                g_csManager, CropStressManager.onOpenIrrigationDialog,
-                false, true, false, true
-            )
-        end
-        if InputAction.CS_OPEN_CONSULTANT ~= nil then
-            g_inputBinding:registerActionEvent(
-                InputAction.CS_OPEN_CONSULTANT,
-                g_csManager, CropStressManager.onOpenConsultantDialog,
-                false, true, false, true
-            )
-        end
     end
 
     -- Register console debug commands
