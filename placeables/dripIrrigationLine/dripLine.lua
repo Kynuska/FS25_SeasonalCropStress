@@ -186,7 +186,8 @@ function DripIrrigationLine:registerInteractionAction()
     self.actionEventId = actionEventId
 
     if actionEventId ~= nil then
-        g_inputBinding:setActionEventText(actionEventId, g_i18n:getText("cs_irr_open_schedule"))
+        local label = (g_i18n ~= nil and g_i18n:getText("cs_irr_open_schedule")) or "Open Irrigation Schedule"
+        g_inputBinding:setActionEventText(actionEventId, label)
         g_inputBinding:setActionEventActive(actionEventId, true)
         g_inputBinding:setActionEventTextVisibility(actionEventId, true)
     end

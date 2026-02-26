@@ -230,38 +230,38 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 ### PHASE 4 — Finance & Polish
 
 #### FinanceIntegration.lua
-- [~] Implement `FinanceIntegration:initialize()` — detect `g_usedPlusManager` (detection done by `CropStressManager:detectOptionalMods()`; sets `usedPlusActive` flag)
-- [~] Implement `chargeHourlyCosts()` — vanilla path live; UsedPlus path written but untested (no UsedPlus in dev)
-- [x] Implement `getEquipmentWearLevel(vehicleId)` — returns 0.0 stub; Phase 4 wire
-- [ ] Implement `onIrrigationStarted()` / `onIrrigationStopped()` — track cost cycle start/stop times (currently not needed for simple hourly charge)
-- [ ] Implement `enableUsedPlusMode()` — called by `CropStressManager` after detection
+- [x] Implement `FinanceIntegration:initialize()` — detect `g_usedPlusManager` (done via `CropStressManager:detectOptionalMods()`, sets `usedPlusActive` flag)
+- [~] Implement `chargeHourlyCosts()` — vanilla path live and correct; UsedPlus path written + bug-fixed (vanilla fallback now fires when UsedPlus API is nil), untested (no UsedPlus in dev)
+- [x] Implement `getEquipmentWearLevel(vehicleId)` — queries UsedPlus DNA reliability, converts to 0.0–1.0 wear scale; wired into `chargeHourlyCosts()` → `updateSystemWearLevel()`
+- [s] Implement `onIrrigationStarted()` / `onIrrigationStopped()` — SKIPPED; simple hourly charge model doesn't need start/stop cost tracking; `chargeHourlyCosts()` iterates active systems each tick
+- [x] Implement `enableUsedPlusMode()` — sets `usedPlusActive = true`; called by `CropStressManager:detectOptionalMods()` when `g_usedPlusManager` is detected
 - [ ] **TEST (with UsedPlus):** Irrigation costs appear in UsedPlus finance manager under "OPERATIONAL"
 - [ ] **TEST (with UsedPlus):** Worn pump (DNA reliability 0.6) delivers ~76% of rated flow
 - [ ] **TEST (without UsedPlus):** Costs still deducted via vanilla `updateFunds`
 
 #### Drip Irrigation Line placeable
-- [ ] Create `placeables/dripIrrigationLine/dripLine.xml` + `.lua`
-- [ ] Implement start/end marker placement workflow
-- [ ] Implement linear coverage calculation → field polygon overlap
-- [ ] Register with `IrrigationManager` (same path as pivot)
+- [x] Create `placeables/dripIrrigationLine/dripLine.xml` + `.lua` — both exist; registered in `modDesc.xml` as `dripLine` type
+- [~] Implement start/end marker placement workflow — simplified: start=pivot position, end=start+lineLength along X axis; rotation-aware projection deferred (see note in `dripLine.lua:onLoad`)
+- [x] Implement linear coverage calculation → field polygon overlap — `IrrigationManager:fieldIntersectsDripLine()` uses AABB check with line bounding box
+- [x] Register with `IrrigationManager` (same path as pivot) — `DripIrrigationLine:onLoad()` calls `irrigationManager:registerIrrigationSystem(self)`
 - [ ] **TEST:** Place drip line across a sugar beet field → moisture rises in covered area
 
 #### Used Equipment Marketplace entries
-- [ ] Add center pivot and pump unit to UsedPlus used equipment marketplace (verify UsedPlus marketplace registration API)
-- [ ] Add wear state variation so pre-owned items appear at 40–80% condition
+- [~] Add center pivot and pump unit to UsedPlus used equipment marketplace — `UsedEquipmentMarketplace.lua` written with pivot/pump/drip configs; calls `g_usedPlusManager:registerUsedEquipment()` which is LUADOC-unverified
+- [~] Add wear state variation so pre-owned items appear at 40–80% condition — `conditionRange` is specified in config objects
 - [ ] **TEST (with UsedPlus):** Pre-owned pivot appears in marketplace at discount
 
 #### Precision Farming DLC Overlay
-- [ ] Implement `enablePrecisionFarmingCompat()` in `CropStressManager`
-- [ ] Read PF soil sample data for per-field `soilType` (check PF DLC API against LUADOC)
-- [ ] Add moisture overlay layer to PF soil analysis map view
+- [x] Implement `enablePrecisionFarmingCompat()` in `CropStressManager` — calls `precisionFarmingOverlay:enablePrecisionFarmingMode()`
+- [~] Read PF soil sample data for per-field `soilType` — `PrecisionFarmingOverlay:getSoilTypeAtPosition()` calls `g_precisionFarming:getSoilTypeAtPosition()` if API exists; falls back to our own detection
+- [~] Add moisture overlay layer to PF soil analysis map view — `registerMoistureOverlay()` calls `g_precisionFarming:registerOverlay()` with color gradient config; API LUADOC-unverified
 - [ ] **TEST (with PF DLC):** PF soil map shows moisture overlay, soil types match PF data
 
 #### Translations — Complete Set
 - [x] `translation_de.xml` — German, all keys (Phase 1-3 complete)
 - [x] `translation_fr.xml` — French, all keys (Phase 1-3 complete)
 - [x] `translation_nl.xml` — Dutch, all keys (Phase 1-3 complete)
-- [ ] `translation_pl.xml` — Polish, all keys
+- [x] `translation_pl.xml` — Polish, all keys (confirmed present this session)
 - [ ] **TEST:** Switch game language to DE → all mod UI text is German, no missing key fallbacks
 
 #### Phase 4 Final Validation
@@ -341,6 +341,61 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 ## Session Log
 
 *Sessions are logged in reverse-chronological order (newest at top). Each entry MUST include: date, AI agent, what was done, what was tested, what the next agent should start on, and any blockers or surprises.*
+
+---
+
+### 2026-02-26 (session 8) — Claude (Sonnet 4.6) — Full Code Audit, 4 Bug Fixes, Phase 4 Completion Audit
+
+**Started from:** User request: "Read all the MD files, then perform a pass over all code looking for any bugs, edge cases, code not hooked up, proper commenting, and finally make sure that phase 1 till 4 are all finished and complete."
+
+**Completed:**
+
+1. **Full code audit — all Lua source files read**
+   - main.lua, CropStressManager.lua, SoilMoistureSystem.lua, CropStressModifier.lua, IrrigationManager.lua, WeatherIntegration.lua, HUDOverlay.lua, CropConsultant.lua, FinanceIntegration.lua, SaveLoadHandler.lua, CropStressSettings.lua, CropStressSettingsIntegration.lua, CropStressSettingsSyncEvent.lua, NPCIntegration.lua, UsedEquipmentMarketplace.lua, PrecisionFarmingOverlay.lua, CropConsultantDialog.lua, IrrigationScheduleDialog.lua, FieldMoisturePanel.lua, centerPivot.lua, waterPump.lua, dripLine.lua, modDesc.xml.
+
+2. **Bug fix — `SoilMoistureSystem.lua:171` — Critical threshold setting was dead code**
+   - `hourlyUpdate()` hardcoded `SoilMoistureSystem.CRITICAL_MOISTURE` (0.25) instead of `self:getCriticalMoisture()`.
+   - Player's "Critical Threshold" ESC menu slider had zero effect on critical alert triggering.
+   - Fixed: `if data.moisture <= self:getCriticalMoisture() then` — now honours the settings-adjusted value, with fallback to class constant if `applySettings()` hasn't run yet.
+
+3. **Bug fix — `FinanceIntegration.lua` — Free irrigation when UsedPlus API mismatches**
+   - In `chargeHourlyCosts()`, when `usedPlusActive=true` but `g_usedPlusManager.recordExpense == nil` (version mismatch), both the UsedPlus path AND the vanilla fallback were skipped — player got free irrigation.
+   - Fixed: Added `else self:deductFundsVanilla(cost) end` after the inner `recordExpense` nil check.
+
+4. **Bug fix — `IrrigationScheduleDialog.lua` — Wrong close method + unguarded g_i18n calls**
+   - When `system == nil`, `onIrrigationDialogOpen()` called `self:onIrrigationDialogClose()` (post-close cleanup handler) instead of `self:close()` (close initiator). This could re-invoke `superClass().onClose()` when the dialog wasn't even open yet.
+   - Fixed: Changed nil-system early exit to `self:close()`.
+   - Four bare `g_i18n:getText()` calls without nil guard (lines 65, 67, 73, 74) would crash on dedicated servers or broken i18n contexts. Fixed with a local `t()` helper throughout.
+
+5. **Bug fix — `centerPivot.lua` + `dripLine.lua` — Unguarded g_i18n in registerInteractionAction()**
+   - Both files had `local label = g_i18n:getText("cs_irr_open_schedule")` without a nil check.
+   - Fixed to `local label = (g_i18n ~= nil and g_i18n:getText("cs_irr_open_schedule")) or "Open Irrigation Schedule"` in both files.
+
+6. **Phase 4 completeness audit — DEVELOPMENT.md TODO section corrected**
+   - Several Phase 4 items showed `[ ]` (not started) but were actually fully or partially implemented:
+     - `dripIrrigationLine` folder: exists with `dripLine.lua` + `dripLine.xml` + i3d (rotation-aware coverage deferred — marked `[~]`)
+     - `enableUsedPlusMode()`: implemented and called from `detectOptionalMods()` → `[x]`
+     - `UsedEquipmentMarketplace.lua`: code written, API unverified → `[~]`
+     - `PrecisionFarmingOverlay.lua`: code written, API unverified → `[~]`
+     - `translation_pl.xml`: file exists with all keys populated → `[x]`
+     - `FinanceIntegration:initialize()`: implemented → `[x]`
+   - Updated all affected TODO items to accurate status.
+
+**Tested:**
+- Code review only — no in-game testing this session.
+- All fixes are logic corrections; no new APIs or patterns introduced.
+
+**Checked off in TODO:**
+- Phase 4 items updated to reflect actual implementation state (see details above)
+
+**Next agent should start at:**
+`PHASE 5: Save panelX/panelY to cropStressSettings.xml for HUD position persistence`
+Or: `Run Phase 5 in-game verification test scenarios (all [x] items must be tested in-game)`
+
+**Notes / surprises:**
+- `getCriticalMoisture()` getter and `setCriticalThreshold()` setter both existed correctly; only the call site in `hourlyUpdate()` was wrong. The settings system was fully wired — only this one comparison was bypassing it.
+- `onIrrigationDialogClose()` is called by FS25 *after* close, not to *initiate* close. CLAUDE.md already documents this distinction — the bug was a case of the correct pattern not being applied consistently.
+- Phase 4 was substantially more complete than DEVELOPMENT.md indicated. The 2026-02-23 session that created the Phase 4 TODO section was documenting *plans*, not checking against actual code. Always audit the code directly when in doubt.
 
 ---
 

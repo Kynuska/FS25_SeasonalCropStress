@@ -57,22 +57,26 @@ function IrrigationScheduleDialog:onIrrigationDialogOpen(systemId)
     self.systemId = systemId
     local system = self:getCurrentSystem()
     if system == nil then
-        self:onIrrigationDialogClose()
+        -- System was removed between dialog registration and open — close cleanly.
+        -- self:close() initiates the close sequence; onIrrigationDialogClose() is
+        -- the post-close cleanup handler and must NOT be called as an initiator.
+        self:close()
         return
     end
 
     -- Set title
-    local typeName = system.type == "pivot" and g_i18n:getText("cs_irr_pivot") or g_i18n:getText("cs_irr_drip")
+    local function t(key) return (g_i18n ~= nil and g_i18n:getText(key)) or key end
+    local typeName = system.type == "pivot" and t("cs_irr_pivot") or t("cs_irr_drip")
     if self.titleElement ~= nil then
-        self.titleElement:setText(string.format(g_i18n:getText("cs_irr_title"), typeName))
+        self.titleElement:setText(string.format(t("cs_irr_title"), typeName))
     end
 
     -- Water source status
     if self.waterSourceValue ~= nil then
         if system.waterSourceId ~= nil then
-            self.waterSourceValue:setText(g_i18n:getText("cs_irr_connected"))
+            self.waterSourceValue:setText(t("cs_irr_connected"))
         else
-            self.waterSourceValue:setText(g_i18n:getText("cs_irr_disconnected"))
+            self.waterSourceValue:setText(t("cs_irr_disconnected"))
         end
     end
 

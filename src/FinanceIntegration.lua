@@ -51,6 +51,10 @@ function FinanceIntegration:chargeHourlyCosts()
                         -- UsedPlus API mismatch — fall through to vanilla fund deduction
                         self:deductFundsVanilla(cost)
                     end
+                else
+                    -- UsedPlus active flag set but manager or API unavailable (version mismatch).
+                    -- Still deduct via vanilla so the player isn't getting free irrigation.
+                    self:deductFundsVanilla(cost)
                 end
 
                 -- Update wear level for this system from UsedPlus DNA.

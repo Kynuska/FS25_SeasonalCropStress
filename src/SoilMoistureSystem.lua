@@ -167,8 +167,10 @@ function SoilMoistureSystem:hourlyUpdate(weather)
             })
         end
 
-        -- Critical threshold check (12-hour cooldown per field to avoid spam)
-        if data.moisture <= SoilMoistureSystem.CRITICAL_MOISTURE then
+        -- Critical threshold check (12-hour cooldown per field to avoid spam).
+        -- Use getCriticalMoisture() so the player's settings value is honoured;
+        -- falls back to the class constant if applySettings() hasn't run yet.
+        if data.moisture <= self:getCriticalMoisture() then
             local lastAlert = self.criticalAlertCooldown[fieldId] or -999
             if (hourKey - lastAlert) >= 12 then
                 self.criticalAlertCooldown[fieldId] = hourKey
