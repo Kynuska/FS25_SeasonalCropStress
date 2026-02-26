@@ -1470,6 +1470,62 @@ Yes. Don't ship without that. Add it before we close Phase 1.
 - Precision Farming DLC soil overlay compat
 - Full translation (EN, DE, FR, NL, PL)
 
+### Phase 5 — Stability & HUD Polish
+
+**Goal:** Close the gap between code-complete and player-verified. No new features — only hardening, persistence, and translation.
+
+- **HUD position persistence** — `panelX`/`panelY` saved to `cropStressSettings.xml`; restored on load via `applySettings()`
+- **Full in-game verification** — run through every `[ ]` test scenario from Phases 1–4 in DEVELOPMENT.md
+- **Polish translation** — `translation_pl.xml` (all `cs_*` keys)
+- HUD UX improvements based on live playtest feedback
+
+**Session dialog pattern for Phase 5:**
+
+---
+
+**Claude** 🍵 *opens DEVELOPMENT.md test checklist*
+
+Phase 5 is the verification pass. I'm going to load ElmCreek, run through all the `[ ]` test items in sequence, document the results, and tick them off. Starting with Phase 1 tests — does `csSetMoisture` actually force a value, and does the forecast stay within 0–1?
+
+---
+
+**Samantha** 🌸 *glances over the rim of her glasses, coffee mug reading "{ } world"*
+
+Before you start ticking off tests — what happens if a player drag-repositions the HUD and then loads a different savegame? Does the position reset or persist? Because right now we save it in-session but not to disk.
+
+---
+
+**Claude** ☯️
+
+Good catch. Position should persist per-savegame. That means saving `panelX`/`panelY` in `cropStressSettings.xml`, not just in-memory. That's the first Phase 5 code item — before I run the test suite.
+
+---
+
+**Samantha** 💕
+
+That's the right order. Get that in first. Then test.
+
+---
+
+### Phase 6 — Release Readiness
+
+**Goal:** Ship a polished v1.0.0.0 that players can trust.
+
+- **Final 3D assets** — center pivot (arm rotation, proper LOD nodes), water pump (textured model)
+- **Mod icon** (`icon.dds`) — replace placeholder with proper 512×512 icon
+- **v1.0.0.0 changelog** — feature list, known limitations, required FS25 version, optional mod compatibility
+- **Git release tag** — `v1.0.0.0`
+- **Steam Workshop listing** — title, description, screenshots, required/optional mods
+- Post-launch monitoring (player log reports, first 2 weeks)
+
+**Gate criteria (must all pass before tagging v1.0.0.0):**
+1. All Phase 5 in-game tests passing
+2. Zero log errors on TestMap and ElmCreek clean load
+3. Zero log errors on save/reload cycle
+4. ZIP installs cleanly from scratch (no existing save data)
+5. Final 3D assets in place (no placeholder geometry)
+6. All translation keys present in EN, DE, FR, NL, PL
+
 ---
 
 ## 18. Credits & Acknowledgements
