@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+    <texts>
+    <!-- ========== HUD OVERLAY ========== -->
+    <text name="cs_hud_title"         text="UMIDITÀ DEL TERRENO"/>
+    <text name="cs_hud_healthy"       text="Sano"/>
+    <text name="cs_hud_warning"       text="Stress da siccità"/>
+    <text name="cs_hud_critical"      text="CRITICO — Irrigare ora!"/>
+    <text name="cs_hud_no_crop"       text="Nessuna coltura"/>
+    <text name="cs_hud_forecast"      text="Previsioni 5 giorni"/>
+    <text name="cs_hud_first_run"     text="Monitor umidità attivo. Maiusc+M per mostrare/nascondere."/>
+
+    <!-- ========== FIELD STATUS ========== -->
+    <text name="cs_field_moisture"        text="Umidità"/>
+    <text name="cs_field_soil_type"       text="Tipo di terreno"/>
+    <text name="cs_field_stress"          text="Stress accumulato"/>
+    <text name="cs_field_yield_impact"    text="Impatto stimato sulla resa"/>
+    <text name="cs_field_critical_window" text="Finestra critica: ORA"/>
+    <text name="cs_field_nearest_water"   text="Acqua più vicina"/>
+
+    <!-- ========== SOIL TYPES ========== -->
+    <text name="cs_soil_sandy"  text="Sabbioso"/>
+    <text name="cs_soil_loamy"  text="Limoso"/>
+    <text name="cs_soil_clay"   text="Argilloso"/>
+
+    <!-- ========== ALERTS ========== -->
+    <text name="cs_alert_info"     text="Campo %d: %s umidità in calo — monitorare la situazione."/>
+    <text name="cs_alert_warning"  text="Campo %d: %s umidità bassa — irrigazione consigliata."/>
+    <text name="cs_alert_critical" text="Campo %d: %s soglia di stress da siccità — irrigare ORA!"/>
+
+    <!-- ========== IRRIGATION ========== -->
+    <text name="cs_irr_title"          text="Sistema di irrigazione — %s"/>
+    <text name="cs_irr_water_source"   text="Fonte d'acqua"/>
+    <text name="cs_irr_connected"      text="Connesso"/>
+    <text name="cs_irr_disconnected"   text="Disconnesso"/>
+    <text name="cs_irr_schedule"       text="Programma"/>
+    <text name="cs_irr_flow_rate"      text="Portata"/>
+    <text name="cs_irr_efficiency"     text="Efficienza"/>
+    <text name="cs_irr_cost"           text="Costo stimato"/>
+    <text name="cs_irr_wear"           text="Usura"/>
+    <text name="cs_irr_covered_fields" text="Campi irrigati"/>
+    <text name="cs_irr_irrigate_now"   text="Irriga ora"/>
+    <text name="cs_irr_save_schedule"  text="Salva programma"/>
+    <text name="cs_irr_pivot"          text="Irrigazione a perno"/>
+    <text name="cs_irr_drip"           text="Irrigazione a goccia"/>
+    <text name="cs_irr_pump"           text="Pompa dell'acqua"/>
+    <text name="cs_irr_start_time"     text="Ora di inizio"/>
+    <text name="cs_irr_end_time"       text="Ora di fine"/>
+    <text name="cs_irr_performance"    text="Prestazioni"/>
+    <text name="cs_irr_started"        text="Irrigazione avviata."/>
+    <text name="cs_irr_open_schedule"  text="Apri programma irrigazione"/>
+    <text name="cs_schedule_saved"     text="Programma salvato."/>
+
+    <!-- ========== DAY LABELS ========== -->
+    <text name="cs_day_mon" text="L"/>
+    <text name="cs_day_tue" text="M"/>
+    <text name="cs_day_wed" text="M"/>
+    <text name="cs_day_thu" text="G"/>
+    <text name="cs_day_fri" text="V"/>
+    <text name="cs_day_sat" text="S"/>
+    <text name="cs_day_sun" text="D"/>
+
+    <!-- ========== CONSULTANT ========== -->
+    <text name="cs_consultant_name"            text="Alex Chen, Agronomo"/>
+    <text name="cs_consultant_subtitle"        text="Stato dei campi &amp; Raccomandazioni"/>
+    <text name="cs_consultant_relationship"    text="Relazione con Alex:"/>
+    <text name="cs_consultant_field_status"    text="Riepilogo rischi campi (Top 5)"/>
+    <text name="cs_consultant_recommendation"  text="Raccomandazioni"/>
+    <text name="cs_consultant_open_irrigation" text="Apri gestore irrigazione"/>
+    <text name="cs_consultant_no_data"         text="Nessun dato campo disponibile."/>
+
+    <!-- ========== NPC FAVOR QUESTS ========== -->
+    <text name="cs_favor_soil_sample"     text="Preleva un campione di terreno dal Campo %d"/>
+    <text name="cs_favor_irr_check"       text="Ispeziona il sistema di irrigazione vicino al Campo %d"/>
+    <text name="cs_favor_emergency_water" text="Irriga il Campo %d prima del tramonto!"/>
+    <text name="cs_favor_seasonal_plan"   text="Revisiona il piano di irrigazione stagionale"/>
+
+    <!-- ========== PLACEABLES ========== -->
+    <text name="cs_pivot_name" text="Irrigatore a perno centrale"/>
+    <text name="cs_pump_name"  text="Pompa dell'acqua"/>
+    <text name="cs_drip_name"  text="Linea di irrigazione a goccia"/>
+
+    <!-- ========== IRRIGATION PERFORMANCE VALUES (dynamic, format strings) ========== -->
+    <text name="cs_irr_flow_rate_value"   text="Portata: %.3f/h"/>
+    <text name="cs_irr_efficiency_value"  text="Efficienza: %d%%"/>
+    <text name="cs_irr_cost_value"        text="Costo stimato: €%d/h"/>
+    <text name="cs_irr_wear_value"        text="Usura: %d%%"/>
+    <text name="cs_irr_already_active"    text="Il sistema di irrigazione è già in funzione."/>
+    <text name="cs_irr_no_covered_fields" text="Nessun campo coperto da questo sistema."/>
+
+    <!-- ========== CONSULTANT RECOMMENDATIONS (dynamic, format strings) ========== -->
+    <text name="cs_rec_urgent"          text="URGENTE: Campo %d al %.0f%% di umidità — irrigare immediatamente!"/>
+    <text name="cs_rec_warning"         text="Campo %d al %.0f%% di umidità — irrigazione consigliata entro 24h."/>
+    <text name="cs_rec_ok"              text="Tutti i campi entro un intervallo di umidità accettabile."/>
+    <text name="cs_rec_forecast"        text="Previsione: G+1 %.0f%%  G+2 %.0f%%  G+3 %.0f%%"/>
+    <text name="cs_rec_systems_running" text="%d sistema/i di irrigazione attivo/i."/>
+    <text name="cs_rec_no_systems"      text="Nessun sistema di irrigazione attivo."/>
+    <text name="cs_rec_all_healthy"     text="Tutti i campi sembrano sani."/>
+
+    <!-- ========== SHARED ========== -->
+    <text name="cs_close"                 text="Chiudi"/>
+    <text name="cs_no_irrigation_systems" text="Nessun sistema di irrigazione posizionato."/>
+
+    <!-- ========== INPUT ACTION DESCRIPTIONS ========== -->
+    <text name="input_CS_TOGGLE_HUD"      text="Mostra/nascondi HUD umidità"/>
+    <text name="input_CS_OPEN_IRRIGATION" text="Apri gestore irrigazione"/>
+    <text name="input_CS_OPEN_CONSULTANT" text="Apri consulente colture"/>
+
+    <!-- ========== PRECISION FARMING DLC ========== -->
+    <text name="cs_pf_moisture_overlay"      text="Umidità del suolo"/>
+    <text name="cs_pf_moisture_overlay_desc" text="Mostra i livelli attuali di umidità del suolo nei tuoi campi. Il rosso indica terreno secco, il verde umidità ottimale e il blu terreno saturo."/>
+
+    <!-- ========== SETTINGS ========== -->
+    <text name="cs_settings_section"           text="Stress Stagionale delle Colture"/>
+    <text name="cs_settings_enabled_short"     text="Abilita Mod"/>
+    <text name="cs_settings_enabled_long"      text="Attiva o disattiva l'intero sistema Stress Stagionale delle Colture"/>
+    <text name="cs_settings_difficulty_short"  text="Difficoltà"/>
+    <text name="cs_settings_difficulty_long"   text="Regola l'accumulo di stress e i tassi di evapotraspirazione"/>
+    <text name="cs_settings_diff_easy"         text="Facile"/>
+    <text name="cs_settings_diff_normal"       text="Normale"/>
+    <text name="cs_settings_diff_hard"         text="Difficile"/>
+    <text name="cs_settings_hud_short"         text="HUD Visibile"/>
+    <text name="cs_settings_hud_long"          text="Mostra o nascondi la sovrapposizione dell'umidità sull'elenco dei campi"/>
+    <text name="cs_settings_evap_short"        text="Evapotraspirazione"/>
+    <text name="cs_settings_evap_long"         text="Tasso base di perdita di umidità dal suolo"/>
+    <text name="cs_settings_evap_slow"         text="Lenta"/>
+    <text name="cs_settings_evap_normal"       text="Normale"/>
+    <text name="cs_settings_evap_fast"         text="Rapida"/>
+    <text name="cs_settings_yield_loss_short"  text="Perdita Max Resa"/>
+    <text name="cs_settings_yield_loss_long"   text="Percentuale massima di resa che può essere persa a causa dello stress da siccità"/>
+    <text name="cs_settings_threshold_short"   text="Soglia Critica"/>
+    <text name="cs_settings_threshold_long"    text="Livello di umidità al di sotto del quale si accumula lo stress"/>
+    <text name="cs_settings_irr_costs_short"   text="Costi Irrigazione"/>
+    <text name="cs_settings_irr_costs_long"    text="Abilita o disabilita i costi finanziari per il funzionamento dei sistemi di irrigazione"/>
+    <text name="cs_settings_alerts_short"      text="Avvisi Abilitati"/>
+    <text name="cs_settings_alerts_long"       text="Mostra notifiche di avviso quando i campi necessitano di acqua"/>
+    <text name="cs_settings_cooldown_short"    text="Tempo di Recupero Avvisi"/>
+    <text name="cs_settings_cooldown_long"     text="Ore minime tra gli avvisi per lo stesso campo"/>
+    <text name="cs_settings_debug_short"       text="Modalità Debug"/>
+    <text name="cs_settings_debug_long"        text="Abilita registrazione dettagliata per la risoluzione dei problemi"/>
+
+    <!-- ========== HELP LINES ========== -->
+    <text name="helpLine_cs_category"          text="Stress stagionale delle colture"/>
+
+    <!-- Pagina 1: Panoramica -->
+    <text name="helpLine_cs_p1_title"          text="Panoramica"/>
+    <text name="helpLine_cs_p1_intro_title"    text="Cosa aggiunge questa mod"/>
+    <text name="helpLine_cs_p1_intro_text"     text="Stress stagionale delle colture aggiunge una simulazione dell'umidità del suolo a ogni campo. Le colture necessitano di acqua durante le fasi chiave della crescita. Se non la ricevono, il raccolto sarà inferiore. I sistemi di irrigazione ti permettono di controllare l'apporto idrico dei tuoi campi."/>
+    <text name="helpLine_cs_p1_start_title"    text="Per iniziare"/>
+    <text name="helpLine_cs_p1_start_text"     text="Premi Maiusc+M per aprire l'HUD dell'umidità e vedere tutti i tuoi campi a colpo d'occhio. I campi rossi necessitano urgentemente di acqua, quelli verdi sono in buone condizioni. Maiusc+C apre il Consulente delle colture con raccomandazioni dettagliate e valori di rischio."/>
+
+    <!-- Pagina 2: Umidità del suolo -->
+    <text name="helpLine_cs_p2_title"          text="Umidità del suolo"/>
+    <text name="helpLine_cs_p2_how_title"      text="Come funziona l'umidità"/>
+    <text name="helpLine_cs_p2_how_text"       text="La pioggia riempie il terreno, il calore lo secca. Ogni campo tiene traccia del proprio livello di umidità dallo 0% (completamente secco) al 100% (saturo). Il tasso di essiccazione dipende dal meteo, dalla stagione e dal tipo di terreno."/>
+    <text name="helpLine_cs_p2_soil_title"     text="Tipi di terreno"/>
+    <text name="helpLine_cs_p2_soil_text"      text="Il terreno sabbioso si asciuga rapidamente e necessita di irrigazioni frequenti. Il terreno argilloso trattiene l'acqua più a lungo ma può diventare impregnato d'acqua. Il terreno limoso è intermedio ed è il più facile da gestire. Il tipo di terreno è mostrato nell'HUD e nel Consulente delle colture."/>
+
+    <!-- Pagina 3: Stress delle colture e resa -->
+    <text name="helpLine_cs_p3_title"          text="Stress delle colture &amp; resa"/>
+    <text name="helpLine_cs_p3_window_title"   text="Finestre di crescita critiche"/>
+    <text name="helpLine_cs_p3_window_text"    text="Ogni coltura ha un periodo durante il suo ciclo di crescita in cui ha più bisogno di acqua. Il grano è più vulnerabile in primavera, il mais soffre durante le ondate di calore estive, la colza è sensibile in autunno. La bassa umidità durante questo periodo accumula stress su quel campo."/>
+    <text name="helpLine_cs_p3_yield_title"    text="Riduzione della resa al raccolto"/>
+    <text name="helpLine_cs_p3_yield_text"     text="Lo stress accumulato riduce il tuo raccolto. Un piccolo stress significa una piccola perdita di resa. Una grave siccità può ridurre il raccolto fino al 60%. Il Consulente delle colture mostra il rischio di resa attuale per ogni campo in modo che tu possa dare priorità all'irrigazione dove conta di più."/>
+
+    <!-- Pagina 4: HUD e controlli -->
+    <text name="helpLine_cs_p4_title"          text="HUD &amp; controlli"/>
+    <text name="helpLine_cs_p4_hud_title"      text="Sovrapposizione HUD umidità"/>
+    <text name="helpLine_cs_p4_hud_text"       text="Premi Maiusc+M per attivare o disattivare l'HUD dell'umidità. Elenca ogni campo con il suo livello di umidità, tipo di coltura e stato di stress. Una previsione a 5 giorni mostra se l'umidità è in aumento o in diminuzione in modo che tu possa pianificare in anticipo."/>
+    <text name="helpLine_cs_p4_status_title"   text="Colori di stato"/>
+    <text name="helpLine_cs_p4_status_text"    text="Verde significa che il campo è sano e non è necessaria alcuna azione. Giallo è un avviso: l'umidità sta diminuendo e l'irrigazione è consigliabile a breve. Rosso è critico: la coltura è sotto stress da siccità e la perdita di resa è già in atto — irrigare immediatamente."/>
+    <text name="helpLine_cs_p4_keys_title"     text="Scorciatoie da tastiera"/>
+    <text name="helpLine_cs_p4_keys_text"      text="Maiusc+M attiva o disattiva l'HUD dell'umidità. Maiusc+I apre il Gestore dell'irrigazione per un sistema selezionato. Maiusc+C apre il Consulente delle colture con un riepilogo dei rischi e raccomandazioni personalizzate."/>
+
+    <!-- Pagina 5: Irrigazione -->
+    <text name="helpLine_cs_p5_title"          text="Irrigazione"/>
+    <text name="helpLine_cs_p5_types_title"    text="Tipi di irrigazione"/>
+    <text name="helpLine_cs_p5_types_text"     text="Tre tipi di irrigazione sono disponibili nel menu di costruzione. L'irrigazione a perno copre una grande area circolare. La linea a goccia fornisce una copertura precisa lungo una fila del campo. La pompa dell'acqua alimenta i tuoi sistemi di irrigazione e deve essere prima posizionata vicino a una fonte d'acqua."/>
+    <text name="helpLine_cs_p5_schedule_title" text="Programmazione &amp; funzionamento"/>
+    <text name="helpLine_cs_p5_schedule_text"  text="Seleziona un sistema di irrigazione e premi Maiusc+I per aprire il suo programma. Scegli quali giorni della settimana irrigare e imposta un'ora di inizio e fine giornaliera. Puoi anche premere Irriga ora nella finestra di dialogo per innaffiare immediatamente i campi coperti senza aspettare il programma."/>
+
+    <!-- Pagina 6: Consulente delle colture -->
+    <text name="helpLine_cs_p6_title"          text="Consulente delle colture"/>
+    <text name="helpLine_cs_p6_what_title"     text="Cosa mostra il consulente"/>
+    <text name="helpLine_cs_p6_what_text"      text="Premi Maiusc+C per aprire il Consulente delle colture. Mostra i tuoi 5 campi a più alto rischio classificati per umidità e livello di stress, insieme a una raccomandazione in linguaggio semplice per le prossime 24 ore e una previsione di umidità a 3 giorni."/>
+    <text name="helpLine_cs_p6_act_title"      text="Agire sui consigli"/>
+    <text name="helpLine_cs_p6_act_text"       text="I campi contrassegnati come CRITICI necessitano di irrigazione oggi per prevenire la perdita del raccolto. I campi contrassegnati come AVVISO dovrebbero essere irrigati entro un giorno o due. Usa il pulsante Apri gestore irrigazione all'interno del Consulente per programmare rapidamente l'acqua per il campo peggiore."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Opzionale: Alex Chen (Agronomo)"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Se FS25_NPCFavor è installato, Alex Chen apparirà come NPC Agronomo. Costruisci la tua relazione con Alex attraverso favori per sbloccare avvisi precoci di siccità e accedere a consigli specializzati sull'irrigazione."/>
+    </texts>
+</l10n>

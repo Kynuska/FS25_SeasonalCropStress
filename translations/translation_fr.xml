@@ -104,7 +104,7 @@
     <!-- ========== INPUT ACTION DESCRIPTIONS ========== -->
     <text name="input_CS_TOGGLE_HUD"      text="Afficher/masquer HUD humidité"/>
     <text name="input_CS_OPEN_IRRIGATION" text="Ouvrir gestionnaire d'irrigation"/>
-    <text name="input_CS_OPEN_CONSULTANT" text="Ouvrir conseiller culturel"/>
+    <text name="input_CS_OPEN_CONSULTANT" text="Ouvrir conseiller cultural"/>
 
     <!-- ========== PRECISION FARMING DLC ========== -->
     <text name="cs_pf_moisture_overlay"      text="Humidité du sol"/>
