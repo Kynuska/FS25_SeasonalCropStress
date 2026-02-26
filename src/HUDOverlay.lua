@@ -237,6 +237,11 @@ function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
         self.editMode = not self.editMode
         if not self.editMode then
             self.dragging = false
+            -- Persist new position to settings so it survives reload.
+            if self.manager ~= nil and self.manager.settings ~= nil then
+                self.manager.settings.hudPanelX = self.panelX
+                self.manager.settings.hudPanelY = self.panelY
+            end
             csLog("HUD edit mode OFF — position saved")
         else
             csLog("HUD edit mode ON — LMB drag to reposition")

@@ -197,6 +197,10 @@ function CropStressManager:applySettings()
     self.consultant:setAlertCooldown(self.settings.alertCooldown)
     self.debugMode = self.settings.debugMode
 
+    -- Push persisted HUD position (client-local display preference, not synced to MP)
+    self.hudOverlay.panelX = self.settings.hudPanelX
+    self.hudOverlay.panelY = self.settings.hudPanelY
+
     csLog("Settings applied to all subsystems")
 end
 

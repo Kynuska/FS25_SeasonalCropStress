@@ -33,7 +33,9 @@ local DEFAULTS = {
     irrigationCosts = true,
     alertsEnabled = true,
     alertCooldown = 12,
-    debugMode = false
+    debugMode = false,
+    hudPanelX = 0.010,   -- matches HUDOverlay.PANEL_X
+    hudPanelY = 0.175    -- matches HUDOverlay.PANEL_Y
 }
 
 -- Difficulty multipliers
@@ -47,7 +49,9 @@ local DIFFICULTY_MULTIPLIERS = {
 local VALIDATION = {
     maxYieldLoss = { min = 0.30, max = 0.75 },
     criticalThreshold = { min = 0.15, max = 0.35 },
-    alertCooldown = { min = 4, max = 24 }
+    alertCooldown = { min = 4, max = 24 },
+    hudPanelX = { min = 0.0,  max = 0.95 },
+    hudPanelY = { min = 0.05, max = 0.95 }
 }
 
 function CropStressSettings.new()
@@ -115,6 +119,8 @@ function CropStressSettings:load(missionInfo)
     self.alertsEnabled      = readBool(xmlFile, "cropStressSettings.alertsEnabled",      DEFAULTS.alertsEnabled)
     self.alertCooldown      = xmlFile:getInt("cropStressSettings.alertCooldown")         or DEFAULTS.alertCooldown
     self.debugMode          = readBool(xmlFile, "cropStressSettings.debugMode",          DEFAULTS.debugMode)
+    self.hudPanelX          = xmlFile:getFloat("cropStressSettings.hudPanelX")           or DEFAULTS.hudPanelX
+    self.hudPanelY          = xmlFile:getFloat("cropStressSettings.hudPanelY")           or DEFAULTS.hudPanelY
 
     xmlFile:delete()
 
@@ -169,7 +175,9 @@ function CropStressSettings:saveToXMLFile(missionInfo)
     xmlFile:setBool("cropStressSettings.alertsEnabled", self.alertsEnabled)
     xmlFile:setInt("cropStressSettings.alertCooldown", self.alertCooldown)
     xmlFile:setBool("cropStressSettings.debugMode", self.debugMode)
-    
+    xmlFile:setFloat("cropStressSettings.hudPanelX", self.hudPanelX)
+    xmlFile:setFloat("cropStressSettings.hudPanelY", self.hudPanelY)
+
     xmlFile:save()
     xmlFile:delete()
     
@@ -217,6 +225,10 @@ function CropStressSettings:validateSettings()
         csLog("alertCooldown too high, clamped to " .. self.alertCooldown)
     end
     
+    -- Clamp HUD panel position
+    self.hudPanelX = math.max(VALIDATION.hudPanelX.min, math.min(VALIDATION.hudPanelX.max, self.hudPanelX or DEFAULTS.hudPanelX))
+    self.hudPanelY = math.max(VALIDATION.hudPanelY.min, math.min(VALIDATION.hudPanelY.max, self.hudPanelY or DEFAULTS.hudPanelY))
+
     -- Ensure boolean values are actually booleans
     self.enabled = not not self.enabled
     self.hudVisible = not not self.hudVisible
@@ -268,5 +280,7 @@ function CropStressSettings:debugPrint()
     csLog("debugMode: " .. tostring(self.debugMode))
     csLog("stressMultiplier: " .. tostring(self:getDifficultyStressMultiplier()))
     csLog("evapMultiplier: " .. tostring(self:getTotalEvapMultiplier()))
+    csLog("hudPanelX: " .. tostring(self.hudPanelX))
+    csLog("hudPanelY: " .. tostring(self.hudPanelY))
     csLog("=========================")
 end
