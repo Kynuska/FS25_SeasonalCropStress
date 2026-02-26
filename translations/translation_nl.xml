@@ -141,30 +141,66 @@
     <text name="cs_settings_debug_long"        text="Schakel uitgebreide logboekregistratie in voor probleemoplossing"/>
 
     <!-- ========== HELP LINES ========== -->
+    <!-- Legacy-sleutel behouden voor compatibiliteit -->
     <text name="helpLine_cs_category"          text="Seizoensgebonden gewassstress"/>
+    <!-- Categorietitels -->
+    <text name="helpLine_cs_cat_overview"      text="Overzicht"/>
+    <text name="helpLine_cs_cat_settings"      text="Instellingen"/>
+    <text name="helpLine_cs_cat_tips"          text="Tips &amp; Trucs"/>
+    <text name="helpLine_cs_cat_info"          text="Mod-informatie"/>
 
-    <!-- Pagina 1: Overzicht -->
+    <!-- Overzicht: Pagina 1 -->
     <text name="helpLine_cs_p1_title"          text="Overzicht"/>
     <text name="helpLine_cs_p1_intro_title"    text="Wat deze mod toevoegt"/>
     <text name="helpLine_cs_p1_intro_text"     text="Seizoensgebonden gewassstress voegt een bodemvochtsimulatie toe aan elk veld. Gewassen hebben water nodig tijdens belangrijke groeifasen. Zonder water wordt de oogst kleiner. Irrigatiesystemen laten je de watertoevoer van je velden zelf regelen."/>
     <text name="helpLine_cs_p1_start_title"    text="Aan de slag"/>
     <text name="helpLine_cs_p1_start_text"     text="Druk op Shift+M om de vochtigheids-HUD te openen en alle velden in één oogopslag te zien. Rode velden hebben dringend water nodig, groene zijn in orde. Druk op Shift+C om de Gewasadviseur te openen voor gedetailleerd advies en risicowaarden."/>
 
-    <!-- Pagina 2: Bodemvochtigheid -->
+    <!-- Overzicht: Pagina 2 -->
     <text name="helpLine_cs_p2_title"          text="Bodemvochtigheid"/>
     <text name="helpLine_cs_p2_how_title"      text="Hoe vochtigheid werkt"/>
     <text name="helpLine_cs_p2_how_text"       text="Regen vult de bodem, hitte droogt hem uit. Elk veld houdt zijn eigen vochtigheidsniveau bij van 0% (kurkdroog) tot 100% (verzadigd). De uitdrogingssnelheid hangt af van het weer, het seizoen en het bodemtype."/>
     <text name="helpLine_cs_p2_soil_title"     text="Bodemtypen"/>
     <text name="helpLine_cs_p2_soil_text"      text="Zandige bodem droogt snel uit en heeft vaak irrigatie nodig. Kleibodem houdt water langer vast maar kan waterlogged raken. Leembodem zit er tussenin en is het makkelijkst te beheren. Het bodemtype wordt weergegeven in de HUD en de Gewasadviseur."/>
 
-    <!-- Pagina 3: Gewassstress en opbrengst -->
+    <!-- Overzicht: Pagina 3 -->
     <text name="helpLine_cs_p3_title"          text="Gewassstress &amp; opbrengst"/>
     <text name="helpLine_cs_p3_window_title"   text="Kritieke groeiperioden"/>
     <text name="helpLine_cs_p3_window_text"    text="Elk gewas heeft een periode in de groeicyclus waarbij het het meeste water nodig heeft. Tarwe is het kwetsbaarst in het voorjaar, mais lijdt onder zomerse hittegolven, koolzaad is gevoelig in de herfst. Te weinig vochtigheid in deze periode bouwt stress op in het veld."/>
     <text name="helpLine_cs_p3_yield_title"    text="Opbrengstvermindering bij de oogst"/>
     <text name="helpLine_cs_p3_yield_text"     text="Opgebouwde stress vermindert je oogst. Een beetje stress betekent een klein verlies. Ernstige droogte kan de oogst met wel 60% verminderen. De Gewasadviseur toont het huidige opbrengstrisico per veld zodat je de irrigatie kunt prioriteren."/>
 
-    <!-- Pagina 4: HUD en bediening -->
+    <!-- Overzicht: Pagina 4 (Irrigatie) -->
+    <text name="helpLine_cs_p5_title"          text="Irrigatie"/>
+    <text name="helpLine_cs_p5_types_title"    text="Irrigatietypen"/>
+    <text name="helpLine_cs_p5_types_text"     text="In het bouwmenu zijn drie irrigatietypen beschikbaar. De cirkelberegening dekt een groot cirkelvormig gebied. De druppelirrigatielijn biedt nauwkeurige dekking langs een veldrij. De waterpomp drijft de systemen aan en moet eerst in de buurt van een waterbron geplaatst worden."/>
+    <text name="helpLine_cs_p5_schedule_title" text="Planning &amp; gebruik"/>
+    <text name="helpLine_cs_p5_schedule_text"  text="Selecteer een irrigatiesysteem en druk op Shift+I om het schema te openen. Kies de dagen van de week en stel dagelijkse start- en eindtijden in. Met de knop Nu irrigeren kun je de gedekte velden direct bewateren zonder op het schema te wachten."/>
+
+    <!-- Overzicht: Pagina 5 (Gewasadviseur) -->
+    <text name="helpLine_cs_p6_title"          text="Gewasadviseur"/>
+    <text name="helpLine_cs_p6_what_title"     text="Wat de adviseur toont"/>
+    <text name="helpLine_cs_p6_what_text"      text="Druk op Shift+C om de Gewasadviseur te openen. Hij toont je 5 meest risicovolle velden gerangschikt op vochtigheid en stressniveau, met een begrijpelijke aanbeveling voor de komende 24 uur en een 3-dagenprognose voor de vochtigheid."/>
+    <text name="helpLine_cs_p6_act_title"      text="Handelen op advies"/>
+    <text name="helpLine_cs_p6_act_text"       text="Velden gemarkeerd KRITIEK moeten vandaag worden geïrrigeerd om oogstverlies te voorkomen. Velden gemarkeerd WAARSCHUWING moeten binnen een à twee dagen worden geïrrigeerd. Gebruik de knop Irrigatiebeheer openen in de adviseur om snel een schema in te stellen voor het slechtste veld."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Optioneel: Alex Chen (Agronoom)"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Als FS25_NPCFavor is geïnstalleerd, verschijnt Alex Chen als Agronoom-NPC. Bouw je relatie met Alex op via gunsten om vroege droogtewaarschuwingen en gespecialiseerd irrigatieadvies te ontgrendelen."/>
+
+    <!-- Instellingen: Pagina 1 — Algemene instellingen -->
+    <text name="helpLine_cs_s1_title"          text="Algemene instellingen"/>
+    <text name="helpLine_cs_s1_gen_title"      text="Mod inschakelen"/>
+    <text name="helpLine_cs_s1_gen_text"       text="Open de spelinstellingen (ESC → Instellingen → Seizoensgebonden Gewasstress). Gebruik Mod inschakelen om het hele systeem aan of uit te zetten zonder je irrigatie-infrastructuur te verwijderen. Moeilijkheidsgraad bepaalt hoe snel gewassen droogtestress opbouwen — Gemakkelijk is vergevingsgezind, Moeilijk vereist proactief irrigatiebeheer."/>
+    <text name="helpLine_cs_s1_evap_title"     text="Evapotranspiratiesnelheid"/>
+    <text name="helpLine_cs_s1_evap_text"      text="Evapotranspiratie bepaalt hoe snel de bodem uitdroogt tussen regenperioden. Traag betekent dat velden vochtigheid goed vasthouden en regen veel effect heeft. Snel betekent dat velden bij warm weer binnen een speeldag kunnen uitdrogen — actief irrigatiebeheer wordt dan essentieel."/>
+
+    <!-- Instellingen: Pagina 2 — Geavanceerde instellingen -->
+    <text name="helpLine_cs_s2_title"          text="Geavanceerde instellingen"/>
+    <text name="helpLine_cs_s2_yield_title"    text="Opbrengstverlies &amp; Stressdrempel"/>
+    <text name="helpLine_cs_s2_yield_text"     text="Max. Opbrengstverlies beperkt het percentage van de oogst dat droogtestress kan verminderen. Bij de standaard 60% levert een volledig gestresst veld nog steeds 40% van de normale opbrengst. De Kritieke Drempel is het vochtigheidsniveau waaronder stress begint op te bouwen — verhoog het voor gevoeliger gewassen, verlaag het voor meer tolerantie."/>
+    <text name="helpLine_cs_s2_alerts_title"   text="Irrigatiekosten &amp; Waarschuwingen"/>
+    <text name="helpLine_cs_s2_alerts_text"    text="Irrigatiekosten brengt een uurlijks bedrag in rekening voor actieve irrigatiesystemen. Schakel dit uit voor een eenvoudigere ervaring. Waarschuwingen ingeschakeld toont meldingen wanneer velden water nodig hebben. Waarschuwings-cooldown stelt de minimale speeluren in voor een nieuwe waarschuwing voor hetzelfde veld, zodat je niet overspoeld wordt met meldingen."/>
+
+    <!-- Tips &amp; Trucs: Pagina 1 (HUD &amp; bediening) -->
     <text name="helpLine_cs_p4_title"          text="HUD &amp; bediening"/>
     <text name="helpLine_cs_p4_hud_title"      text="Vochtigheids-HUD-overlay"/>
     <text name="helpLine_cs_p4_hud_text"       text="Druk op Shift+M om de vochtigheids-HUD aan of uit te zetten. Hij toont elk veld met zijn vochtigheidsniveau, gewastype en stressstatus. Een 5-dagenprognose laat zien of de vochtigheid stijgt of daalt zodat je vooruit kunt plannen."/>
@@ -173,20 +209,18 @@
     <text name="helpLine_cs_p4_keys_title"     text="Sneltoetsen"/>
     <text name="helpLine_cs_p4_keys_text"      text="Shift+M schakelt de vochtigheids-HUD in of uit. Shift+I opent het irrigatiebeheer voor een geselecteerd systeem. Shift+C opent de Gewasadviseur met een risicooverzicht en persoonlijke aanbevelingen."/>
 
-    <!-- Pagina 5: Irrigatie -->
-    <text name="helpLine_cs_p5_title"          text="Irrigatie"/>
-    <text name="helpLine_cs_p5_types_title"    text="Irrigatietypen"/>
-    <text name="helpLine_cs_p5_types_text"     text="In het bouwmenu zijn drie irrigatietypen beschikbaar. De cirkelberegening dekt een groot cirkelvormig gebied. De druppelirrigatielijn biedt nauwkeurige dekking langs een veldrij. De waterpomp drijft de systemen aan en moet eerst in de buurt van een waterbron geplaatst worden."/>
-    <text name="helpLine_cs_p5_schedule_title" text="Planning &amp; gebruik"/>
-    <text name="helpLine_cs_p5_schedule_text"  text="Selecteer een irrigatiesysteem en druk op Shift+I om het schema te openen. Kies de dagen van de week en stel dagelijkse start- en eindtijden in. Met de knop Nu irrigeren kun je de gedekte velden direct bewateren zonder op het schema te wachten."/>
+    <!-- Tips &amp; Trucs: Pagina 2 — Landbouwstrategieën -->
+    <text name="helpLine_cs_t2_title"          text="Landbouwstrategieën"/>
+    <text name="helpLine_cs_t2_sandy_title"    text="Prioriteit aan zandige velden"/>
+    <text name="helpLine_cs_t2_sandy_text"     text="Zandige bodem droogt twee keer zo snel uit als leembodem. Als je verschillende bodemtypen bewerkt, geef dan eerst prioriteit aan irrigatie op zandige velden. Een cirkelberegening op een groot zandgebied is vaak een betere investering dan een druppellijn op een klein kleiveldje dat zelf vochtigheid vasthoudt."/>
+    <text name="helpLine_cs_t2_forecast_title" text="Gebruik de prognose"/>
+    <text name="helpLine_cs_t2_forecast_text"  text="De 5-dagenprognose in de HUD toont of vochtigheid stijgt of daalt. Als er binnen een dag of twee regen verwacht wordt en je velden zitten alleen in het waarschuwingsgebied, wacht dan op de regen — je bespaart geld en slijtage van je apparatuur. Handel vroeg als de prognose meerdere droge dagen toont tijdens een kritieke groeiperiode."/>
 
-    <!-- Pagina 6: Gewasadviseur -->
-    <text name="helpLine_cs_p6_title"          text="Gewasadviseur"/>
-    <text name="helpLine_cs_p6_what_title"     text="Wat de adviseur toont"/>
-    <text name="helpLine_cs_p6_what_text"      text="Druk op Shift+C om de Gewasadviseur te openen. Hij toont je 5 meest risicovolle velden gerangschikt op vochtigheid en stressniveau, met een begrijpelijke aanbeveling voor de komende 24 uur en een 3-dagenprognose voor de vochtigheid."/>
-    <text name="helpLine_cs_p6_act_title"      text="Handelen op advies"/>
-    <text name="helpLine_cs_p6_act_text"       text="Velden gemarkeerd KRITIEK moeten vandaag worden geïrrigeerd om oogstverlies te voorkomen. Velden gemarkeerd WAARSCHUWING moeten binnen een à twee dagen worden geïrrigeerd. Gebruik de knop Irrigatiebeheer openen in de adviseur om snel een schema in te stellen voor het slechtste veld."/>
-    <text name="helpLine_cs_p6_npc_title"      text="Optioneel: Alex Chen (Agronoom)"/>
-    <text name="helpLine_cs_p6_npc_text"       text="Als FS25_NPCFavor is geïnstalleerd, verschijnt Alex Chen als Agronoom-NPC. Bouw je relatie met Alex op via gunsten om vroege droogtewaarschuwingen en gespecialiseerd irrigatieadvies te ontgrendelen."/>
+    <!-- Mod-informatie: Pagina 1 — Over deze mod -->
+    <text name="helpLine_cs_i1_title"           text="Over deze mod"/>
+    <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.0.0"/>
+    <text name="helpLine_cs_i1_about_text"      text="Gemaakt door TisonK. Voegt realistische bodemvochtsimulatie, seizoensgebonden gewasstress en beheer van irrigatie-infrastructuur toe aan Farming Simulator 25. Ontworpen om gewasbeheer strategischer te maken — elk veld, elk seizoen, elke beslissing telt."/>
+    <text name="helpLine_cs_i1_community_title" text="Community &amp; Support"/>
+    <text name="helpLine_cs_i1_community_text"  text="Vind deze mod op de Farming Simulator ModHub. Voor vragen, bugrapporten en updates, bezoek de modpagina op ModHub of de GitHub-repository. Sluit je aan bij de communityforums om tips te delen met andere spelers."/>
     </texts>
 </l10n>

@@ -141,30 +141,66 @@
     <text name="cs_settings_debug_long"        text="Aktivieren Sie ausführliche Protokollierung zur Fehlerbehebung"/>
 
     <!-- ========== HELP LINES ========== -->
+    <!-- Veralteter Schlüssel für Kompatibilität behalten -->
     <text name="helpLine_cs_category"          text="Saisonaler Pflanzenstress"/>
+    <!-- Kategorietitel -->
+    <text name="helpLine_cs_cat_overview"      text="Übersicht"/>
+    <text name="helpLine_cs_cat_settings"      text="Einstellungen"/>
+    <text name="helpLine_cs_cat_tips"          text="Tipps &amp; Tricks"/>
+    <text name="helpLine_cs_cat_info"          text="Mod-Informationen"/>
 
-    <!-- Seite 1: Übersicht -->
+    <!-- Übersicht: Seite 1 -->
     <text name="helpLine_cs_p1_title"          text="Übersicht"/>
     <text name="helpLine_cs_p1_intro_title"    text="Was diese Mod hinzufügt"/>
     <text name="helpLine_cs_p1_intro_text"     text="Saisonaler Pflanzenstress fügt jedem Feld eine Bodenfeuchtesimulation hinzu. Pflanzen brauchen Wasser in wichtigen Wachstumsphasen. Fehlt es, fällt die Ernte geringer aus. Bewässerungssysteme ermöglichen die Kontrolle über die Wasserversorgung."/>
     <text name="helpLine_cs_p1_start_title"    text="Erste Schritte"/>
     <text name="helpLine_cs_p1_start_text"     text="Shift+M öffnet das Feuchte-HUD mit einer Übersicht aller Felder. Rote Felder benötigen dringend Wasser, grüne Felder sind in Ordnung. Shift+C öffnet den Pflanzenberater mit detaillierten Empfehlungen und Risikowerten."/>
 
-    <!-- Seite 2: Bodenfeuchte -->
+    <!-- Übersicht: Seite 2 -->
     <text name="helpLine_cs_p2_title"          text="Bodenfeuchte"/>
     <text name="helpLine_cs_p2_how_title"      text="Wie Feuchte funktioniert"/>
     <text name="helpLine_cs_p2_how_text"       text="Regen füllt den Boden, Hitze trocknet ihn aus. Jedes Feld verfolgt seinen eigenen Feuchteanteil von 0% (knochentrocken) bis 100% (gesättigt). Die Austrocknungsrate hängt vom Wetter, der Jahreszeit und dem Bodentyp ab."/>
     <text name="helpLine_cs_p2_soil_title"     text="Bodentypen"/>
     <text name="helpLine_cs_p2_soil_text"      text="Sandboden trocknet schnell aus und benötigt häufige Bewässerung. Tonboden hält Wasser länger, kann aber staunass werden. Lehmboden liegt dazwischen und ist am einfachsten zu bewirtschaften. Der Bodentyp wird im HUD und im Pflanzenberater angezeigt."/>
 
-    <!-- Seite 3: Pflanzenstress & Ertrag -->
+    <!-- Übersicht: Seite 3 -->
     <text name="helpLine_cs_p3_title"          text="Pflanzenstress &amp; Ertrag"/>
     <text name="helpLine_cs_p3_window_title"   text="Kritische Wachstumsphasen"/>
     <text name="helpLine_cs_p3_window_text"    text="Jede Pflanze hat eine Phase, in der sie am meisten Wasser benötigt. Weizen ist im Frühling am empfindlichsten, Mais leidet bei Sommerhitze, Raps ist im Herbst sensibel. Zu wenig Feuchte in dieser Phase baut Stress auf dem Feld auf."/>
     <text name="helpLine_cs_p3_yield_title"    text="Ertragsverluste bei der Ernte"/>
     <text name="helpLine_cs_p3_yield_text"     text="Angesammelter Stress reduziert die Ernte. Geringer Stress bedeutet kleine Verluste. Schwerer Trockenstress kann die Ernte um bis zu 60% senken. Der Pflanzenberater zeigt das aktuelle Ertragsrisiko je Feld, damit du die Bewässerung priorisieren kannst."/>
 
-    <!-- Seite 4: HUD & Steuerung -->
+    <!-- Übersicht: Seite 4 (Bewässerung) -->
+    <text name="helpLine_cs_p5_title"          text="Bewässerung"/>
+    <text name="helpLine_cs_p5_types_title"    text="Bewässerungstypen"/>
+    <text name="helpLine_cs_p5_types_text"     text="Im Baumenü stehen drei Bewässerungstypen zur Verfügung. Die Kreisbewässerung deckt eine große Kreisfläche ab. Die Tröpfchenbewässerung sorgt für gezielte Abdeckung entlang einer Feldreihe. Die Wasserpumpe treibt die Systeme an und muss zuerst in der Nähe einer Wasserquelle platziert werden."/>
+    <text name="helpLine_cs_p5_schedule_title" text="Zeitplan &amp; Betrieb"/>
+    <text name="helpLine_cs_p5_schedule_text"  text="Wähle ein Bewässerungssystem aus und drücke Shift+I, um den Zeitplan zu öffnen. Wähle Wochentage und stelle tägliche Start- und Endzeiten ein. Mit Jetzt bewässern kannst du die abgedeckten Felder sofort wässern, ohne auf den Zeitplan zu warten."/>
+
+    <!-- Übersicht: Seite 5 (Pflanzenberater) -->
+    <text name="helpLine_cs_p6_title"          text="Pflanzenberater"/>
+    <text name="helpLine_cs_p6_what_title"     text="Was der Berater zeigt"/>
+    <text name="helpLine_cs_p6_what_text"      text="Shift+C öffnet den Pflanzenberater. Er zeigt die fünf risikoreichsten Felder nach Feuchte und Stressniveau sowie eine verständliche Empfehlung für die nächsten 24 Stunden und eine 3-Tage-Feuchtprognose."/>
+    <text name="helpLine_cs_p6_act_title"      text="Empfehlungen umsetzen"/>
+    <text name="helpLine_cs_p6_act_text"       text="Mit KRITISCH markierte Felder müssen heute bewässert werden, um Ernteverluste zu verhindern. Mit WARNUNG markierte Felder sollten innerhalb von ein bis zwei Tagen bewässert werden. Nutze die Schaltfläche Bewässerungsmanager öffnen, um schnell einen Zeitplan für das schlimmste Feld einzurichten."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Optional: Alex Chen (Agronom)"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Wenn FS25_NPCFavor installiert ist, erscheint Alex Chen als Agronom-NPC. Baue deine Beziehung zu Alex durch Gefälligkeiten aus, um frühzeitige Dürrewarungen und Spezialberatung zu erhalten."/>
+
+    <!-- Einstellungen: Seite 1 — Allgemeine Einstellungen -->
+    <text name="helpLine_cs_s1_title"          text="Allgemeine Einstellungen"/>
+    <text name="helpLine_cs_s1_gen_title"      text="Mod aktivieren"/>
+    <text name="helpLine_cs_s1_gen_text"       text="Öffne die Spieleinstellungen (ESC → Einstellungen → Seasonal Crop Stress). Mit Mod aktivieren schaltest du das gesamte System ein oder aus, ohne deine Bewässerungsinfrastruktur zu entfernen. Die Schwierigkeit bestimmt, wie schnell Pflanzen Trockenstress akkumulieren — Einfach ist vergebend, Schwer erfordert proaktive Bewässerung."/>
+    <text name="helpLine_cs_s1_evap_title"     text="Evapotranspirationsrate"/>
+    <text name="helpLine_cs_s1_evap_text"      text="Evapotranspiration steuert, wie schnell der Boden zwischen Regenfällen austrocknet. Langsam bedeutet, dass Felder Feuchtigkeit gut halten und Regen viel bewirkt. Schnell bedeutet, dass Felder bei heißem Wetter innerhalb eines Spieltages austrocknen können — aktives Bewässerungsmanagement wird dann unerlässlich."/>
+
+    <!-- Einstellungen: Seite 2 — Erweiterte Einstellungen -->
+    <text name="helpLine_cs_s2_title"          text="Erweiterte Einstellungen"/>
+    <text name="helpLine_cs_s2_yield_title"    text="Ertragsverlust &amp; Stressschwelle"/>
+    <text name="helpLine_cs_s2_yield_text"     text="Max. Ertragsverlust begrenzt den Prozentsatz der Ernte, den Trockenstress reduzieren kann. Bei Standard-60% erbringt ein komplett gestresstes Feld noch 40% der normalen Ernte. Die kritische Schwelle ist der Feuchteanteil, unterhalb dessen Stress beginnt — erhöhe ihn für empfindlichere Pflanzen, senke ihn für mehr Toleranz."/>
+    <text name="helpLine_cs_s2_alerts_title"   text="Bewässerungskosten &amp; Warnungen"/>
+    <text name="helpLine_cs_s2_alerts_text"    text="Bewässerungskosten erhebt eine stündliche Gebühr für laufende Bewässerungssysteme und fügt eine Finanzverwaltungsebene hinzu. Deaktiviere dies für ein einfacheres Spielerlebnis. Warnungen aktiviert zeigt Benachrichtigungen, wenn Felder Wasser benötigen. Der Warnungs-Cooldown legt die Mindestspielstunden zwischen Warnungen für dasselbe Feld fest, um Benachrichtigungsstaus zu vermeiden."/>
+
+    <!-- Tipps & Tricks: Seite 1 (HUD & Steuerung) -->
     <text name="helpLine_cs_p4_title"          text="HUD &amp; Steuerung"/>
     <text name="helpLine_cs_p4_hud_title"      text="Feuchte-HUD-Overlay"/>
     <text name="helpLine_cs_p4_hud_text"       text="Shift+M schaltet das Feuchte-HUD ein oder aus. Es listet alle Felder mit Feuchtestand, Fruchttyp und Stressstatus. Eine 5-Tage-Prognose zeigt, ob die Feuchte steigt oder sinkt, sodass du vorausplanen kannst."/>
@@ -173,20 +209,18 @@
     <text name="helpLine_cs_p4_keys_title"     text="Tastenkürzel"/>
     <text name="helpLine_cs_p4_keys_text"      text="Shift+M schaltet das Feuchte-HUD um. Shift+I öffnet den Bewässerungsmanager für ein ausgewähltes System. Shift+C öffnet den Pflanzenberater mit Feldrisiken und personalisierten Empfehlungen."/>
 
-    <!-- Seite 5: Bewässerung -->
-    <text name="helpLine_cs_p5_title"          text="Bewässerung"/>
-    <text name="helpLine_cs_p5_types_title"    text="Bewässerungstypen"/>
-    <text name="helpLine_cs_p5_types_text"     text="Im Baumenü stehen drei Bewässerungstypen zur Verfügung. Die Kreisbewässerung deckt eine große Kreisfläche ab. Die Tröpfchenbewässerung sorgt für gezielte Abdeckung entlang einer Feldreihe. Die Wasserpumpe treibt die Systeme an und muss zuerst in der Nähe einer Wasserquelle platziert werden."/>
-    <text name="helpLine_cs_p5_schedule_title" text="Zeitplan &amp; Betrieb"/>
-    <text name="helpLine_cs_p5_schedule_text"  text="Wähle ein Bewässerungssystem aus und drücke Shift+I, um den Zeitplan zu öffnen. Wähle Wochentage und stelle tägliche Start- und Endzeiten ein. Mit Jetzt bewässern kannst du die abgedeckten Felder sofort wässern, ohne auf den Zeitplan zu warten."/>
+    <!-- Tipps & Tricks: Seite 2 — Landwirtschaftsstrategien -->
+    <text name="helpLine_cs_t2_title"          text="Landwirtschaftsstrategien"/>
+    <text name="helpLine_cs_t2_sandy_title"    text="Sandfelder priorisieren"/>
+    <text name="helpLine_cs_t2_sandy_text"     text="Sandboden trocknet doppelt so schnell aus wie Lehmboden. Bei gemischten Bodentypen lohnt es sich, zuerst Bewässerung auf Sandfeldern zu installieren. Eine Kreisbewässerung auf einer großen Sandfläche ist oft eine bessere Investition als eine Tröpfchenbewässerung auf einem kleinen Tonfeld, das Wasser gut hält."/>
+    <text name="helpLine_cs_t2_forecast_title" text="Prognose nutzen"/>
+    <text name="helpLine_cs_t2_forecast_text"  text="Die 5-Tage-Prognose im HUD zeigt, ob die Feuchte steigt oder sinkt. Wenn Regen vorhergesagt ist und die Felder nur im Warnbereich liegen, warte auf den Regen statt zu bewässern — so sparst du Geld und schonst die Ausrüstung. Handle frühzeitig, wenn die Prognose mehrere trockene Tage in einer kritischen Wachstumsphase zeigt."/>
 
-    <!-- Seite 6: Pflanzenberater -->
-    <text name="helpLine_cs_p6_title"          text="Pflanzenberater"/>
-    <text name="helpLine_cs_p6_what_title"     text="Was der Berater zeigt"/>
-    <text name="helpLine_cs_p6_what_text"      text="Shift+C öffnet den Pflanzenberater. Er zeigt die fünf risikoreichsten Felder nach Feuchte und Stressniveau sowie eine verständliche Empfehlung für die nächsten 24 Stunden und eine 3-Tage-Feuchtprognose."/>
-    <text name="helpLine_cs_p6_act_title"      text="Empfehlungen umsetzen"/>
-    <text name="helpLine_cs_p6_act_text"       text="Mit KRITISCH markierte Felder müssen heute bewässert werden, um Ernteverluste zu verhindern. Mit WARNUNG markierte Felder sollten innerhalb von ein bis zwei Tagen bewässert werden. Nutze die Schaltfläche Bewässerungsmanager öffnen, um schnell einen Zeitplan für das schlimmste Feld einzurichten."/>
-    <text name="helpLine_cs_p6_npc_title"      text="Optional: Alex Chen (Agronom)"/>
-    <text name="helpLine_cs_p6_npc_text"       text="Wenn FS25_NPCFavor installiert ist, erscheint Alex Chen als Agronom-NPC. Baue deine Beziehung zu Alex durch Gefälligkeiten aus, um frühzeitige Dürrewarungen und Spezialberatung zu erhalten."/>
+    <!-- Mod-Informationen: Seite 1 — Über diesen Mod -->
+    <text name="helpLine_cs_i1_title"           text="Über diesen Mod"/>
+    <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.0.0"/>
+    <text name="helpLine_cs_i1_about_text"      text="Erstellt von TisonK. Fügt eine realistische Bodenfeuchtesimulation, saisonalen Pflanzenstress und Bewässerungsinfrastrukturverwaltung zu Farming Simulator 25 hinzu. Entwickelt, um das Feldmanagement strategischer zu gestalten — jedes Feld, jede Saison, jede Entscheidung zählt."/>
+    <text name="helpLine_cs_i1_community_title" text="Community &amp; Support"/>
+    <text name="helpLine_cs_i1_community_text"  text="Diesen Mod findest du im Farming Simulator ModHub. Für Fragen, Fehlerberichte und Updates besuche die Mod-Seite im ModHub oder das GitHub-Repository. Schau in die Community-Foren, um Tipps mit anderen Spielern zu teilen."/>
     </texts>
 </l10n>
