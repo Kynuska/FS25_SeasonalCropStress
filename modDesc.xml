@@ -187,7 +187,7 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
         <!-- ── Category 3: Tips & Tricks ─────────────────────────── -->
         <category title="$l10n_helpLine_cs_cat_tips">
 
-            <page title="$l10n_helpLine_cs_p4_title" iconSliceId="icon_settings">
+            <page title="$l10n_helpLine_cs_p4_title" iconSliceId="icon_crops">
                 <paragraph>
                     <title text="$l10n_helpLine_cs_p4_hud_title" />
                     <text  text="$l10n_helpLine_cs_p4_hud_text"  />
@@ -202,7 +202,7 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                 </paragraph>
             </page>
 
-            <page title="$l10n_helpLine_cs_t2_title" iconSliceId="icon_settings">
+            <page title="$l10n_helpLine_cs_t2_title" iconSliceId="icon_crops">
                 <paragraph>
                     <title text="$l10n_helpLine_cs_t2_sandy_title" />
                     <text  text="$l10n_helpLine_cs_t2_sandy_text"  />
