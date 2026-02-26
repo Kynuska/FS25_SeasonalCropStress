@@ -326,6 +326,8 @@ end
 function HUDOverlay:draw()
     if not self.isInitialized or not self.isVisible then return end
     if g_currentMission == nil then return end
+    -- Hide while any full-screen GUI (InGameMenu, dialogs) is open.
+    if g_gui ~= nil and g_gui:getIsGuiVisible() then return end
     -- fillOverlay is nil only if createImageOverlay was unavailable at init (extremely rare).
     -- Bail out rather than spam nil-handle errors every frame.
     if self.fillOverlay == nil then return end
