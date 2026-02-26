@@ -130,8 +130,12 @@ function HUDOverlay:initialize()
     -- Single shared overlay handle used for every filled-rect draw call.
     -- "dataS/menu/base/graph_pixel.dds" is a 1×1 white pixel in FS25 game data —
     -- tinted at draw time via setOverlayColor(handle, r, g, b, a).
+    -- Guard: createImageOverlay is always available in FS25 PC/Console builds, but
+    -- we check defensively so a missing function doesn't crash at draw time (see draw()).
     if createImageOverlay ~= nil then
         self.fillOverlay = createImageOverlay("dataS/menu/base/graph_pixel.dds")
+    else
+        csLog("WARNING: createImageOverlay not available — HUD rect rendering disabled")
     end
 
     self.isInitialized = true
@@ -223,11 +227,17 @@ end
 -- Called from main.lua addModEventListener mouseEvent handler.
 -- FS25 button numbers: 1=left, 3=right, 2=middle.
 --
--- Flow (mirrors NPCFavorHUD):
---   RMB down → toggle edit mode on/off
---   LMB down (in edit mode) → start drag, record offset from panel origin
---   Mouse move (while dragging) → update panelX/panelY
---   LMB up (in edit mode) → end drag
+-- IMPORTANT: In FS25 gameplay mode, the cursor is captured for
+-- camera control. mouseEvent fires ONLY on button state changes
+-- (down/up) — NOT for intermediate mouse movement. This means
+-- continuous drag tracking is impossible. We use the NPCFavor
+-- pattern: record position on LMB down, apply the full delta
+-- (release - click) on LMB up. One-shot repositioning.
+--
+-- Flow:
+--   RMB down → toggle edit mode (orange border = edit active)
+--   LMB down (in edit mode) → record click position + HUD origin
+--   LMB up (in edit mode)   → apply DOWN→UP delta to HUD position
 -- ============================================================
 function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
     if not self.isVisible then return end
@@ -244,31 +254,39 @@ function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
             end
             csLog("HUD edit mode OFF — position saved")
         else
-            csLog("HUD edit mode ON — LMB drag to reposition")
+            csLog("HUD edit mode ON — LMB click+release to reposition")
         end
         return
     end
 
     if not self.editMode then return end
 
-    -- ── LMB down: start drag ──────────────────────────────
+    -- ── LMB down: record drag start ───────────────────────
     if isDown and button == 1 then
-        self.dragging    = true
-        self.dragOffsetX = posX - self.panelX
-        self.dragOffsetY = posY - self.panelY
+        self.dragging   = true
+        self.dragStartX = posX
+        self.dragStartY = posY
+        self.hudStartX  = self.panelX
+        self.hudStartY  = self.panelY
         return
     end
 
-    -- ── LMB up: end drag ──────────────────────────────────
-    if isUp and button == 1 then
+    -- ── LMB up: apply full DOWN→UP delta ──────────────────
+    -- No intermediate movement events fire in FS25 gameplay mode,
+    -- so we apply the entire delta from click to release at once.
+    if isUp and button == 1 and self.dragging then
+        local dx = posX - self.dragStartX
+        local dy = posY - self.dragStartY
+        self.panelX = math.max(0.0, math.min(1.0 - HUDOverlay.PANEL_W, self.hudStartX + dx))
+        self.panelY = math.max(0.05, math.min(0.95, self.hudStartY + dy))
         self.dragging = false
+        -- Persist immediately
+        if self.manager ~= nil and self.manager.settings ~= nil then
+            self.manager.settings.hudPanelX = self.panelX
+            self.manager.settings.hudPanelY = self.panelY
+        end
+        csLog(string.format("HUD repositioned to %.3f,%.3f (delta: %+.3f,%+.3f)", self.panelX, self.panelY, dx, dy))
         return
-    end
-
-    -- ── Mouse movement: update position while dragging ────
-    if self.dragging then
-        self.panelX = math.max(0.0, math.min(1.0 - HUDOverlay.PANEL_W, posX - self.dragOffsetX))
-        self.panelY = math.max(0.05, math.min(0.95, posY - self.dragOffsetY))
     end
 end
 
@@ -308,6 +326,11 @@ end
 function HUDOverlay:draw()
     if not self.isInitialized or not self.isVisible then return end
     if g_currentMission == nil then return end
+    -- Hide while any full-screen GUI (InGameMenu, dialogs) is open.
+    if g_gui ~= nil and g_gui:getIsGuiVisible() then return end
+    -- fillOverlay is nil only if createImageOverlay was unavailable at init (extremely rare).
+    -- Bail out rather than spam nil-handle errors every frame.
+    if self.fillOverlay == nil then return end
 
     local numRows = math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)
 
@@ -386,7 +409,7 @@ function HUDOverlay:draw()
             px + HUDOverlay.PADDING,
             py + HUDOverlay.PADDING,
             0.010,
-            "click row for 5-day forecast"
+            (g_i18n ~= nil and g_i18n:getText("cs_hud_click_forecast")) or "Click row for 5-day forecast"
         )
     end
 
@@ -404,7 +427,7 @@ function HUDOverlay:draw()
             px + HUDOverlay.PADDING,
             py + HUDOverlay.PADDING,
             0.010,
-            "DRAG to move  |  RMB to exit"
+            "LMB click+release to move  |  RMB to exit"
         )
     end
 end
@@ -620,6 +643,12 @@ function HUDOverlay:toggle()
 
     if self.isVisible and not self.firstRunShown then
         self.firstRunShown = true
+    end
+
+    -- Rebuild display rows immediately on open so auto-select below has data.
+    -- (update() normally rebuilds rows, but it runs next frame — after toggle() returns.)
+    if self.isVisible then
+        self:rebuildDisplayRows()
     end
 
     -- Auto-select driest field when opening

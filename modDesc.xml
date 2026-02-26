@@ -89,13 +89,13 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
 
     <!--
         In-game help pages accessible from the pause menu → Help.
-        One category with six pages covering the full player journey:
-        overview → moisture → stress → HUD → irrigation → consultant.
+        Four categories: Overview, Settings, Tips & Tricks, Mod Information.
     -->
     <helpLines>
-        <category title="$l10n_helpLine_cs_category">
 
-            <!-- ── Page 1: Overview ──────────────────────────── -->
+        <!-- ── Category 1: Overview ─────────────────────────────── -->
+        <category title="$l10n_helpLine_cs_cat_overview">
+
             <page title="$l10n_helpLine_cs_p1_title" iconSliceId="icon_crops">
                 <paragraph>
                     <title text="$l10n_helpLine_cs_p1_intro_title" />
@@ -107,7 +107,6 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                 </paragraph>
             </page>
 
-            <!-- ── Page 2: Soil Moisture ─────────────────────── -->
             <page title="$l10n_helpLine_cs_p2_title" iconSliceId="icon_crops">
                 <paragraph>
                     <title text="$l10n_helpLine_cs_p2_how_title" />
@@ -119,7 +118,6 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                 </paragraph>
             </page>
 
-            <!-- ── Page 3: Crop Stress & Yield ──────────────── -->
             <page title="$l10n_helpLine_cs_p3_title" iconSliceId="icon_crops">
                 <paragraph>
                     <title text="$l10n_helpLine_cs_p3_window_title" />
@@ -131,23 +129,6 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                 </paragraph>
             </page>
 
-            <!-- ── Page 4: HUD & Controls ───────────────────── -->
-            <page title="$l10n_helpLine_cs_p4_title" iconSliceId="icon_crops">
-                <paragraph>
-                    <title text="$l10n_helpLine_cs_p4_hud_title" />
-                    <text  text="$l10n_helpLine_cs_p4_hud_text"  />
-                </paragraph>
-                <paragraph>
-                    <title text="$l10n_helpLine_cs_p4_status_title" />
-                    <text  text="$l10n_helpLine_cs_p4_status_text"  />
-                </paragraph>
-                <paragraph>
-                    <title text="$l10n_helpLine_cs_p4_keys_title" />
-                    <text  text="$l10n_helpLine_cs_p4_keys_text"  />
-                </paragraph>
-            </page>
-
-            <!-- ── Page 5: Irrigation ────────────────────────── -->
             <page title="$l10n_helpLine_cs_p5_title" iconSliceId="icon_crops">
                 <paragraph>
                     <title text="$l10n_helpLine_cs_p5_types_title" />
@@ -159,7 +140,6 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                 </paragraph>
             </page>
 
-            <!-- ── Page 6: Crop Consultant ───────────────────── -->
             <page title="$l10n_helpLine_cs_p6_title" iconSliceId="icon_crops">
                 <paragraph>
                     <title text="$l10n_helpLine_cs_p6_what_title" />
@@ -176,5 +156,80 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
             </page>
 
         </category>
+
+        <!-- ── Category 2: Settings ──────────────────────────────── -->
+        <category title="$l10n_helpLine_cs_cat_settings">
+
+            <page title="$l10n_helpLine_cs_s1_title" iconSliceId="icon_crops">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_s1_gen_title" />
+                    <text  text="$l10n_helpLine_cs_s1_gen_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_s1_evap_title" />
+                    <text  text="$l10n_helpLine_cs_s1_evap_text"  />
+                </paragraph>
+            </page>
+
+            <page title="$l10n_helpLine_cs_s2_title" iconSliceId="icon_crops">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_s2_yield_title" />
+                    <text  text="$l10n_helpLine_cs_s2_yield_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_s2_alerts_title" />
+                    <text  text="$l10n_helpLine_cs_s2_alerts_text"  />
+                </paragraph>
+            </page>
+
+        </category>
+
+        <!-- ── Category 3: Tips & Tricks ─────────────────────────── -->
+        <category title="$l10n_helpLine_cs_cat_tips">
+
+            <page title="$l10n_helpLine_cs_p4_title" iconSliceId="icon_crops">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p4_hud_title" />
+                    <text  text="$l10n_helpLine_cs_p4_hud_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p4_status_title" />
+                    <text  text="$l10n_helpLine_cs_p4_status_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p4_keys_title" />
+                    <text  text="$l10n_helpLine_cs_p4_keys_text"  />
+                </paragraph>
+            </page>
+
+            <page title="$l10n_helpLine_cs_t2_title" iconSliceId="icon_crops">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_t2_sandy_title" />
+                    <text  text="$l10n_helpLine_cs_t2_sandy_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_t2_forecast_title" />
+                    <text  text="$l10n_helpLine_cs_t2_forecast_text"  />
+                </paragraph>
+            </page>
+
+        </category>
+
+        <!-- ── Category 4: Mod Information ───────────────────────── -->
+        <category title="$l10n_helpLine_cs_cat_info">
+
+            <page title="$l10n_helpLine_cs_i1_title" iconSliceId="icon_info">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_i1_about_title" />
+                    <text  text="$l10n_helpLine_cs_i1_about_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_i1_community_title" />
+                    <text  text="$l10n_helpLine_cs_i1_community_text"  />
+                </paragraph>
+            </page>
+
+        </category>
+
     </helpLines>
 </modDesc>

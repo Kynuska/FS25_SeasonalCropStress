@@ -8,7 +8,8 @@
     <text name="cs_hud_critical"      text="CRITICAL — Irrigate Now!"/>
     <text name="cs_hud_no_crop"       text="No crop"/>
     <text name="cs_hud_forecast"      text="5-Day Forecast"/>
-    <text name="cs_hud_first_run"     text="Crop Moisture Monitor is now active. Press Shift+M to toggle the field status panel."/>
+    <text name="cs_hud_first_run"      text="Crop Moisture Monitor is now active. Press Shift+M to toggle the field status panel."/>
+    <text name="cs_hud_click_forecast" text="Click a row for 5-day forecast"/>
 
     <!-- ========== FIELD STATUS ========== -->
     <text name="cs_field_moisture"        text="Moisture"/>
@@ -140,30 +141,66 @@
     <text name="cs_settings_debug_long"        text="Enable verbose logging for troubleshooting"/>
 
     <!-- ========== HELP LINES ========== -->
+    <!-- Legacy key kept for safety -->
     <text name="helpLine_cs_category"          text="Seasonal Crop Stress"/>
+    <!-- Category titles -->
+    <text name="helpLine_cs_cat_overview"      text="Overview"/>
+    <text name="helpLine_cs_cat_settings"      text="Settings"/>
+    <text name="helpLine_cs_cat_tips"          text="Tips &amp; Tricks"/>
+    <text name="helpLine_cs_cat_info"          text="Mod Information"/>
 
-    <!-- Page 1: Overview -->
+    <!-- Overview: Page 1 -->
     <text name="helpLine_cs_p1_title"          text="Overview"/>
     <text name="helpLine_cs_p1_intro_title"    text="What This Mod Adds"/>
     <text name="helpLine_cs_p1_intro_text"     text="Seasonal Crop Stress adds soil moisture simulation to every field. Crops need water during key growth stages. If they don't get it, your harvest will be smaller. Irrigation systems let you take control of your field's water supply."/>
     <text name="helpLine_cs_p1_start_title"    text="Getting Started"/>
     <text name="helpLine_cs_p1_start_text"     text="Press Shift+M to open the moisture HUD and see all your fields at a glance. Fields shown in red need water urgently. Green fields are in good shape. Press Shift+C to open the Crop Consultant for detailed advice and field risk scores."/>
 
-    <!-- Page 2: Soil Moisture -->
+    <!-- Overview: Page 2 -->
     <text name="helpLine_cs_p2_title"          text="Soil Moisture"/>
     <text name="helpLine_cs_p2_how_title"      text="How Moisture Works"/>
     <text name="helpLine_cs_p2_how_text"       text="Rain fills your soil and heat drains it. Every field tracks its own moisture level from 0% (bone dry) to 100% (saturated). The rate of drying depends on the weather, the season, and your soil type."/>
     <text name="helpLine_cs_p2_soil_title"     text="Soil Types"/>
     <text name="helpLine_cs_p2_soil_text"      text="Sandy soil drains fast and needs frequent irrigation. Clay soil holds water longer but can become waterlogged. Loamy soil is in between and the easiest to manage. Your field's soil type is shown in the HUD and Crop Consultant."/>
 
-    <!-- Page 3: Crop Stress and Yield -->
+    <!-- Overview: Page 3 -->
     <text name="helpLine_cs_p3_title"          text="Crop Stress &amp; Yield"/>
     <text name="helpLine_cs_p3_window_title"   text="Critical Growth Windows"/>
     <text name="helpLine_cs_p3_window_text"    text="Every crop has a period during its growth cycle when it needs water the most. Wheat is most vulnerable in spring, corn suffers during summer heat waves, canola is sensitive in autumn. Low moisture during this window builds up stress on that field."/>
     <text name="helpLine_cs_p3_yield_title"    text="Yield Reduction at Harvest"/>
     <text name="helpLine_cs_p3_yield_text"     text="Accumulated stress reduces your harvest. A small amount of stress means a small yield loss. Severe drought can cut your harvest by up to 60%. The Crop Consultant shows your current yield risk per field so you can prioritise irrigation where it matters most."/>
 
-    <!-- Page 4: HUD and Controls -->
+    <!-- Overview: Page 4 (Irrigation) -->
+    <text name="helpLine_cs_p5_title"          text="Irrigation"/>
+    <text name="helpLine_cs_p5_types_title"    text="Irrigation Types"/>
+    <text name="helpLine_cs_p5_types_text"     text="Three irrigation types are available in the build menu. Center Pivot covers a large circular area. Drip Line provides precise coverage along a field row. Water Pump powers your irrigation systems and must be placed near a water source first."/>
+    <text name="helpLine_cs_p5_schedule_title" text="Scheduling &amp; Running"/>
+    <text name="helpLine_cs_p5_schedule_text"  text="Select an irrigation system and press Shift+I to open its schedule. Pick which days of the week to irrigate and set a daily start and end time. You can also press Irrigate Now in the dialog to water the covered fields immediately without waiting for the schedule."/>
+
+    <!-- Overview: Page 5 (Crop Consultant) -->
+    <text name="helpLine_cs_p6_title"          text="Crop Consultant"/>
+    <text name="helpLine_cs_p6_what_title"     text="What the Consultant Shows"/>
+    <text name="helpLine_cs_p6_what_text"      text="Press Shift+C to open the Crop Consultant. It shows your top 5 highest-risk fields ranked by moisture and stress level, along with a plain-language recommendation for the next 24 hours and a 3-day moisture forecast."/>
+    <text name="helpLine_cs_p6_act_title"      text="Acting on Advice"/>
+    <text name="helpLine_cs_p6_act_text"       text="Fields marked CRITICAL need irrigation today to prevent harvest loss. Fields marked WARNING should be irrigated within a day or two. Use the Open Irrigation Manager button inside the Consultant to quickly schedule water for the worst field."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Optional: Alex Chen (Agronomist)"/>
+    <text name="helpLine_cs_p6_npc_text"       text="If FS25_NPCFavor is installed, Alex Chen will appear as an Agronomist NPC. Build your relationship with Alex through favors to unlock early drought warnings and access specialist irrigation advice."/>
+
+    <!-- Settings: Page 1 — General Settings -->
+    <text name="helpLine_cs_s1_title"          text="General Settings"/>
+    <text name="helpLine_cs_s1_gen_title"      text="Enabling the Mod"/>
+    <text name="helpLine_cs_s1_gen_text"       text="Open the in-game settings (ESC → Settings → Seasonal Crop Stress). Use Enable Mod to switch the entire system on or off without removing your irrigation infrastructure. The Difficulty setting controls how quickly crops accumulate drought stress — Easy is forgiving, Hard pushes you to irrigate proactively."/>
+    <text name="helpLine_cs_s1_evap_title"     text="Evapotranspiration Rate"/>
+    <text name="helpLine_cs_s1_evap_text"      text="Evapotranspiration controls how quickly soil dries out between rain events. Slow means fields hold moisture well and rain goes a long way. Fast means fields can dry out within a game-day during hot weather — active irrigation management becomes essential."/>
+
+    <!-- Settings: Page 2 — Advanced Settings -->
+    <text name="helpLine_cs_s2_title"          text="Advanced Settings"/>
+    <text name="helpLine_cs_s2_yield_title"    text="Yield Loss &amp; Stress Threshold"/>
+    <text name="helpLine_cs_s2_yield_text"     text="Max Yield Loss caps the percentage of harvest that drought stress can reduce. At the default 60%, a fully stressed field still yields 40% of normal. Critical Threshold is the moisture level below which stress begins to accumulate — raise it to make crops more drought-sensitive, lower it for more tolerance."/>
+    <text name="helpLine_cs_s2_alerts_title"   text="Irrigation Costs &amp; Alerts"/>
+    <text name="helpLine_cs_s2_alerts_text"    text="Irrigation Costs charges an hourly fee for running irrigation systems, adding a financial management layer. Disable this for a simpler experience. Alerts Enabled shows warning notifications when fields need water. Alert Cooldown sets the minimum in-game hours before the same field triggers another alert, preventing notification spam."/>
+
+    <!-- Tips & Tricks: Page 1 (HUD & Controls) -->
     <text name="helpLine_cs_p4_title"          text="HUD &amp; Controls"/>
     <text name="helpLine_cs_p4_hud_title"      text="Moisture HUD Overlay"/>
     <text name="helpLine_cs_p4_hud_text"       text="Press Shift+M to toggle the moisture HUD. It lists every field with its moisture level, crop type, and stress status. A 5-day forecast shows whether moisture is rising or falling so you can plan ahead."/>
@@ -172,20 +209,18 @@
     <text name="helpLine_cs_p4_keys_title"     text="Keyboard Shortcuts"/>
     <text name="helpLine_cs_p4_keys_text"      text="Shift+M toggles the moisture HUD on or off. Shift+I opens the Irrigation Manager for a selected system. Shift+C opens the Crop Consultant with a field risk summary and personalised recommendations."/>
 
-    <!-- Page 5: Irrigation -->
-    <text name="helpLine_cs_p5_title"          text="Irrigation"/>
-    <text name="helpLine_cs_p5_types_title"    text="Irrigation Types"/>
-    <text name="helpLine_cs_p5_types_text"     text="Three irrigation types are available in the build menu. Center Pivot covers a large circular area. Drip Line provides precise coverage along a field row. Water Pump powers your irrigation systems and must be placed near a water source first."/>
-    <text name="helpLine_cs_p5_schedule_title" text="Scheduling &amp; Running"/>
-    <text name="helpLine_cs_p5_schedule_text"  text="Select an irrigation system and press Shift+I to open its schedule. Pick which days of the week to irrigate and set a daily start and end time. You can also press Irrigate Now in the dialog to water the covered fields immediately without waiting for the schedule."/>
+    <!-- Tips & Tricks: Page 2 — Farming Strategies -->
+    <text name="helpLine_cs_t2_title"          text="Farming Strategies"/>
+    <text name="helpLine_cs_t2_sandy_title"    text="Prioritise Sandy Fields"/>
+    <text name="helpLine_cs_t2_sandy_text"     text="Sandy soil dries out twice as fast as loamy soil. If you farm a mix of soil types, place irrigation on sandy fields first. A centre pivot covering a large sandy area is often a better investment than a drip line on a small clay field that holds moisture naturally."/>
+    <text name="helpLine_cs_t2_forecast_title" text="Use the Forecast"/>
+    <text name="helpLine_cs_t2_forecast_text"  text="The 5-day forecast in the HUD shows whether moisture is trending up or down. If rain is forecast within a day or two and your fields are only in the warning range, wait for the rain — you will save money and wear on your equipment. Act early when the forecast shows several dry days ahead during a critical growth window."/>
 
-    <!-- Page 6: Crop Consultant -->
-    <text name="helpLine_cs_p6_title"          text="Crop Consultant"/>
-    <text name="helpLine_cs_p6_what_title"     text="What the Consultant Shows"/>
-    <text name="helpLine_cs_p6_what_text"      text="Press Shift+C to open the Crop Consultant. It shows your top 5 highest-risk fields ranked by moisture and stress level, along with a plain-language recommendation for the next 24 hours and a 3-day moisture forecast."/>
-    <text name="helpLine_cs_p6_act_title"      text="Acting on Advice"/>
-    <text name="helpLine_cs_p6_act_text"       text="Fields marked CRITICAL need irrigation today to prevent harvest loss. Fields marked WARNING should be irrigated within a day or two. Use the Open Irrigation Manager button inside the Consultant to quickly schedule water for the worst field."/>
-    <text name="helpLine_cs_p6_npc_title"      text="Optional: Alex Chen (Agronomist)"/>
-    <text name="helpLine_cs_p6_npc_text"       text="If FS25_NPCFavor is installed, Alex Chen will appear as an Agronomist NPC. Build your relationship with Alex through favors to unlock early drought warnings and access specialist irrigation advice."/>
+    <!-- Mod Information: Page 1 — About -->
+    <text name="helpLine_cs_i1_title"           text="About This Mod"/>
+    <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.0.0"/>
+    <text name="helpLine_cs_i1_about_text"      text="Created by TisonK. Adds realistic soil moisture simulation, seasonal crop stress accumulation, and irrigation infrastructure management to Farming Simulator 25. Designed to make crop management more strategic — every field, every season, every decision counts."/>
+    <text name="helpLine_cs_i1_community_title" text="Community &amp; Support"/>
+    <text name="helpLine_cs_i1_community_text"  text="Find this mod on Github and KingMods. For questions, bug reports, and updates please visit the github repository."/>
     </texts>
 </l10n>

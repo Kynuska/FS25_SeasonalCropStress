@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     IrrigationScheduleDialog.xml
-    NOTE: onOpen is intentionally OMITTED. The dialog requires a systemId argument
-    that the XML onOpen mechanism cannot pass. Opening is handled manually via
-    dialog.target:onIrrigationDialogOpen(systemId) in CropStressManager.
+    NOTE: onOpen="onOpen" is present and calls IrrigationScheduleDialog:onOpen(), which
+    calls superClass().onOpen() to initialise the FS25 focus/input system. The actual
+    content population (system data, schedule) is NOT done in onOpen — it requires the
+    systemId argument, which XML cannot pass. Content is populated by calling
+    dialog.target:onIrrigationDialogOpen(systemId) from CropStressManager after showDialog().
     NOTE: MultiTextOption is intentionally avoided — fs25_multiTextOption triggers an
     async i3d load in FocusManager that returns a nil nodeId in FS25 v1.16, causing
     FocusManager.lua:94: table index is nil. Use +/- button pairs instead.

@@ -8,7 +8,8 @@
     <text name="cs_hud_critical"      text="KRYTYCZNE — Nawadniaj teraz!"/>
     <text name="cs_hud_no_crop"       text="Brak uprawy"/>
     <text name="cs_hud_forecast"      text="Prognoza 5-dniowa"/>
-    <text name="cs_hud_first_run"     text="Monitor wilgotności gleby aktywny. Shift+M aby przełączyć."/>
+    <text name="cs_hud_first_run"      text="Monitor wilgotności gleby aktywny. Shift+M aby przełączyć."/>
+    <text name="cs_hud_click_forecast" text="Kliknij wiersz aby zobaczyć prognozę 5-dniową"/>
 
     <!-- ========== FIELD STATUS ========== -->
     <text name="cs_field_moisture"        text="Wilgotność"/>
@@ -140,30 +141,66 @@
     <text name="cs_settings_debug_long"        text="Włącz szczegółowe logowanie do rozwiązywania problemów"/>
 
     <!-- ========== HELP LINES ========== -->
+    <!-- Stary klucz zachowany dla kompatybilności -->
     <text name="helpLine_cs_category"          text="Sezonowy stres upraw"/>
+    <!-- Tytuły kategorii -->
+    <text name="helpLine_cs_cat_overview"      text="Przegląd"/>
+    <text name="helpLine_cs_cat_settings"      text="Ustawienia"/>
+    <text name="helpLine_cs_cat_tips"          text="Wskazówki &amp; Triki"/>
+    <text name="helpLine_cs_cat_info"          text="Informacje o modzie"/>
 
-    <!-- Strona 1: Przegląd -->
+    <!-- Przegląd: Strona 1 -->
     <text name="helpLine_cs_p1_title"          text="Przegląd"/>
     <text name="helpLine_cs_p1_intro_title"    text="Co dodaje ten mod"/>
     <text name="helpLine_cs_p1_intro_text"     text="Sezonowy stres upraw dodaje symulację wilgotności gleby do każdego pola. Rośliny potrzebują wody w kluczowych fazach wzrostu. Jeśli jej nie otrzymają, zbiory będą mniejsze. Systemy nawadniania pozwalają kontrolować zaopatrzenie pól w wodę."/>
     <text name="helpLine_cs_p1_start_title"    text="Pierwsze kroki"/>
     <text name="helpLine_cs_p1_start_text"     text="Naciśnij Shift+M, aby otworzyć HUD wilgotności i zobaczyć wszystkie pola na pierwszy rzut oka. Pola oznaczone na czerwono pilnie potrzebują wody. Zielone pola są w dobrej kondycji. Naciśnij Shift+C, aby otworzyć Konsultanta upraw z szczegółowymi zaleceniami i wartościami ryzyka."/>
 
-    <!-- Strona 2: Wilgotność gleby -->
+    <!-- Przegląd: Strona 2 -->
     <text name="helpLine_cs_p2_title"          text="Wilgotność gleby"/>
     <text name="helpLine_cs_p2_how_title"      text="Jak działa wilgotność"/>
     <text name="helpLine_cs_p2_how_text"       text="Deszcz nawadnia glebę, a upał ją wysusza. Każde pole śledzi własny poziom wilgotności od 0% (całkowicie sucha) do 100% (nasycona). Szybkość wysychania zależy od pogody, pory roku i typu gleby."/>
     <text name="helpLine_cs_p2_soil_title"     text="Typy gleby"/>
     <text name="helpLine_cs_p2_soil_text"      text="Gleba piaszczysta szybko wysycha i wymaga częstego nawadniania. Gleba ilasta dłużej zatrzymuje wodę, ale może być podmokła. Gleba gliniasta jest pośrednia i najłatwiejsza w zarządzaniu. Typ gleby jest wyświetlany w HUD i u Konsultanta upraw."/>
 
-    <!-- Strona 3: Stres upraw i plony -->
+    <!-- Przegląd: Strona 3 -->
     <text name="helpLine_cs_p3_title"          text="Stres upraw &amp; plony"/>
     <text name="helpLine_cs_p3_window_title"   text="Krytyczne okna wzrostu"/>
     <text name="helpLine_cs_p3_window_text"    text="Każda uprawa ma okres w swoim cyklu wzrostu, w którym najbardziej potrzebuje wody. Pszenica jest najbardziej wrażliwa wiosną, kukurydza cierpi podczas letnich upałów, rzepak jest wrażliwy jesienią. Niska wilgotność w tym okresie kumuluje stres na polu."/>
     <text name="helpLine_cs_p3_yield_title"    text="Redukcja plonów przy zbiorach"/>
     <text name="helpLine_cs_p3_yield_text"     text="Skumulowany stres zmniejsza twoje zbiory. Niewielki stres oznacza małe straty. Poważna susza może zmniejszyć zbiory nawet o 60%. Konsultant upraw pokazuje bieżące ryzyko plonów dla każdego pola, abyś mógł priorytetyzować nawadnianie."/>
 
-    <!-- Strona 4: HUD i sterowanie -->
+    <!-- Przegląd: Strona 4 (Nawadnianie) -->
+    <text name="helpLine_cs_p5_title"          text="Nawadnianie"/>
+    <text name="helpLine_cs_p5_types_title"    text="Typy nawadniania"/>
+    <text name="helpLine_cs_p5_types_text"     text="W menu budowy dostępne są trzy typy nawadniania. Nawadnianie pivot pokrywa duży okrągły obszar. Linia nawadniania kroplowego zapewnia precyzyjne pokrycie wzdłuż rzędu pola. Pompa wodna zasila systemy nawadniania i musi być najpierw umieszczona w pobliżu źródła wody."/>
+    <text name="helpLine_cs_p5_schedule_title" text="Harmonogram &amp; działanie"/>
+    <text name="helpLine_cs_p5_schedule_text"  text="Wybierz system nawadniania i naciśnij Shift+I, aby otworzyć jego harmonogram. Wybierz dni tygodnia i ustaw codzienne godziny rozpoczęcia i zakończenia. Możesz także nacisnąć Nawadniaj teraz w oknie dialogowym, aby natychmiast podlać objęte pola bez czekania na harmonogram."/>
+
+    <!-- Przegląd: Strona 5 (Konsultant upraw) -->
+    <text name="helpLine_cs_p6_title"          text="Konsultant upraw"/>
+    <text name="helpLine_cs_p6_what_title"     text="Co pokazuje konsultant"/>
+    <text name="helpLine_cs_p6_what_text"      text="Naciśnij Shift+C, aby otworzyć Konsultanta upraw. Pokazuje on 5 pól najwyższego ryzyka uszeregowanych według wilgotności i poziomu stresu, wraz z zrozumiałym zaleceniem na najbliższe 24 godziny i 3-dniową prognozą wilgotności."/>
+    <text name="helpLine_cs_p6_act_title"      text="Działanie zgodnie z zaleceniami"/>
+    <text name="helpLine_cs_p6_act_text"       text="Pola oznaczone KRYTYCZNE wymagają nawadniania dzisiaj, aby zapobiec stratom w plonach. Pola oznaczone OSTRZEŻENIE powinny być nawadniane w ciągu jednego lub dwóch dni. Użyj przycisku Otwórz menedżera nawadniania w Konsultancie, aby szybko zaplanować nawadnianie dla najgorszego pola."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Opcjonalnie: Alex Chen (Agronom)"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Jeśli zainstalowano FS25_NPCFavor, Alex Chen pojawi się jako NPC Agronom. Buduj relację z Alexem poprzez przysługi, aby odblokować wczesne ostrzeżenia o suszy i uzyskać specjalistyczne porady dotyczące nawadniania."/>
+
+    <!-- Ustawienia: Strona 1 — Ustawienia ogólne -->
+    <text name="helpLine_cs_s1_title"          text="Ustawienia ogólne"/>
+    <text name="helpLine_cs_s1_gen_title"      text="Włączanie moda"/>
+    <text name="helpLine_cs_s1_gen_text"       text="Otwórz ustawienia gry (ESC → Ustawienia → Sezonowy stres upraw). Użyj Włącz mod, aby włączyć lub wyłączyć cały system bez usuwania infrastruktury nawadniania. Poziom trudności kontroluje szybkość akumulacji stresu suszy — Łatwy jest pobłażliwy, Trudny wymaga proaktywnego zarządzania nawadnianiem."/>
+    <text name="helpLine_cs_s1_evap_title"     text="Szybkość ewapotranspiracji"/>
+    <text name="helpLine_cs_s1_evap_text"      text="Ewapotranspiracja kontroluje szybkość wysychania gleby między opadami. Wolna oznacza, że pola dobrze zatrzymują wilgoć i deszcz jest bardzo pomocny. Szybka oznacza, że pola mogą wyschnąć w ciągu jednego dnia gry podczas gorącej pogody — aktywne zarządzanie nawadnianiem staje się wtedy niezbędne."/>
+
+    <!-- Ustawienia: Strona 2 — Ustawienia zaawansowane -->
+    <text name="helpLine_cs_s2_title"          text="Ustawienia zaawansowane"/>
+    <text name="helpLine_cs_s2_yield_title"    text="Utrata plonu &amp; próg stresu"/>
+    <text name="helpLine_cs_s2_yield_text"     text="Maks. utrata plonu ogranicza procent zbiorów, który stres suszy może zmniejszyć. Przy domyślnych 60% całkowicie zestresowane pole nadal daje 40% normalnych zbiorów. Próg krytyczny to poziom wilgotności, poniżej którego zaczyna się akumulować stres — podnieś go dla bardziej wrażliwych upraw, obniż dla większej tolerancji."/>
+    <text name="helpLine_cs_s2_alerts_title"   text="Koszty nawadniania &amp; alerty"/>
+    <text name="helpLine_cs_s2_alerts_text"    text="Koszty nawadniania pobiera opłatę godzinową za uruchomione systemy nawadniania. Wyłącz to dla prostszej rozgrywki. Alerty włączone pokazuje powiadomienia, gdy pola potrzebują wody. Czas odnowienia alertów ustawia minimalne godziny gry przed kolejnym alertem dla tego samego pola, zapobiegając nadmiarowi powiadomień."/>
+
+    <!-- Wskazówki &amp; Triki: Strona 1 (HUD &amp; sterowanie) -->
     <text name="helpLine_cs_p4_title"          text="HUD &amp; sterowanie"/>
     <text name="helpLine_cs_p4_hud_title"      text="Nakładka HUD wilgotności"/>
     <text name="helpLine_cs_p4_hud_text"       text="Naciśnij Shift+M, aby włączyć lub wyłączyć HUD wilgotności. Wyświetla on każde pole z jego poziomem wilgotności, typem uprawy i statusem stresu. 5-dniowa prognoza pokazuje, czy wilgotność rośnie, czy spada, abyś mógł planować z wyprzedzeniem."/>
@@ -172,20 +209,18 @@
     <text name="helpLine_cs_p4_keys_title"     text="Skróty klawiszowe"/>
     <text name="helpLine_cs_p4_keys_text"      text="Shift+M przełącza HUD wilgotności. Shift+I otwiera menedżera nawadniania dla wybranego systemu. Shift+C otwiera Konsultanta upraw z podsumowaniem ryzyka i spersonalizowanymi zaleceniami."/>
 
-    <!-- Strona 5: Nawadnianie -->
-    <text name="helpLine_cs_p5_title"          text="Nawadnianie"/>
-    <text name="helpLine_cs_p5_types_title"    text="Typy nawadniania"/>
-    <text name="helpLine_cs_p5_types_text"     text="W menu budowy dostępne są trzy typy nawadniania. Nawadnianie pivot pokrywa duży okrągły obszar. Linia nawadniania kroplowego zapewnia precyzyjne pokrycie wzdłuż rzędu pola. Pompa wodna zasila systemy nawadniania i musi być najpierw umieszczona w pobliżu źródła wody."/>
-    <text name="helpLine_cs_p5_schedule_title" text="Harmonogram &amp; działanie"/>
-    <text name="helpLine_cs_p5_schedule_text"  text="Wybierz system nawadniania i naciśnij Shift+I, aby otworzyć jego harmonogram. Wybierz dni tygodnia i ustaw codzienne godziny rozpoczęcia i zakończenia. Możesz także nacisnąć Nawadniaj teraz w oknie dialogowym, aby natychmiast podlać objęte pola bez czekania na harmonogram."/>
+    <!-- Wskazówki &amp; Triki: Strona 2 — Strategie rolnicze -->
+    <text name="helpLine_cs_t2_title"          text="Strategie rolnicze"/>
+    <text name="helpLine_cs_t2_sandy_title"    text="Priorytetyzuj piaszczyste pola"/>
+    <text name="helpLine_cs_t2_sandy_text"     text="Gleba piaszczysta wysycha dwa razy szybciej niż gleba gliniasta. Jeśli uprawiasz mieszane typy gleb, najpierw umieszczaj nawadnianie na polach piaszczystych. Nawadnianie pivot obejmujące duży piaszczysty obszar jest często lepszą inwestycją niż linia nawadniania kroplowego na małym polu gliniastym, które samo dobrze zatrzymuje wilgoć."/>
+    <text name="helpLine_cs_t2_forecast_title" text="Korzystaj z prognozy"/>
+    <text name="helpLine_cs_t2_forecast_text"  text="Prognoza 5-dniowa w HUD pokazuje, czy wilgotność rośnie czy spada. Jeśli przewidywany jest deszcz w ciągu jednego lub dwóch dni, a twoje pola są tylko w zakresie ostrzeżenia, poczekaj na deszcz — zaoszczędzisz pieniądze i zużycie sprzętu. Działaj wcześnie, gdy prognoza pokazuje kilka suchych dni podczas krytycznego okna wzrostu."/>
 
-    <!-- Strona 6: Konsultant upraw -->
-    <text name="helpLine_cs_p6_title"          text="Konsultant upraw"/>
-    <text name="helpLine_cs_p6_what_title"     text="Co pokazuje konsultant"/>
-    <text name="helpLine_cs_p6_what_text"      text="Naciśnij Shift+C, aby otworzyć Konsultanta upraw. Pokazuje on 5 pól najwyższego ryzyka uszeregowanych według wilgotności i poziomu stresu, wraz z zrozumiałym zaleceniem na najbliższe 24 godziny i 3-dniową prognozą wilgotności."/>
-    <text name="helpLine_cs_p6_act_title"      text="Działanie zgodnie z zaleceniami"/>
-    <text name="helpLine_cs_p6_act_text"       text="Pola oznaczone KRYTYCZNE wymagają nawadniania dzisiaj, aby zapobiec stratom w plonach. Pola oznaczone OSTRZEŻENIE powinny być nawadniane w ciągu jednego lub dwóch dni. Użyj przycisku Otwórz menedżera nawadniania w Konsultancie, aby szybko zaplanować nawadnianie dla najgorszego pola."/>
-    <text name="helpLine_cs_p6_npc_title"      text="Opcjonalnie: Alex Chen (Agronom)"/>
-    <text name="helpLine_cs_p6_npc_text"       text="Jeśli zainstalowano FS25_NPCFavor, Alex Chen pojawi się jako NPC Agronom. Buduj relację z Alexem poprzez przysługi, aby odblokować wczesne ostrzeżenia o suszy i uzyskać specjalistyczne porady dotyczące nawadniania."/>
+    <!-- Informacje o modzie: Strona 1 — O modzie -->
+    <text name="helpLine_cs_i1_title"           text="O tym modzie"/>
+    <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.0.0"/>
+    <text name="helpLine_cs_i1_about_text"      text="Stworzony przez TisonK. Dodaje realistyczną symulację wilgotności gleby, sezonowy stres upraw i zarządzanie infrastrukturą nawadniania do Farming Simulator 25. Zaprojektowany, aby zarządzanie uprawami było bardziej strategiczne — każde pole, każdy sezon, każda decyzja ma znaczenie."/>
+    <text name="helpLine_cs_i1_community_title" text="Społeczność &amp; pomoc"/>
+    <text name="helpLine_cs_i1_community_text"  text="Znajdź ten mod w Farming Simulator ModHub. W przypadku pytań, zgłoszeń błędów i aktualizacji odwiedź stronę moda w ModHub lub repozytorium GitHub. Dołącz do forów społecznościowych, aby dzielić się wskazówkami z innymi graczami."/>
     </texts>
 </l10n>

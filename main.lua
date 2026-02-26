@@ -287,7 +287,17 @@ FSBaseMission.sendInitialClientState = Utils.appendedFunction(
 -- 9. Mouse events — RMB repositions the HUD panel.
 -- addModEventListener is the correct FS25 pattern for raw mouse input in mods.
 -- FS25 button numbers: 1=left, 3=right, 2=middle (confirmed via FS25_NPCFavor).
+--
+-- CRITICAL: FS25 calls keyEvent(), update(), draw(), and delete() on EVERY registered
+-- mod event listener without nil-checking the method first. Passing an anonymous table
+-- that only defines mouseEvent causes a Lua error when ESC is pressed (keyEvent() is nil),
+-- FS25 silently catches it in pcall, considers the key handled, and InGameMenu never opens.
+-- ALL listener methods must be present — stubs are fine for the ones we don't use.
 addModEventListener({
+    update   = function(self, dt) end,
+    draw     = function(self) end,
+    delete   = function(self) end,
+    keyEvent = function(self, unicode, sym, modifier, isDown) end,
     mouseEvent = function(self, posX, posY, isDown, isUp, button)
         if g_csManager == nil then return end
         if g_csManager.hudOverlay == nil then return end

@@ -12,8 +12,10 @@
 -- NPCFavor mode:
 --   Also shows relationship level with Alex Chen and available favors.
 --
--- Extends DialogElement per CLAUDE.md guidance.
--- NEVER name callbacks onClose/onOpen — they conflict with FS25 lifecycle.
+-- Extends MessageDialog (NOT the deprecated DialogElement — see CLAUDE.md).
+-- onOpen IS used as the FS25 lifecycle hook (calls superClass().onOpen for focus/input init).
+-- Close buttons call self:close() to initiate the close sequence; the XML onClose attribute
+-- points to onConsultantDialogClose() which is cleanup-only (do NOT call close() inside it).
 -- ============================================================
 
 CropConsultantDialog = {}
@@ -287,11 +289,20 @@ end
 -- ============================================================
 function CropConsultantDialog:getCropName(fieldId)
     if g_currentMission == nil or g_currentMission.fieldManager == nil then return "?" end
+
     local field = nil
     if g_currentMission.fieldManager.getFieldByIndex ~= nil then
         field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
     end
+    -- Fallback: iterate all fields (needed on maps where getFieldByIndex returns nil)
+    if field == nil then
+        local fields = g_currentMission.fieldManager:getFields()
+        for _, f in pairs(fields) do
+            if f.fieldId == fieldId then field = f; break end
+        end
+    end
     if field == nil then return "?" end
+
     local ft = type(field.getFruitType) == "function"
         and field:getFruitType()
         or field.fruitType

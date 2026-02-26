@@ -72,16 +72,16 @@ function CropStressSettingsSyncEvent:writeStream(streamId, connection)
         streamWriteUInt8(streamId, CropStressSettingsSyncEvent.BULK_COUNT)
         
         -- Write each setting with type tagging
-        self:writeSetting(streamId, "enabled", settings.enabled, CropStressSettingsSyncEvent.VALUE_TYPE_BOOL)
-        self:writeSetting(streamId, "difficulty", settings.difficulty, CropStressSettingsSyncEvent.VALUE_TYPE_STRING)
-        self:writeSetting(streamId, "hudVisible", settings.hudVisible, CropStressSettingsSyncEvent.VALUE_TYPE_BOOL)
-        self:writeSetting(streamId, "evapotranspiration", settings.evapotranspiration, CropStressSettingsSyncEvent.VALUE_TYPE_STRING)
-        self:writeSetting(streamId, "maxYieldLoss", settings.maxYieldLoss, CropStressSettingsSyncEvent.VALUE_TYPE_FLOAT)
-        self:writeSetting(streamId, "criticalThreshold", settings.criticalThreshold, CropStressSettingsSyncEvent.VALUE_TYPE_FLOAT)
-        self:writeSetting(streamId, "irrigationCosts", settings.irrigationCosts, CropStressSettingsSyncEvent.VALUE_TYPE_BOOL)
-        self:writeSetting(streamId, "alertsEnabled", settings.alertsEnabled, CropStressSettingsSyncEvent.VALUE_TYPE_BOOL)
-        self:writeSetting(streamId, "alertCooldown", settings.alertCooldown, CropStressSettingsSyncEvent.VALUE_TYPE_INT)
-        self:writeSetting(streamId, "debugMode", settings.debugMode, CropStressSettingsSyncEvent.VALUE_TYPE_BOOL)
+        self:writeSetting(streamId, "enabled",            settings.enabled)
+        self:writeSetting(streamId, "difficulty",         settings.difficulty)
+        self:writeSetting(streamId, "hudVisible",         settings.hudVisible)
+        self:writeSetting(streamId, "evapotranspiration", settings.evapotranspiration)
+        self:writeSetting(streamId, "maxYieldLoss",       settings.maxYieldLoss)
+        self:writeSetting(streamId, "criticalThreshold",  settings.criticalThreshold)
+        self:writeSetting(streamId, "irrigationCosts",    settings.irrigationCosts)
+        self:writeSetting(streamId, "alertsEnabled",      settings.alertsEnabled)
+        self:writeSetting(streamId, "alertCooldown",      settings.alertCooldown)
+        self:writeSetting(streamId, "debugMode",          settings.debugMode)
     end
 end
 
@@ -150,7 +150,9 @@ function CropStressSettingsSyncEvent:readValue(streamId)
     return nil
 end
 
-function CropStressSettingsSyncEvent:writeSetting(streamId, key, value, expectedType)
+-- writeSetting: write a key + auto-typed value to the stream.
+-- (expectedType was removed — writeValue() infers the type at runtime.)
+function CropStressSettingsSyncEvent:writeSetting(streamId, key, value)
     streamWriteString(streamId, key)
     self:writeValue(streamId, value)
 end
@@ -233,13 +235,19 @@ function CropStressSettingsSyncEvent:senderHasMasterRights(connection)
     if g_userManager == nil or connection == nil then
         return false
     end
-    
-    -- Check if the connection belongs to a master user
+
+    -- Check if the connection belongs to a master user.
+    -- Permission.MASTER_USER is guarded: it may be nil on console builds or older versions.
+    if Permission == nil or Permission.MASTER_USER == nil then
+        csLog("WARNING: Permission.MASTER_USER not available — defaulting to deny")
+        return false
+    end
+
     local user = g_userManager:getUserByConnection(connection)
     if user == nil then
         return false
     end
-    
+
     return user:hasPermission(Permission.MASTER_USER)
 end
 

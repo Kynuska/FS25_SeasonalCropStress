@@ -346,6 +346,69 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 
 ---
 
+### 2026-02-26 (session 9) — Claude (Sonnet 4.6) — Deep Polish Pass, Wiring Audit, 14 Fixes
+
+**Started from:** User request: "perform a pass over all new code looking for any bugs, edge cases, code not hooked up, proper commenting, and finally perform polish." Followed by: "So now the entire codebase is wired correctly? No missing functions, calls that are wrong? Silent killers?"
+
+**Completed:**
+
+1. **Deep code review — 14 distinct issues found and resolved across 9 files**
+
+   *Event / wiring bugs:*
+   - `CS_STRESS_ACCUMULATED` event name mismatched architecture doc — renamed to `CS_STRESS_APPLIED` in `CropStressModifier.lua`. No subscriber existed under either name; now consistent with docs.
+   - Stress event payload used `CropStressModifier.MAX_YIELD_LOSS` (class constant) instead of `self:getMaxYieldLoss()` (instance method). Difficulty setting had zero effect on published multiplier. Fixed.
+   - `writeSetting(streamId, key, value, expectedType)` in `CropStressSettingsSyncEvent.lua` — `expectedType` param was accepted but never read (dead parameter). Removed from signature, cleaned up all 4 call sites.
+
+   *Edge case / defensive guards:*
+   - `Permission.MASTER_USER` accessed in `senderHasMasterRights()` with no nil check — crash risk if Permission table not yet loaded. Added guard with deny-by-default fallback.
+   - `HUDOverlay:draw()` — `fillOverlay` could be nil if `createImageOverlay` unavailable. Added early-return guard and warning log in `initialize()`.
+   - `HUDOverlay:toggle()` — auto-select on first open was reading an empty `displayRows` table (populated next frame in `update()`). Fixed by calling `rebuildDisplayRows()` synchronously inside `toggle()` before the auto-select check.
+   - `IrrigationScheduleDialog:onStartHourPlus()` / `onEndHourMinus()` — `startHour == endHour` silently disables the schedule (no hour satisfies `h >= start AND h < end`). Added guard blocking the increment/decrement that would produce this state.
+   - `getCropName()` in both `CropConsultantDialog.lua` and `IrrigationScheduleDialog.lua` lacked the fallback field-iteration loop present in `CropConsultant.lua` — would return "?" on maps where `getFieldByIndex` returns nil. Fixed in both dialogs.
+
+   *Dead code:*
+   - `CropStressManager.lua` — local `SEASON_NAMES` table duplicated `WeatherIntegration.SEASON_NAMES`. Removed local; `consoleStatus()` now uses the canonical class table.
+
+   *Polish / i18n:*
+   - HUD hint `"click row for 5-day forecast"` was hardcoded English. Replaced with `g_i18n:getText("cs_hud_click_forecast")` + fallback string.
+   - Added `cs_hud_click_forecast` key to all 6 translation files (en, de, fr, nl, pl, it).
+   - `CropConsultantDialog.lua` header comment said "NEVER name callbacks onOpen/onClose" — factually wrong (NPCFavor uses them; MessageDialog supports them). Replaced with accurate lifecycle description.
+   - `IrrigationScheduleDialog.xml` comment said "onOpen intentionally OMITTED" but `onOpen="onOpen"` was present on the same element. Replaced with accurate two-phase open pattern description.
+
+2. **Full wiring audit — event pub/sub, placeable registration, direct call chains**
+
+   *Event bus completeness:*
+   - `CS_MOISTURE_UPDATED`: SMS → HUDOverlay ✅, CropConsultant ✅
+   - `CS_CRITICAL_THRESHOLD`: SMS → CropConsultant ✅, HUDOverlay ✅
+   - `CS_IRRIGATION_STARTED`: IrrigationManager → SoilMoistureSystem ✅
+   - `CS_IRRIGATION_STOPPED`: IrrigationManager → SoilMoistureSystem ✅
+   - `CS_STRESS_APPLIED`: CropStressModifier → **zero subscribers** ⚠️ (comment says FinanceIntegration subscribes in Phase 4; FinanceIntegration is direct-called by CropStressManager, not event-driven — publish is dead weight)
+   - `CS_CONSULTANT_ALERT`: never published, never subscribed — CropConsultant uses `showBlinkingWarning()` (vanilla FS25 UI) + direct `npcIntegration:sendConsultantAlert()` call instead. Alerts DO reach the player. Architecture doc divergence only.
+
+   *Placeable registration chains:*
+   - centerPivot: onLoad→`registerIrrigationSystem` / onDelete→`deregisterIrrigationSystem` ✅
+   - dripLine: same pattern ✅
+   - waterPump: onLoad→`registerWaterSource` / onDelete→`deregisterWaterSource` ✅
+
+   *Known gaps confirmed (not new findings):*
+   - `centerPivot.i3d`, `waterPump.i3d`, `dripLine.i3d` are placeholder meshes with no physics trigger volumes. `onProximityTrigger` will never fire without real i3d assets → E-key interaction non-functional until Phase 6 art pass.
+   - DripLine coverage computed along X axis only (rotation-aware projection deferred, noted in `dripLine.lua`).
+
+**Tested:** Code review only — no in-game testing this session.
+
+**Next agent should start at:**
+Run **Phase 5 in-game verification** — all unchecked `[ ]` TEST items in Phase 5 section. Priority ones:
+- `g_gui:getIsDialogVisible()` must be verified — if nil, mouse event handler crashes every frame
+- `env.currentDayInPeriod` must be verified — if nil, irrigation scheduling silently never fires
+- Settings toggle regression (boolean trap): disable mod → save → reload → stays disabled
+
+**Notes / surprises:**
+- `CS_STRESS_APPLIED` is published but has no subscribers. Either wire FinanceIntegration to subscribe (for future stress-based costs/insurance) or remove the publish call before release. Left as-is for now — it's dead weight but not a crash.
+- `CS_CONSULTANT_ALERT` divergence from CLAUDE.md architecture table is intentional simplification. Architecture doc should be updated to reflect `showBlinkingWarning` approach.
+- i3d placeholder confirmation: all three placeable i3d files exist but contain no `<Trigger>` or `<RigidBody>` physics nodes. E-key interaction is a Phase 6 hard blocker.
+
+---
+
 ### 2026-02-26 (session 8) — Claude (Sonnet 4.6) — Full Code Audit, 4 Bug Fixes, Phase 4 Completion Audit
 
 **Started from:** User request: "Read all the MD files, then perform a pass over all code looking for any bugs, edge cases, code not hooked up, proper commenting, and finally make sure that phase 1 till 4 are all finished and complete."
