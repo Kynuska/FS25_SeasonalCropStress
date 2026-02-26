@@ -149,14 +149,22 @@ end
 function IrrigationScheduleDialog:onStartHourPlus()
     local system = self:getCurrentSystem()
     if system == nil then return end
-    system.schedule.startHour = (system.schedule.startHour + 1) % 24
+    local next = (system.schedule.startHour + 1) % 24
+    -- Prevent start from equaling end (would silently disable the schedule)
+    if next ~= system.schedule.endHour then
+        system.schedule.startHour = next
+    end
     self:updateTimeDisplays(system)
 end
 
 function IrrigationScheduleDialog:onEndHourMinus()
     local system = self:getCurrentSystem()
     if system == nil then return end
-    system.schedule.endHour = (system.schedule.endHour - 1 + 24) % 24
+    local prev = (system.schedule.endHour - 1 + 24) % 24
+    -- Prevent end from equaling start (would silently disable the schedule)
+    if prev ~= system.schedule.startHour then
+        system.schedule.endHour = prev
+    end
     self:updateTimeDisplays(system)
 end
 
@@ -230,22 +238,26 @@ function IrrigationScheduleDialog:updateCoveredFields(system)
 end
 
 function IrrigationScheduleDialog:getCropName(fieldId)
-    if g_currentMission ~= nil and g_currentMission.fieldManager ~= nil then
-        local field = nil
-        if g_currentMission.fieldManager.getFieldByIndex ~= nil then
-            field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
+    if g_currentMission == nil or g_currentMission.fieldManager == nil then return "?" end
+
+    local field = nil
+    if g_currentMission.fieldManager.getFieldByIndex ~= nil then
+        field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
+    end
+    -- Fallback: iterate all fields (needed on maps where getFieldByIndex returns nil)
+    if field == nil then
+        local fields = g_currentMission.fieldManager:getFields()
+        for _, f in pairs(fields) do
+            if f.fieldId == fieldId then field = f; break end
         end
-        if field ~= nil then
-            local ft = nil
-            if type(field.getFruitType) == "function" then
-                ft = field:getFruitType()
-            elseif field.fruitType ~= nil then
-                ft = field.fruitType
-            end
-            if ft ~= nil and ft.name ~= nil then
-                return ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
-            end
-        end
+    end
+    if field == nil then return "?" end
+
+    local ft = type(field.getFruitType) == "function"
+        and field:getFruitType()
+        or field.fruitType
+    if ft ~= nil and ft.name ~= nil then
+        return ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
     end
     return "?"
 end

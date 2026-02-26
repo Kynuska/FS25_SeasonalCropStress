@@ -130,8 +130,12 @@ function HUDOverlay:initialize()
     -- Single shared overlay handle used for every filled-rect draw call.
     -- "dataS/menu/base/graph_pixel.dds" is a 1×1 white pixel in FS25 game data —
     -- tinted at draw time via setOverlayColor(handle, r, g, b, a).
+    -- Guard: createImageOverlay is always available in FS25 PC/Console builds, but
+    -- we check defensively so a missing function doesn't crash at draw time (see draw()).
     if createImageOverlay ~= nil then
         self.fillOverlay = createImageOverlay("dataS/menu/base/graph_pixel.dds")
+    else
+        csLog("WARNING: createImageOverlay not available — HUD rect rendering disabled")
     end
 
     self.isInitialized = true
@@ -308,6 +312,9 @@ end
 function HUDOverlay:draw()
     if not self.isInitialized or not self.isVisible then return end
     if g_currentMission == nil then return end
+    -- fillOverlay is nil only if createImageOverlay was unavailable at init (extremely rare).
+    -- Bail out rather than spam nil-handle errors every frame.
+    if self.fillOverlay == nil then return end
 
     local numRows = math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)
 
@@ -386,7 +393,7 @@ function HUDOverlay:draw()
             px + HUDOverlay.PADDING,
             py + HUDOverlay.PADDING,
             0.010,
-            "click row for 5-day forecast"
+            (g_i18n ~= nil and g_i18n:getText("cs_hud_click_forecast")) or "Click row for 5-day forecast"
         )
     end
 
@@ -620,6 +627,12 @@ function HUDOverlay:toggle()
 
     if self.isVisible and not self.firstRunShown then
         self.firstRunShown = true
+    end
+
+    -- Rebuild display rows immediately on open so auto-select below has data.
+    -- (update() normally rebuilds rows, but it runs next frame — after toggle() returns.)
+    if self.isVisible then
+        self:rebuildDisplayRows()
     end
 
     -- Auto-select driest field when opening

@@ -8,7 +8,8 @@
     <text name="cs_hud_critical"      text="KRYTYCZNE — Nawadniaj teraz!"/>
     <text name="cs_hud_no_crop"       text="Brak uprawy"/>
     <text name="cs_hud_forecast"      text="Prognoza 5-dniowa"/>
-    <text name="cs_hud_first_run"     text="Monitor wilgotności gleby aktywny. Shift+M aby przełączyć."/>
+    <text name="cs_hud_first_run"      text="Monitor wilgotności gleby aktywny. Shift+M aby przełączyć."/>
+    <text name="cs_hud_click_forecast" text="Kliknij wiersz aby zobaczyć prognozę 5-dniową"/>
 
     <!-- ========== FIELD STATUS ========== -->
     <text name="cs_field_moisture"        text="Wilgotność"/>

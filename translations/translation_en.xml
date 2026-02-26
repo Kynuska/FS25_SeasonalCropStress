@@ -8,7 +8,8 @@
     <text name="cs_hud_critical"      text="CRITICAL — Irrigate Now!"/>
     <text name="cs_hud_no_crop"       text="No crop"/>
     <text name="cs_hud_forecast"      text="5-Day Forecast"/>
-    <text name="cs_hud_first_run"     text="Crop Moisture Monitor is now active. Press Shift+M to toggle the field status panel."/>
+    <text name="cs_hud_first_run"      text="Crop Moisture Monitor is now active. Press Shift+M to toggle the field status panel."/>
+    <text name="cs_hud_click_forecast" text="Click a row for 5-day forecast"/>
 
     <!-- ========== FIELD STATUS ========== -->
     <text name="cs_field_moisture"        text="Moisture"/>

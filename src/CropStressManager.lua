@@ -61,9 +61,6 @@ end
 CropStressManager = {}
 CropStressManager.__index = CropStressManager
 
--- Season name lookup used by consoleStatus()
--- 0=spring 1=summer 2=autumn 3=winter (matches FS25 environment.currentSeason)
-local SEASON_NAMES = { [0]="Spring", [1]="Summer", [2]="Autumn", [3]="Winter" }
 
 function CropStressManager.new()
     local self = setmetatable({}, CropStressManager)
@@ -413,7 +410,7 @@ function CropStressManager:consoleStatus()
     print(string.format("  Debug mode:  %s", tostring(self.debugMode)))
 
     if self.weatherIntegration ~= nil then
-        local seas = SEASON_NAMES[self.weatherIntegration.currentSeason] or "?"
+        local seas = WeatherIntegration.SEASON_NAMES[self.weatherIntegration.currentSeason] or "?"
         print(string.format("  Season: %s  Temp: %.1f°C  Raining: %s",
             seas, self.weatherIntegration.currentTemp,
             tostring(self.weatherIntegration.isRaining)))

@@ -153,13 +153,16 @@ function CropStressModifier:processFieldStress(field, fieldId, moisture)
         local prev = self.fieldStress[fieldId] or 0.0
         self.fieldStress[fieldId] = math.min(1.0, prev + stressIncrease)
 
-        -- Publish via event bus
+        -- Publish via event bus.
+        -- CS_STRESS_APPLIED is subscribed by FinanceIntegration (Phase 4) and any
+        -- future listener that needs per-field stress change notifications.
+        -- multiplier uses the instance method so settings-adjusted maxYieldLoss is honoured.
         if self.manager ~= nil and self.manager.eventBus ~= nil then
-            self.manager.eventBus.publish("CS_STRESS_ACCUMULATED", {
+            self.manager.eventBus.publish("CS_STRESS_APPLIED", {
                 fieldId    = fieldId,
                 cropType   = cropName,
                 stress     = self.fieldStress[fieldId],
-                multiplier = 1.0 - (self.fieldStress[fieldId] * CropStressModifier.MAX_YIELD_LOSS),
+                multiplier = 1.0 - (self.fieldStress[fieldId] * self:getMaxYieldLoss()),
             })
         end
 

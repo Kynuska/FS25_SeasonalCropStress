@@ -8,7 +8,8 @@
     <text name="cs_hud_critical"      text="CRITIQUE — Irriguer maintenant !"/>
     <text name="cs_hud_no_crop"       text="Pas de culture"/>
     <text name="cs_hud_forecast"      text="Prévisions 5 jours"/>
-    <text name="cs_hud_first_run"     text="Moniteur d'humidité actif. Maj+M pour afficher/masquer."/>
+    <text name="cs_hud_first_run"      text="Moniteur d'humidité actif. Maj+M pour afficher/masquer."/>
+    <text name="cs_hud_click_forecast" text="Cliquez sur une ligne pour la prévision 5 jours"/>
 
     <!-- ========== FIELD STATUS ========== -->
     <text name="cs_field_moisture"        text="Humidité"/>
