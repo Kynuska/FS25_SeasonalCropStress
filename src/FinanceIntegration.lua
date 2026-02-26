@@ -36,32 +36,17 @@ function FinanceIntegration:chargeHourlyCosts()
 
     for id, system in pairs(irrMgr.systems) do
         if system.isActive then
-            local cost = system.operationalCostPerHour
-            if self.usedPlusActive then
-                -- Forward expense to UsedPlus for budget tracking.
-                -- LUADOC NOTE: g_usedPlusManager:recordExpense() signature unconfirmed.
-                if g_usedPlusManager ~= nil and g_usedPlusManager.recordExpense ~= nil then
-                    local ok, err = pcall(function()
-                        g_usedPlusManager:recordExpense("IRRIGATION", cost, {
-                            description = string.format("Irrigation system %d", id),
-                            category    = "OPERATIONAL",
-                        })
-                    end)
-                    if not ok then
-                        -- UsedPlus API mismatch — fall through to vanilla fund deduction
-                        self:deductFundsVanilla(cost)
-                    end
-                end
+            -- Deduct operational cost via vanilla FS25 fund system.
+            -- UsedPlus public API (UsedPlusAPI) does not expose recordExpense() —
+            -- confirmed against UsedPlusAPI wiki. Costs always go through vanilla updateFunds.
+            self:deductFundsVanilla(system.operationalCostPerHour)
 
-                -- Update wear level for this system from UsedPlus DNA.
-                -- IrrigationManager.activateSystem() already scales effectiveRate by
-                -- (1 - wearLevel * 0.3), so a wear of 1.0 means 30% reduced flow.
-                -- LUADOC NOTE: placeables use entity IDs, so this assumes UsedPlus
-                -- tracks placeables by the same ID — verify against UsedPlus source.
+            -- Update wear level from UsedPlus DNA (if UsedPlus active).
+            -- Placeables typically have no DNA entry, so this usually returns 0.0.
+            -- IrrigationManager:activateSystem() scales flow by (1 - wearLevel * 0.3).
+            if self.usedPlusActive then
                 local wearLevel = self:getEquipmentWearLevel(id)
                 irrMgr:updateSystemWearLevel(id, wearLevel)
-            else
-                self:deductFundsVanilla(cost)
             end
         end
     end
@@ -80,24 +65,36 @@ function FinanceIntegration:deductFundsVanilla(cost)
 end
 
 function FinanceIntegration:getEquipmentWearLevel(vehicleId)
-    -- Phase 4: query UsedPlus DNA reliability value
     if not self.usedPlusActive then return 0.0 end
-    if g_usedPlusManager == nil or g_usedPlusManager.getVehicleDNA == nil then return 0.0 end
 
-    local dna = g_usedPlusManager:getVehicleDNA(vehicleId)
+    -- Try UsedPlusAPI (confirmed public static interface) then g_usedPlusManager (legacy).
+    -- UsedPlusAPI.getVehicleDNA(entity) is a static call; g_usedPlusManager:getVehicleDNA()
+    -- is a method call — both wrapped in pcall to handle either convention safely.
+    -- Note: UsedPlus DNA tracks vehicles (tractors, combines). Irrigation systems are
+    -- placeables and typically have no DNA entry, so dna will be nil → returns 0.0.
+    local dna = nil
+    if UsedPlusAPI ~= nil and UsedPlusAPI.getVehicleDNA ~= nil then
+        local ok, result = pcall(UsedPlusAPI.getVehicleDNA, vehicleId)
+        if ok then dna = result end
+    elseif g_usedPlusManager ~= nil and g_usedPlusManager.getVehicleDNA ~= nil then
+        local ok, result = pcall(function() return g_usedPlusManager:getVehicleDNA(vehicleId) end)
+        if ok then dna = result end
+    end
     if dna == nil then return 0.0 end
 
-    -- UsedPlus DNA reliability: 0.6–1.4 multiplier
-    -- reliability 0.6 = 40% worn, reliability 1.4 = 0% worn
-    -- Convert to wear level 0.0 (new) to 1.0 (broken)
-    local wearLevel = math.max(0.0, (1.4 - dna.reliability) / 0.8)
-    return math.min(1.0, wearLevel)
+    -- DNA reliability range: 0.6 (heavily worn) → 1.4 (new)
+    -- Converted to wear level: 0.0 (new) → 1.0 (at limit)
+    local reliability = dna.reliability
+    if reliability == nil then return 0.0 end
+    return math.max(0.0, math.min(1.0, (1.4 - reliability) / 0.8))
 end
 
--- Enable UsedPlus mode - called by CropStressManager after detection
+-- Enable UsedPlus mode - called by CropStressManager after detection.
+-- With UsedPlus active: DNA wear tracking enabled (affects flow rate).
+-- Operational costs always go through vanilla updateFunds (recordExpense not in public API).
 function FinanceIntegration:enableUsedPlusMode()
     self.usedPlusActive = true
-    csLog("FinanceIntegration: UsedPlus integration enabled")
+    csLog("FinanceIntegration: UsedPlus active — DNA wear tracking enabled")
 end
 
 function FinanceIntegration:delete()

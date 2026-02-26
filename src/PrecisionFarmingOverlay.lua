@@ -32,10 +32,19 @@ function PrecisionFarmingOverlay:enablePrecisionFarmingMode()
     csLog("PrecisionFarmingOverlay: Precision Farming integration enabled")
 end
 
--- Register moisture overlay with Precision Farming DLC
+-- Register moisture overlay with Precision Farming DLC.
+-- STATUS: g_precisionFarming global is confirmed to exist (other mods access it).
+-- registerOverlay() is NOT confirmed in any public PF DLC documentation as of FS25 v1.x.
+-- No community mod has successfully used this pattern. The nil guard below means this
+-- silently no-ops if the method doesn't exist — no crash, no player impact.
+-- If a future PF DLC update exposes a public overlay API, this implementation
+-- provides the correct structure to activate it with minimal changes.
 function PrecisionFarmingOverlay:registerMoistureOverlay()
     if not self.pfActive then return end
-    if g_precisionFarming == nil or g_precisionFarming.registerOverlay == nil then return end
+    if g_precisionFarming == nil or g_precisionFarming.registerOverlay == nil then
+        csLog("PrecisionFarmingOverlay: registerOverlay not available — PF moisture overlay skipped (API unconfirmed)")
+        return
+    end
 
     local overlayConfig = {
         name = "CropStress_Moisture",

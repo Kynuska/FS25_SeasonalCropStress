@@ -197,6 +197,10 @@ function CropStressManager:applySettings()
     self.consultant:setAlertCooldown(self.settings.alertCooldown)
     self.debugMode = self.settings.debugMode
 
+    -- Push persisted HUD position (client-local display preference, not synced to MP)
+    self.hudOverlay.panelX = self.settings.hudPanelX
+    self.hudOverlay.panelY = self.settings.hudPanelY
+
     csLog("Settings applied to all subsystems")
 end
 
@@ -304,7 +308,9 @@ function CropStressManager:detectOptionalMods()
         self.consultant:enableNPCFavorMode()
     end
 
-    if g_usedPlusManager ~= nil then
+    -- UsedPlusAPI is the confirmed public static interface (XelaNull/FS25_UsedPlus).
+    -- g_usedPlusManager is the legacy/internal global from older versions — kept as fallback.
+    if UsedPlusAPI ~= nil or g_usedPlusManager ~= nil then
         csLog("FS25_UsedPlus detected — enabling finance integration")
         self.financeIntegration:enableUsedPlusMode()
         self.usedEquipmentMarketplace:enableUsedPlusMode()
