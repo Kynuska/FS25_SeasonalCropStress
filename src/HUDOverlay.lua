@@ -227,11 +227,17 @@ end
 -- Called from main.lua addModEventListener mouseEvent handler.
 -- FS25 button numbers: 1=left, 3=right, 2=middle.
 --
--- Flow (mirrors NPCFavorHUD):
---   RMB down → toggle edit mode on/off
---   LMB down (in edit mode) → start drag, record offset from panel origin
---   Mouse move (while dragging) → update panelX/panelY
---   LMB up (in edit mode) → end drag
+-- IMPORTANT: In FS25 gameplay mode, the cursor is captured for
+-- camera control. mouseEvent fires ONLY on button state changes
+-- (down/up) — NOT for intermediate mouse movement. This means
+-- continuous drag tracking is impossible. We use the NPCFavor
+-- pattern: record position on LMB down, apply the full delta
+-- (release - click) on LMB up. One-shot repositioning.
+--
+-- Flow:
+--   RMB down → toggle edit mode (orange border = edit active)
+--   LMB down (in edit mode) → record click position + HUD origin
+--   LMB up (in edit mode)   → apply DOWN→UP delta to HUD position
 -- ============================================================
 function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
     if not self.isVisible then return end
@@ -248,31 +254,39 @@ function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
             end
             csLog("HUD edit mode OFF — position saved")
         else
-            csLog("HUD edit mode ON — LMB drag to reposition")
+            csLog("HUD edit mode ON — LMB click+release to reposition")
         end
         return
     end
 
     if not self.editMode then return end
 
-    -- ── LMB down: start drag ──────────────────────────────
+    -- ── LMB down: record drag start ───────────────────────
     if isDown and button == 1 then
-        self.dragging    = true
-        self.dragOffsetX = posX - self.panelX
-        self.dragOffsetY = posY - self.panelY
+        self.dragging   = true
+        self.dragStartX = posX
+        self.dragStartY = posY
+        self.hudStartX  = self.panelX
+        self.hudStartY  = self.panelY
         return
     end
 
-    -- ── LMB up: end drag ──────────────────────────────────
-    if isUp and button == 1 then
+    -- ── LMB up: apply full DOWN→UP delta ──────────────────
+    -- No intermediate movement events fire in FS25 gameplay mode,
+    -- so we apply the entire delta from click to release at once.
+    if isUp and button == 1 and self.dragging then
+        local dx = posX - self.dragStartX
+        local dy = posY - self.dragStartY
+        self.panelX = math.max(0.0, math.min(1.0 - HUDOverlay.PANEL_W, self.hudStartX + dx))
+        self.panelY = math.max(0.05, math.min(0.95, self.hudStartY + dy))
         self.dragging = false
+        -- Persist immediately
+        if self.manager ~= nil and self.manager.settings ~= nil then
+            self.manager.settings.hudPanelX = self.panelX
+            self.manager.settings.hudPanelY = self.panelY
+        end
+        csLog(string.format("HUD repositioned to %.3f,%.3f (delta: %+.3f,%+.3f)", self.panelX, self.panelY, dx, dy))
         return
-    end
-
-    -- ── Mouse movement: update position while dragging ────
-    if self.dragging then
-        self.panelX = math.max(0.0, math.min(1.0 - HUDOverlay.PANEL_W, posX - self.dragOffsetX))
-        self.panelY = math.max(0.05, math.min(0.95, posY - self.dragOffsetY))
     end
 end
 

@@ -56,22 +56,41 @@ function CropStressSettingsIntegration:onFrameOpen()
         return
     end
 
-    CropStressSettingsIntegration:addSettingsElements(self)
-
-    -- Refresh the layout so our new elements are sized/positioned
-    self.gameSettingsLayout:invalidateLayout()
-    if self.updateAlternatingElements then
-        self:updateAlternatingElements(self.gameSettingsLayout)
-    end
-    if self.updateGeneralSettings then
-        self:updateGeneralSettings(self.gameSettingsLayout)
+    -- Guard: gameSettingsLayout must exist on this frame.
+    -- If nil, skip injection silently so InGameMenu still opens.
+    if self.gameSettingsLayout == nil then
+        csLog("WARNING: gameSettingsLayout is nil on InGameMenuSettingsFrame — settings injection skipped")
+        self.cropstress_initDone = true
+        return
     end
 
+    -- Wrap in pcall so ANY crash in our injection code cannot abort
+    -- InGameMenu opening. FS25 does not pcall-wrap frame opens —
+    -- an unprotected crash here prevents ESC from working entirely.
+    local ok, err = pcall(function()
+        CropStressSettingsIntegration:addSettingsElements(self)
+
+        -- Refresh the layout so our new elements are sized/positioned
+        self.gameSettingsLayout:invalidateLayout()
+        if self.updateAlternatingElements then
+            self:updateAlternatingElements(self.gameSettingsLayout)
+        end
+        if self.updateGeneralSettings then
+            self:updateGeneralSettings(self.gameSettingsLayout)
+        end
+
+        -- Populate controls with current settings
+        CropStressSettingsIntegration:updateSettingsUI(self)
+    end)
+
+    -- Mark done regardless — prevent retry loops even on crash
     self.cropstress_initDone = true
-    csLog("ESC menu: Seasonal Crop Stress section added")
 
-    -- Populate controls with current settings
-    CropStressSettingsIntegration:updateSettingsUI(self)
+    if not ok then
+        csLog("WARNING: Settings frame injection failed: " .. tostring(err))
+    else
+        csLog("ESC menu: Seasonal Crop Stress section added successfully")
+    end
 end
 
 -- ============================================================
