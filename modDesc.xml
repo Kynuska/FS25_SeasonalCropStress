@@ -102,8 +102,16 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                     <text  text="$l10n_helpLine_cs_p1_intro_text"  />
                 </paragraph>
                 <paragraph>
+                    <title text="$l10n_helpLine_cs_p1_moisture_title" />
+                    <text  text="$l10n_helpLine_cs_p1_moisture_text"  />
+                </paragraph>
+                <paragraph>
                     <title text="$l10n_helpLine_cs_p1_start_title" />
                     <text  text="$l10n_helpLine_cs_p1_start_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p1_tips_title" />
+                    <text  text="$l10n_helpLine_cs_p1_tips_text"  />
                 </paragraph>
             </page>
 
@@ -117,6 +125,14 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                     <title text="$l10n_helpLine_cs_p2_soil_title" />
                     <text  text="$l10n_helpLine_cs_p2_soil_text"  />
                 </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p2_seasons_title" />
+                    <text  text="$l10n_helpLine_cs_p2_seasons_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p2_reading_title" />
+                    <text  text="$l10n_helpLine_cs_p2_reading_text"  />
+                </paragraph>
             </page>
 
             <!-- ── Page 3: Crop Stress & Yield ──────────────── -->
@@ -126,8 +142,16 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                     <text  text="$l10n_helpLine_cs_p3_window_text"  />
                 </paragraph>
                 <paragraph>
+                    <title text="$l10n_helpLine_cs_p3_accumulation_title" />
+                    <text  text="$l10n_helpLine_cs_p3_accumulation_text"  />
+                </paragraph>
+                <paragraph>
                     <title text="$l10n_helpLine_cs_p3_yield_title" />
                     <text  text="$l10n_helpLine_cs_p3_yield_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p3_prevention_title" />
+                    <text  text="$l10n_helpLine_cs_p3_prevention_text"  />
                 </paragraph>
             </page>
 
@@ -142,8 +166,16 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                     <text  text="$l10n_helpLine_cs_p4_status_text"  />
                 </paragraph>
                 <paragraph>
+                    <title text="$l10n_helpLine_cs_p4_forecast_title" />
+                    <text  text="$l10n_helpLine_cs_p4_forecast_text"  />
+                </paragraph>
+                <paragraph>
                     <title text="$l10n_helpLine_cs_p4_keys_title" />
                     <text  text="$l10n_helpLine_cs_p4_keys_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p4_reposition_title" />
+                    <text  text="$l10n_helpLine_cs_p4_reposition_text"  />
                 </paragraph>
             </page>
 
@@ -154,8 +186,20 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                     <text  text="$l10n_helpLine_cs_p5_types_text"  />
                 </paragraph>
                 <paragraph>
+                    <title text="$l10n_helpLine_cs_p5_placement_title" />
+                    <text  text="$l10n_helpLine_cs_p5_placement_text"  />
+                </paragraph>
+                <paragraph>
                     <title text="$l10n_helpLine_cs_p5_schedule_title" />
                     <text  text="$l10n_helpLine_cs_p5_schedule_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p5_costs_title" />
+                    <text  text="$l10n_helpLine_cs_p5_costs_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p5_farmtips_title" />
+                    <text  text="$l10n_helpLine_cs_p5_farmtips_text"  />
                 </paragraph>
             </page>
 
@@ -166,12 +210,20 @@ Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Eva
                     <text  text="$l10n_helpLine_cs_p6_what_text"  />
                 </paragraph>
                 <paragraph>
+                    <title text="$l10n_helpLine_cs_p6_risk_title" />
+                    <text  text="$l10n_helpLine_cs_p6_risk_text"  />
+                </paragraph>
+                <paragraph>
                     <title text="$l10n_helpLine_cs_p6_act_title" />
                     <text  text="$l10n_helpLine_cs_p6_act_text"  />
                 </paragraph>
                 <paragraph>
                     <title text="$l10n_helpLine_cs_p6_npc_title" />
                     <text  text="$l10n_helpLine_cs_p6_npc_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_p6_multi_title" />
+                    <text  text="$l10n_helpLine_cs_p6_multi_text"  />
                 </paragraph>
             </page>
 
