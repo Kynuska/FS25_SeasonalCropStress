@@ -425,7 +425,7 @@ function HUDOverlay:draw()
             px + HUDOverlay.PADDING,
             py + HUDOverlay.PADDING,
             0.010,
-            "DRAG to move  |  RMB to exit"
+            "LMB click+release to move  |  RMB to exit"
         )
     end
 end
