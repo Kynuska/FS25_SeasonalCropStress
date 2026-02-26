@@ -277,8 +277,9 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 ### PHASE 5 — Stability & HUD Polish
 
 #### HUD Position Persistence
-- [ ] Save `panelX` / `panelY` to `cropStressSettings.xml` — add two float entries to `CropStressSettings` defaults and `saveToXMLFile`/`load` methods
-- [ ] On `CropStressManager:applySettings()`, push saved coords to `hudOverlay.panelX` / `hudOverlay.panelY`
+- [x] Save `panelX` / `panelY` to `cropStressSettings.xml` — `hudPanelX`/`hudPanelY` added to DEFAULTS, VALIDATION, `load()`, `saveToXMLFile()`, `validateSettings()`, and `debugPrint()` in `CropStressSettings.lua`
+- [x] On `CropStressManager:applySettings()`, push saved coords to `hudOverlay.panelX` / `hudOverlay.panelY`
+- [x] RMB edit-mode exit syncs `panelX`/`panelY` back to `settings.hudPanelX`/`hudPanelY` in `HUDOverlay:onMouseEvent()` — position persists without explicit save trigger
 - [ ] **TEST:** Drag HUD to new position → save → reload → panel appears at saved position
 
 #### In-Game Verification (all remaining `[ ]` test scenarios)
@@ -293,7 +294,7 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 - [ ] Phase 1 TEST: Panel auto-shows when entering a stressed field
 - [ ] Phase 1 TEST: Empty state message appears when all fields are healthy
 - [ ] Phase 1 TEST: Play 1 in-game hour → moisture changes, no errors
-- [ ] Phase 2 TEST: Place pump near river → connect a pivot → pivot activates
+- [ ] Phase 2 TEST: Place pump near river → connect a pivot → pivot activates — **PRIORITY: verify `env.currentDayInPeriod` exists in FS25; if nil, irrigation scheduling silently never fires (defaults to day 1 / Monday only)**
 - [ ] Phase 2 TEST: Change schedule → save → reload → schedule persists
 - [ ] Phase 2 TEST: Dialog opens cleanly, all elements visible, no layout overflow
 - [ ] Phase 2 TEST: Run irrigation overnight → farm balance decreases by expected amount
@@ -302,12 +303,13 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 - [ ] Phase 3 TEST: Set field to 15% moisture → warning appears within 1 in-game hour
 - [ ] Phase 3 TEST: Warning does NOT repeat for 12 in-game hours on same field
 - [ ] Phase 3 TEST: Forecast shows 5 different values, updates on field change
-- [ ] Phase 5 TEST: Open ESC → Settings → Game Settings → "Seasonal Crop Stress" all 10 controls appear and toggle correctly
+- [ ] Phase 5 TEST: Open ESC → Settings → Game Settings → "Seasonal Crop Stress" all 10 controls appear and toggle correctly — **PRIORITY: also verify `g_gui:getIsDialogVisible()` exists; if nil, mouse event handler crashes every frame**
+- [ ] Phase 5 TEST: Open ESC → check no Lua error spam in log from mouse event handler
 - [ ] Phase 5 TEST: Toggle mod off → save → reload → mod stays off (boolean trap regression)
 - [ ] Phase 5 TEST: Join MP server → client has host's settings, not defaults
 
 #### Polish Translation
-- [ ] Create `translations/translation_pl.xml` — Polish locale, all `cs_*` keys
+- [x] `translations/translation_pl.xml` — confirmed present and complete (Phase 4)
 - [ ] **TEST:** Switch game language to PL → all mod UI text is Polish, no missing key fallbacks
 
 #### Phase 5 Final Validation
