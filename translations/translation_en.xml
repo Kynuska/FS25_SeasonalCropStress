@@ -221,6 +221,6 @@
     <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.0.0"/>
     <text name="helpLine_cs_i1_about_text"      text="Created by TisonK. Adds realistic soil moisture simulation, seasonal crop stress accumulation, and irrigation infrastructure management to Farming Simulator 25. Designed to make crop management more strategic — every field, every season, every decision counts."/>
     <text name="helpLine_cs_i1_community_title" text="Community &amp; Support"/>
-    <text name="helpLine_cs_i1_community_text"  text="Find this mod on the Farming Simulator ModHub. For questions, bug reports, and updates, visit the mod page on ModHub or the GitHub repository. Join the community forums to share tips with other players."/>
+    <text name="helpLine_cs_i1_community_text"  text="Find this mod on Github and KingMods. For questions, bug reports, and updates please visit the github repository."/>
     </texts>
 </l10n>
