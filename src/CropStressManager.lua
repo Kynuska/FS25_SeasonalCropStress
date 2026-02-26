@@ -332,6 +332,10 @@ end
 -- ============================================================
 function CropStressManager:onToggleHUD()
     self.hudOverlay:toggle()
+    -- Keep settings in sync so the next save/load persists the player's preference.
+    if self.settings ~= nil then
+        self.settings.hudVisible = self.hudOverlay.isVisible
+    end
 end
 
 function CropStressManager:onOpenIrrigationDialog()

@@ -357,3 +357,13 @@ end
 function IrrigationManager:setCostsEnabled(enabled)
     self.costsEnabled = not not enabled
 end
+
+-- Update wear level for a specific irrigation system.
+-- Called by FinanceIntegration when UsedPlus provides DNA wear data.
+-- wearLevel: 0.0 (new) to 1.0 (heavily worn); affects flow rate at next activation.
+function IrrigationManager:updateSystemWearLevel(systemId, wearLevel)
+    local system = self.systems[systemId]
+    if system ~= nil then
+        system.wearLevel = math.max(0.0, math.min(1.0, wearLevel or 0.0))
+    end
+end

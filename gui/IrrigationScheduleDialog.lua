@@ -186,13 +186,22 @@ function IrrigationScheduleDialog:updateCoveredFields(system)
 
     if self.coveredFieldsContainer == nil then return end
 
+    -- Helper: create a TextElement row for the covered fields list
+    local function makeTextRow(text, yPos)
+        local elem = TextElement.new()
+        if g_gui ~= nil then
+            local prof = g_gui:getProfile("fs25_dialogText")
+            if prof ~= nil then elem:loadProfile(prof, true) end
+        end
+        elem:setPosition(5, yPos)
+        elem:setText(text)
+        self.coveredFieldsContainer:addElement(elem)
+        elem:onGuiSetupFinished()
+    end
+
     -- Show a placeholder when no fields are covered (system placed away from fields)
     if #system.coveredFields == 0 then
-        local noFields = GuiElement.new(self.coveredFieldsContainer)
-        noFields:setProfile("fs25_dialogText")
-        noFields:setPosition(5, 0)
-        noFields:setText((g_i18n ~= nil and g_i18n:getText("cs_irr_no_covered_fields")) or "No fields covered.")
-        self.coveredFieldsContainer:addElement(noFields)
+        makeTextRow((g_i18n ~= nil and g_i18n:getText("cs_irr_no_covered_fields")) or "No fields covered.", 0)
         return
     end
 
@@ -211,11 +220,7 @@ function IrrigationScheduleDialog:updateCoveredFields(system)
             labelStr = labelStr .. " !"  -- unicode warning char can be unreliable in FS25 font atlas
         end
 
-        local label = GuiElement.new(self.coveredFieldsContainer)
-        label:setProfile("fs25_dialogText")
-        label:setPosition(5, y)
-        label:setText(labelStr)
-        self.coveredFieldsContainer:addElement(label)
+        makeTextRow(labelStr, y)
         y = y - 20
     end
 end

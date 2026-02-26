@@ -141,10 +141,14 @@ function SoilMoistureSystem:hourlyUpdate(weather)
         local soilParams = SoilMoistureSystem.SOIL_PARAMS[data.soilType]
             or SoilMoistureSystem.SOIL_PARAMS.loamy
 
-        -- Evapotranspiration loss this hour
+        -- Evapotranspiration loss this hour.
+        -- evapMultiplier  = weather-based (temperature + season) from WeatherIntegration
+        -- settingsEvapMult = player-configured multiplier (difficulty × evap rate setting)
+        local settingsEvapMult = self.evapMultiplier or 1.0
         local evapLoss = SoilMoistureSystem.BASE_EVAP_RATE
             * evapMultiplier
             * soilParams.evapMod
+            * settingsEvapMult
 
         -- Rain gain (modulated by soil absorption)
         local rainGain  = rainAmount * soilParams.rainAbsorb

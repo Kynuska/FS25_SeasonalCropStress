@@ -171,20 +171,34 @@ function CropConsultantDialog:buildFieldList()
             severityStr
         )
 
-        local label = GuiElement.new(self.fieldContainer)
-        label:setProfile("fs25_dialogText")
+        -- TextElement is the correct FS25 class for dynamic text inside a dialog.
+        -- GuiElement.new() does not expose setText() and setProfile() is not standard.
+        local label = TextElement.new()
+        if g_gui ~= nil then
+            local prof = g_gui:getProfile("fs25_dialogText")
+            if prof ~= nil then
+                label:loadProfile(prof, true)
+            end
+        end
         label:setPosition(5, y)
         label:setText(labelStr)
         self.fieldContainer:addElement(label)
+        label:onGuiSetupFinished()
         y = y - 22
     end
 
     if #riskList == 0 then
-        local noData = GuiElement.new(self.fieldContainer)
-        noData:setProfile("fs25_dialogText")
+        local noData = TextElement.new()
+        if g_gui ~= nil then
+            local prof = g_gui:getProfile("fs25_dialogText")
+            if prof ~= nil then
+                noData:loadProfile(prof, true)
+            end
+        end
         noData:setPosition(5, 0)
         noData:setText((g_i18n ~= nil and g_i18n:getText("cs_consultant_no_data")) or "No field data available.")
         self.fieldContainer:addElement(noData)
+        noData:onGuiSetupFinished()
     end
 end
 

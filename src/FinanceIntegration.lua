@@ -30,34 +30,53 @@ function FinanceIntegration:chargeHourlyCosts()
     local irrMgr = self.manager.irrigationManager
     if irrMgr == nil then return end
 
+    -- Respect the irrigation costs setting (costsEnabled == false means player disabled costs)
+    -- nil means the flag was never set (default = costs enabled); only skip on explicit false.
+    if irrMgr.costsEnabled == false then return end
+
     for id, system in pairs(irrMgr.systems) do
         if system.isActive then
             local cost = system.operationalCostPerHour
             if self.usedPlusActive then
-                -- Phase 4: verify exact UsedPlus API against source before enabling
-                -- LUADOC NOTE: g_usedPlusManager:recordExpense() signature unconfirmed
+                -- Forward expense to UsedPlus for budget tracking.
+                -- LUADOC NOTE: g_usedPlusManager:recordExpense() signature unconfirmed.
                 if g_usedPlusManager ~= nil and g_usedPlusManager.recordExpense ~= nil then
-                    g_usedPlusManager:recordExpense("IRRIGATION", cost, {
-                        description = string.format("Irrigation system %d", id),
-                        category    = "OPERATIONAL",
-                    })
+                    local ok, err = pcall(function()
+                        g_usedPlusManager:recordExpense("IRRIGATION", cost, {
+                            description = string.format("Irrigation system %d", id),
+                            category    = "OPERATIONAL",
+                        })
+                    end)
+                    if not ok then
+                        -- UsedPlus API mismatch — fall through to vanilla fund deduction
+                        self:deductFundsVanilla(cost)
+                    end
                 end
+
+                -- Update wear level for this system from UsedPlus DNA.
+                -- IrrigationManager.activateSystem() already scales effectiveRate by
+                -- (1 - wearLevel * 0.3), so a wear of 1.0 means 30% reduced flow.
+                -- LUADOC NOTE: placeables use entity IDs, so this assumes UsedPlus
+                -- tracks placeables by the same ID — verify against UsedPlus source.
+                local wearLevel = self:getEquipmentWearLevel(id)
+                irrMgr:updateSystemWearLevel(id, wearLevel)
             else
-                -- Correct FS25 call: updateFunds on the mission object directly.
-                -- FundsReasonType.OTHER is nil-guarded — it may not be defined in all builds.
-                -- We also obtain the correct farmId rather than defaulting to farm 0.
-                if g_currentMission ~= nil then
-                    local reasonType = (FundsReasonType ~= nil and FundsReasonType.OTHER) or 0
-                    -- AccessHandler.EVERYBODY may be nil on some builds/platforms; fall back to
-                    -- farm 0 (which is the spectator/server farm — effectively "all farms").
-                    local everybody = (AccessHandler ~= nil and AccessHandler.EVERYBODY) or 0
-                    local farmId = (g_currentMission.player ~= nil and g_currentMission.player:getOwnerFarmId())
-                        or everybody
-                    g_currentMission:updateFunds(farmId, -cost, reasonType, true)
-                end
+                self:deductFundsVanilla(cost)
             end
         end
     end
+end
+
+-- Deduct operational cost via the vanilla FS25 fund system.
+function FinanceIntegration:deductFundsVanilla(cost)
+    if g_currentMission == nil then return end
+    local reasonType = (FundsReasonType ~= nil and FundsReasonType.OTHER) or 0
+    -- AccessHandler.EVERYBODY may be nil on some builds/platforms; fall back to
+    -- farm 0 (spectator/server farm — effectively "all farms").
+    local everybody = (AccessHandler ~= nil and AccessHandler.EVERYBODY) or 0
+    local farmId = (g_currentMission.player ~= nil and g_currentMission.player:getOwnerFarmId())
+        or everybody
+    g_currentMission:updateFunds(farmId, -cost, reasonType, true)
 end
 
 function FinanceIntegration:getEquipmentWearLevel(vehicleId)
