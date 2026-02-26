@@ -146,7 +146,9 @@ function CropStressModifier:processFieldStress(field, fieldId, moisture)
     if moisture < window.criticalMoisture then
         local deficit = window.criticalMoisture - moisture
         local deficitRatio = deficit / window.criticalMoisture  -- 0.0-1.0
-        local stressIncrease = window.stressRatePerHour * deficitRatio
+        -- Apply the player-configured difficulty rate multiplier (1.0 = normal, 1.5 = hard, 0.5 = easy)
+        local rateMultiplier = self.rateMultiplier or 1.0
+        local stressIncrease = window.stressRatePerHour * deficitRatio * rateMultiplier
 
         local prev = self.fieldStress[fieldId] or 0.0
         self.fieldStress[fieldId] = math.min(1.0, prev + stressIncrease)
@@ -269,8 +271,11 @@ function CropStressModifier.installHarvestHook()
             local stress = g_cropStressManager.stressModifier:getStress(fieldId)
             if stress <= 0.01 then return end
 
-            -- Calculate yield reduction factor
-            local reduction = stress * CropStressModifier.MAX_YIELD_LOSS
+            -- Calculate yield reduction factor using the player-configured max yield loss.
+            -- Uses the instance method (which reads settings-adjusted value) rather than
+            -- the class constant so difficulty/settings changes take effect at harvest.
+            local maxLoss = g_cropStressManager.stressModifier:getMaxYieldLoss()
+            local reduction = stress * maxLoss
             local keepFactor = 1.0 - reduction
 
             -- Apply reduction to each fill unit that received grain this pass

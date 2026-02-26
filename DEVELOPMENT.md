@@ -272,18 +272,128 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 
 ---
 
-### POST-LAUNCH
+---
 
-- [ ] Create Steam Workshop listing draft
-- [ ] Record gameplay footage showing drought stress + irrigation response
-- [ ] Write changelog for v1.0.0.0
-- [ ] Tag v1.0.0.0 in git
+### PHASE 5 — Stability & HUD Polish
+
+#### HUD Position Persistence
+- [ ] Save `panelX` / `panelY` to `cropStressSettings.xml` — add two float entries to `CropStressSettings` defaults and `saveToXMLFile`/`load` methods
+- [ ] On `CropStressManager:applySettings()`, push saved coords to `hudOverlay.panelX` / `hudOverlay.panelY`
+- [ ] **TEST:** Drag HUD to new position → save → reload → panel appears at saved position
+
+#### In-Game Verification (all remaining `[ ]` test scenarios)
+- [ ] Phase 1 TEST: New game start — all fields at plausible moisture, no log errors
+- [ ] Phase 1 TEST: `csSetMoisture` forces a field to a value correctly
+- [ ] Phase 1 TEST: 5-day forecast returns 5 values, all within 0.0–1.0
+- [ ] Phase 1 TEST: `csForceStress <fieldId>` → harvest that field → yield visibly reduced
+- [ ] Phase 1 TEST: Field with no stress harvests at 100% yield
+- [ ] Phase 1 TEST: Save game → reload → moisture and stress values match exactly
+- [ ] Phase 1 TEST: Fresh game (no save data) loads without errors
+- [ ] Phase 1 TEST: Shift+M toggles panel on/off
+- [ ] Phase 1 TEST: Panel auto-shows when entering a stressed field
+- [ ] Phase 1 TEST: Empty state message appears when all fields are healthy
+- [ ] Phase 1 TEST: Play 1 in-game hour → moisture changes, no errors
+- [ ] Phase 2 TEST: Place pump near river → connect a pivot → pivot activates
+- [ ] Phase 2 TEST: Change schedule → save → reload → schedule persists
+- [ ] Phase 2 TEST: Dialog opens cleanly, all elements visible, no layout overflow
+- [ ] Phase 2 TEST: Run irrigation overnight → farm balance decreases by expected amount
+- [ ] Phase 2 TEST: Active irrigation + custom schedule → save → reload → still active
+- [ ] Phase 2 TEST: Pressure curve — pivot at 250m gets ~85% flow; pivot at 600m gets 0%
+- [ ] Phase 3 TEST: Set field to 15% moisture → warning appears within 1 in-game hour
+- [ ] Phase 3 TEST: Warning does NOT repeat for 12 in-game hours on same field
+- [ ] Phase 3 TEST: Forecast shows 5 different values, updates on field change
+- [ ] Phase 5 TEST: Open ESC → Settings → Game Settings → "Seasonal Crop Stress" all 10 controls appear and toggle correctly
+- [ ] Phase 5 TEST: Toggle mod off → save → reload → mod stays off (boolean trap regression)
+- [ ] Phase 5 TEST: Join MP server → client has host's settings, not defaults
+
+#### Polish Translation
+- [ ] Create `translations/translation_pl.xml` — Polish locale, all `cs_*` keys
+- [ ] **TEST:** Switch game language to PL → all mod UI text is Polish, no missing key fallbacks
+
+#### Phase 5 Final Validation
+- [ ] Zero in-game errors on TestMap and ElmCreek full session
+- [ ] HUD drag position persists across save/reload cycle
+- [ ] All Phases 1–3 in-game test scenarios pass
+
+---
+
+### PHASE 6 — Release Readiness
+
+#### Final Assets
+- [ ] Commission or create final center pivot `.i3d` — arm rotation animation, proper LOD nodes
+- [ ] Commission or create final water pump `.i3d` — textured model, static placement
+- [ ] Create `icon.dds` — mod browser icon (512×512 or 256×256 DDS)
+- [ ] Update `centerPivot.xml` and `waterPump.xml` shop thumbnail paths
+
+#### Release Packaging
+- [ ] Write v1.0.0.0 changelog (feature list, known limitations, compatibility notes)
+- [ ] Tag `v1.0.0.0` in git
+- [ ] `bash build.sh --deploy` final build — verify ZIP has no backslash paths, all files included
+- [ ] **TEST:** Install from ZIP into clean mods folder — verify zero errors on first launch
+
+#### Community Release
+- [ ] Record gameplay footage showing drought stress + irrigation response (TestMap)
+- [ ] Draft Steam Workshop listing (title, description, screenshots, required/optional mods)
+- [ ] Post-launch monitoring plan: check `log.txt` reports from players for first 2 weeks
 
 ---
 
 ## Session Log
 
 *Sessions are logged in reverse-chronological order (newest at top). Each entry MUST include: date, AI agent, what was done, what was tested, what the next agent should start on, and any blockers or surprises.*
+
+---
+
+### 2026-02-26 (session 7) — Claude (Sonnet 4.6) — HUD Rendering Fix, Drag-to-Reposition & MD Updates
+
+**Started from:** In-game `setOverlayColor: Argument 1 has wrong type. Expected: Float. Actual: Nil` errors spamming log every frame from HUDOverlay. User also requested right-click-to-reposition the HUD panel.
+
+**Completed:**
+
+1. **HUDOverlay.lua — colored rect rendering fixed (root cause: `drawFilledRect` nil overlay handle)**
+   - `drawFilledRect(x,y,w,h)` internally calls `setOverlayColor(handle, r,g,b,a)` with a nil handle — every call produced a log error every frame.
+   - Research via NPCFavorHUD.lua confirmed correct pattern: create one `self.fillOverlay = createImageOverlay("dataS/menu/base/graph_pixel.dds")` in `initialize()`; clean up with `delete(self.fillOverlay)` in `delete()`.
+   - Replaced all `setTextColor(unpack(color)) + drawFilledRect(x,y,w,h)` across `draw()`, `drawFieldRow()`, and `drawForecastStrip()` with `setOverlayColor(self.fillOverlay, unpack(color)) + renderOverlay(self.fillOverlay, x,y,w,h)`.
+   - Added `COLOR_EDIT_BORDER = {1.00, 0.60, 0.10, 0.90}` and `EDIT_BORDER_W = 0.002` constants.
+
+2. **HUDOverlay.lua + main.lua — drag-to-reposition**
+   - Added `self.panelX`, `self.panelY`, `self.editMode`, `self.dragging`, `self.dragOffsetX/Y` to HUDOverlay constructor.
+   - New `HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)`:
+     - RMB (button=3) toggles `self.editMode`
+     - LMB down in edit mode: record `dragOffsetX = posX - self.panelX`, set `dragging = true`
+     - Mouse move while dragging: clamp-update `panelX/Y`
+     - LMB up: clear drag
+   - Edit mode visual: 4-edge orange border + `"DRAG to move  |  RMB to exit"` hint text.
+   - `detectRowClick()` guarded with `if self.editMode then return end`.
+   - `addModEventListener({ mouseEvent = ... })` added at the end of `main.lua` — routes to `hudOverlay:onMouseEvent()`; guarded against open dialogs.
+   - FS25 button numbers confirmed via NPCFavor: **1=left, 3=right, 2=middle**.
+   - User confirmed working: *"good fixed it :)"*
+
+3. **CLAUDE.md** — Updated "What DOESN'T Work" table with 2 new confirmed patterns:
+   - `drawFilledRect` + `setTextColor` for colored rects → use `createImageOverlay` pattern
+   - `getMouseButtonState(2)` for RMB → use `addModEventListener mouseEvent`, button 3=right
+
+4. **All MD files** — Updated with Phase 5 and Phase 6 (this entry).
+
+5. **PR #21** — Created: `development → main` — all HUD rendering fixes + drag-to-reposition.
+
+**Tested:**
+- Deployed to active mods folder — `setOverlayColor` errors confirmed eliminated in-game.
+- HUD drag-to-reposition confirmed working on ElmCreek.
+- PR #21: https://github.com/TheCodingDad-TisonK/FS25_SeasonalCropStress/pull/21
+
+**Checked off in TODO:**
+- (No new Phase 1–4 TODO items ticked — this was a bug-fix and UX feature pass)
+- Phase 5 and Phase 6 TODO sections created this session
+
+**Next agent should start at:**
+`PHASE 5: Save panelX/panelY to cropStressSettings.xml for HUD position persistence`
+Or: `Run Phase 5 in-game verification test scenarios`
+
+**Notes / surprises:**
+- `drawFilledRect` is not safe to use — it uses an internal overlay state that FS25 never initializes for custom HUD code. Always use the `createImageOverlay("dataS/menu/base/graph_pixel.dds")` pattern for colored rectangles.
+- `getMouseButtonState` was wrong function AND wrong button number. FS25 mouse input for mods must go through `addModEventListener({ mouseEvent = ... })`. Button numbers: 1=left, 3=right, 2=middle.
+- First drag-to-reposition attempt was click-to-teleport (wrong UX). User clarified: RMB enters edit mode, LMB drag moves panel. This matches the NPCFavor HUD pattern exactly.
 
 ---
 
@@ -829,4 +939,4 @@ Rewritten from scratch using the confirmed NPCFavor pattern (`NPCSettingsIntegra
 - The mod architecture is well-designed but had accumulated technical debt during development
 - All fixes have been implemented and committed to the development branch
 
-*DEVELOPMENT.md — last updated: 2026-02-24, Polish Pass and Critical Fixes completed.*
+*DEVELOPMENT.md — last updated: 2026-02-26, HUD Rendering Fix & Drag-to-Reposition. Phase 5 and Phase 6 TODO sections added.*

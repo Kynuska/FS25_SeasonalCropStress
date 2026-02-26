@@ -13,7 +13,7 @@ FS25 farms look lush even when your crops are quietly dying of thirst. This mod 
 
 **Seasonal Crop Stress & Irrigation Manager** adds real soil moisture physics to every field on your farm. Rain replenishes. Heat evaporates. Sandy soil drains fast; clay holds longer. When moisture drops below critical thresholds during the growth windows that matter most — wheat during heading, corn during pollination — stress accumulates and your yield shrinks. Place a center-pivot irrigator, schedule it, and protect what you've grown. Play it right and your harvest beats vanilla. Ignore it and you'll wonder why your combines are running light.
 
-Phases 1, 2, and 3 are live. Phase 4 (FS25_UsedPlus integration, drip irrigation, Precision Farming overlay) is planned.
+Phases 1–3 are complete. Phase 4 (Finance & Polish) is in active development. Phases 5–6 (Stability, HUD polish, and release readiness) are planned.
 
 ---
 
@@ -81,9 +81,29 @@ A full in-game settings system lets you tune the simulation without editing file
 - Precision Farming DLC overlay *(planned)*
 - Polish translations *(planned)*
 
+### Phase 5 — Stability & HUD Polish 📋 Planned
+
+- **HUD position persistence** — panel drag position saved to `cropStressSettings.xml` and restored on next load
+- **In-game verification** — run through all remaining `[ ]` test scenarios across Phases 1–4
+- **Polish translation** (`translation_pl.xml`) — complete Polish locale
+- HUD UX improvements based on in-game feedback
+
+### Phase 6 — Release Readiness 📋 Planned
+
+- Final 3D art assets for center pivot (arm rotation animation) and water pump
+- Mod icon (`icon.dds`) — replace placeholder
+- Steam Workshop listing draft
+- v1.0.0.0 changelog and git release tag
+- Post-launch monitoring plan
+
 ---
 
 ## Recent Fixes
+
+### February 26, 2026 — HUD Rendering Fix & Drag-to-Reposition
+
+- **Fixed:** HUD colored rectangles rendered corrupted and spammed `setOverlayColor: Argument 1 has wrong type. Expected: Float. Actual: Nil` every frame. Root cause: `drawFilledRect` uses an internal overlay handle that was never initialized. Replaced throughout with `createImageOverlay("dataS/menu/base/graph_pixel.dds")` + `setOverlayColor(handle, r,g,b,a)` + `renderOverlay(handle, x,y,w,h)` — the confirmed pattern from FS25_NPCFavor.
+- **Added:** HUD panel drag-to-reposition. Right-click the HUD to enter **Edit Mode** (orange border). Left-click drag to move the panel anywhere on screen. Right-click again to exit. Implemented via `addModEventListener mouseEvent` with FS25-confirmed button mapping (1=left, 3=right).
 
 ### February 26, 2026 — Settings Bug Fixes & ESC Menu
 
@@ -127,6 +147,8 @@ Resolved critical wiring issues from initial implementation: missing placeable t
 7. Press **`E`** near the pivot (or `Shift+I`) to open the irrigation schedule dialog
 8. At harvest, fields that suffered drought stress during critical growth windows will yield less
 
+> **Tip:** Right-click the HUD panel to enter Edit Mode — then drag it anywhere on screen with left-click.
+
 > **Tip:** Sandy-soil fields dry out much faster during heatwaves. Check them daily in summer.
 
 ---
@@ -155,6 +177,7 @@ Open the developer console with the `~` (tilde) key.
 | `Shift+I` | CS_OPEN_IRRIGATION | Open Irrigation Schedule dialog |
 | `Shift+C` | CS_OPEN_CONSULTANT | Open Crop Consultant dialog |
 | `E` (near pivot) | ACTIVATE_HANDTOOL | Open schedule for that specific pivot |
+| `RMB` (on HUD) | — | Toggle HUD Edit Mode — drag with LMB to reposition panel |
 
 ---
 

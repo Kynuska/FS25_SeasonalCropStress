@@ -248,8 +248,16 @@ FSBaseMission.delete = Utils.appendedFunction(FSBaseMission.delete, function(sel
 end)
 
 -- 6. Save
+-- 'self' here is the FSCareerMissionInfo object, which IS the missionInfo
+-- (it has savegameDirectory, xmlFile, etc. — same object CropStressSettings:load() receives).
 FSCareerMissionInfo.saveToXMLFile = Utils.appendedFunction(FSCareerMissionInfo.saveToXMLFile, function(self, xmlFile)
-    if g_csManager ~= nil then g_csManager:saveToXMLFile(xmlFile) end
+    if g_csManager == nil then return end
+    -- Save field moisture / stress / irrigation schedules into careerSavegame.xml
+    g_csManager:saveToXMLFile(xmlFile)
+    -- Save settings into separate sidecar cropStressSettings.xml
+    if g_csManager.settings ~= nil then
+        g_csManager.settings:saveToXMLFile(self)
+    end
 end)
 
 -- 7. Load saved state (fires after fields are populated)
@@ -275,3 +283,16 @@ FSBaseMission.sendInitialClientState = Utils.appendedFunction(
         if g_csManager ~= nil then g_csManager:sendInitialClientState(connection) end
     end
 )
+
+-- 9. Mouse events — RMB repositions the HUD panel.
+-- addModEventListener is the correct FS25 pattern for raw mouse input in mods.
+-- FS25 button numbers: 1=left, 3=right, 2=middle (confirmed via FS25_NPCFavor).
+addModEventListener({
+    mouseEvent = function(self, posX, posY, isDown, isUp, button)
+        if g_csManager == nil then return end
+        if g_csManager.hudOverlay == nil then return end
+        -- Guard: don't intercept while a GUI/dialog is open
+        if g_gui ~= nil and (g_gui:getIsGuiVisible() or g_gui:getIsDialogVisible()) then return end
+        g_csManager.hudOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
+    end
+})

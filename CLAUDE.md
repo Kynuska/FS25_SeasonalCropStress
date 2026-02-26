@@ -268,6 +268,8 @@ Profile MUST have `imageSliceId value="noSlice"` and extend `baseReference`.
 | Stream read/write order mismatch | Silent data corruption in multiplayer | Read and write in EXACTLY the same order |
 | HUD pixel coordinates | Break on different resolutions | Use normalized 0.0–1.0 screen coordinates |
 | Console: sidecar file creation | File I/O restricted on Xbox/PS5 | Only use xmlFile handle from game save callbacks |
+| `drawFilledRect(x,y,w,h)` + `setTextColor(r,g,b,a)` for colored rects | `setTextColor` only sets the **text** color state. `drawFilledRect` calls `setOverlayColor(handle, r,g,b,a)` internally with a nil handle (never set) → `setOverlayColor: Argument 1 has wrong type. Expected: Float. Actual: Nil` every frame | Create one shared overlay handle in `initialize()`: `self.fillOverlay = createImageOverlay("dataS/menu/base/graph_pixel.dds")` (1×1 white pixel in FS25 game data). Draw: `setOverlayColor(self.fillOverlay, r, g, b, a)` + `renderOverlay(self.fillOverlay, x, y, w, h)`. Cleanup: `delete(self.fillOverlay)` in `delete()`. |
+| `getMouseButtonState(2)` for RMB in HUD | RMB polling via `getMouseButtonState` is unreliable — FS25 button 2 is **middle** mouse, not right. RMB may also be consumed by the camera rotation system before reaching Lua | Use `addModEventListener({ mouseEvent = function(self, posX, posY, isDown, isUp, button) ... end })`. FS25 button numbers confirmed via NPCFavor: **1=left, 3=right, 2=middle**. Guard with `g_gui:getIsGuiVisible()` to avoid stealing mouse during dialogs. |
 
 ---
 

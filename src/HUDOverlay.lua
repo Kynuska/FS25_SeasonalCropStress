@@ -1,7 +1,7 @@
 -- ============================================================
 -- HUDOverlay.lua
 -- Renders the field moisture panel in the lower-left corner.
--- Uses FS25 immediate-mode render functions (renderText, drawFilledRect).
+-- Uses FS25 immediate-mode render functions (renderText, renderOverlay, setOverlayColor).
 --
 -- Phase 1: Basic moisture bars with auto-show/auto-hide
 -- Phase 3: +Forecast strip for selected field, +click-based row selection
@@ -64,6 +64,8 @@ HUDOverlay.COLOR_WARNING     = {0.85, 0.70, 0.10, 1.00}  -- yellow 30-60%
 HUDOverlay.COLOR_CRITICAL    = {0.85, 0.20, 0.10, 1.00}  -- red    <30%
 HUDOverlay.COLOR_FORECAST_BG = {0.08, 0.08, 0.12, 0.82}
 HUDOverlay.COLOR_DIM_TEXT    = {0.60, 0.60, 0.60, 1.00}
+HUDOverlay.COLOR_EDIT_BORDER = {1.00, 0.60, 0.10, 0.90}  -- orange — edit mode indicator
+HUDOverlay.EDIT_BORDER_W     = 0.002
 
 -- ============================================================
 -- LOGGING HELPER
@@ -97,9 +99,20 @@ function HUDOverlay.new(manager)
     self.autoShowActive = false
     self.autoHideTimer  = 0   -- real-time seconds; 0 = no auto-hide
 
-    -- Click detection: track previous left-mouse button state
-    -- (FS25 Lua: getMouseButtonState(1) returns true if LMB held)
+    -- Click detection: track previous left-mouse button state for row selection.
+    -- (FS25 Lua: getMouseButtonState(1) = LMB poll)
+    -- RMB edit mode and drag are handled via addModEventListener mouseEvent (button 3/1).
     self.prevMouseDown  = false
+
+    -- Panel position — initialized from class constants, overridable via drag in edit mode
+    self.panelX         = HUDOverlay.PANEL_X
+    self.panelY         = HUDOverlay.PANEL_Y
+
+    -- Edit mode / drag state (mirrors NPCFavorHUD pattern)
+    self.editMode       = false
+    self.dragging       = false
+    self.dragOffsetX    = 0
+    self.dragOffsetY    = 0
 
     self.isInitialized  = false
     return self
@@ -112,6 +125,13 @@ function HUDOverlay:initialize()
     if self.manager ~= nil and self.manager.eventBus ~= nil then
         self.manager.eventBus.subscribe("CS_MOISTURE_UPDATED",   self.onMoistureUpdated,   self)
         self.manager.eventBus.subscribe("CS_CRITICAL_THRESHOLD", self.onCriticalThreshold, self)
+    end
+
+    -- Single shared overlay handle used for every filled-rect draw call.
+    -- "dataS/menu/base/graph_pixel.dds" is a 1×1 white pixel in FS25 game data —
+    -- tinted at draw time via setOverlayColor(handle, r, g, b, a).
+    if createImageOverlay ~= nil then
+        self.fillOverlay = createImageOverlay("dataS/menu/base/graph_pixel.dds")
     end
 
     self.isInitialized = true
@@ -151,38 +171,35 @@ function HUDOverlay:update(dt)
 end
 
 -- ============================================================
--- CLICK DETECTION
--- Checks if the player clicks within any field row's bounds.
--- Uses getMouseButtonState(1) for LMB — rising-edge trigger.
+-- CLICK DETECTION (LMB row selection — polling)
+-- LMB rising-edge via getMouseButtonState(1).
+-- RMB reposition is handled by onMouseEvent() via addModEventListener.
 -- ============================================================
 function HUDOverlay:detectRowClick()
-    local lmbDown = false
+    -- Suppress row selection while in edit/drag mode
+    if self.editMode then return end
 
-    -- LUADOC NOTE: getMouseButtonState(1) is the FS25 LMB query.
-    -- Guard with pcall in case the function is unavailable.
+    local lmbDown = false
     if type(getMouseButtonState) == "function" then
         local ok, val = pcall(getMouseButtonState, 1)
         if ok then lmbDown = val end
     end
-
-    -- Rising edge: click started this frame
-    local clicked = lmbDown and not self.prevMouseDown
+    local lmbClicked   = lmbDown and not self.prevMouseDown
     self.prevMouseDown = lmbDown
 
-    if not clicked then return end
+    if not lmbClicked then return end
 
-    -- Get mouse position (FS25 normalized: getMousePosition → x, y, 0-1 from bottom-left)
+    -- Get mouse position (FS25 normalized: 0-1 from bottom-left)
     local mx, my = 0, 0
     if type(getMousePosition) == "function" then
         local ok, x, y = pcall(getMousePosition)
         if ok then mx, my = x or 0, y or 0 end
     end
 
-    -- Test each row's bounding box
     local numRows = math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)
     local panelH  = self:calcPanelHeight(numRows)
-    local px      = HUDOverlay.PANEL_X
-    local py      = HUDOverlay.PANEL_Y
+    local px      = self.panelX
+    local py      = self.panelY
 
     for i = 1, numRows do
         local rowY = py + panelH - HUDOverlay.HEADER_H - (i * HUDOverlay.ROW_H)
@@ -190,7 +207,6 @@ function HUDOverlay:detectRowClick()
         and my >= rowY and my <= rowY + HUDOverlay.ROW_H then
             local newId = self.displayRows[i].fieldId
             if self.selectedFieldId == newId then
-                -- Clicking selected row again deselects
                 self.selectedFieldId = nil
                 self.forecastCache   = nil
             else
@@ -199,6 +215,55 @@ function HUDOverlay:detectRowClick()
             end
             break
         end
+    end
+end
+
+-- ============================================================
+-- MOUSE EVENT — edit mode + drag reposition
+-- Called from main.lua addModEventListener mouseEvent handler.
+-- FS25 button numbers: 1=left, 3=right, 2=middle.
+--
+-- Flow (mirrors NPCFavorHUD):
+--   RMB down → toggle edit mode on/off
+--   LMB down (in edit mode) → start drag, record offset from panel origin
+--   Mouse move (while dragging) → update panelX/panelY
+--   LMB up (in edit mode) → end drag
+-- ============================================================
+function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
+    if not self.isVisible then return end
+
+    -- ── RMB: toggle edit mode ─────────────────────────────
+    if isDown and button == 3 then
+        self.editMode = not self.editMode
+        if not self.editMode then
+            self.dragging = false
+            csLog("HUD edit mode OFF — position saved")
+        else
+            csLog("HUD edit mode ON — LMB drag to reposition")
+        end
+        return
+    end
+
+    if not self.editMode then return end
+
+    -- ── LMB down: start drag ──────────────────────────────
+    if isDown and button == 1 then
+        self.dragging    = true
+        self.dragOffsetX = posX - self.panelX
+        self.dragOffsetY = posY - self.panelY
+        return
+    end
+
+    -- ── LMB up: end drag ──────────────────────────────────
+    if isUp and button == 1 then
+        self.dragging = false
+        return
+    end
+
+    -- ── Mouse movement: update position while dragging ────
+    if self.dragging then
+        self.panelX = math.max(0.0, math.min(1.0 - HUDOverlay.PANEL_W, posX - self.dragOffsetX))
+        self.panelY = math.max(0.05, math.min(0.95, posY - self.dragOffsetY))
     end
 end
 
@@ -240,26 +305,27 @@ function HUDOverlay:draw()
     if g_currentMission == nil then return end
 
     local numRows = math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)
-    if numRows == 0 then return end
 
-    local panelH = self:calcPanelHeight(numRows)
-    local px     = HUDOverlay.PANEL_X
-    local py     = HUDOverlay.PANEL_Y
+    -- Use 1 placeholder row height when there are no fields so the panel
+    -- always renders visibly after Shift+M — gives the player feedback that
+    -- the toggle worked even on maps with no enumerated fields.
+    local showEmpty   = (numRows == 0)
+    local panelH      = self:calcPanelHeight(showEmpty and 1 or numRows)
+    local px          = self.panelX
+    local py          = self.panelY
 
     -- Draw forecast strip BELOW the main panel (lower Y values)
-    local forecastBottomY = py
     if self.forecastCache ~= nil then
-        forecastBottomY = py - HUDOverlay.FORECAST_H - HUDOverlay.PADDING
-        self:drawForecastStrip(px, forecastBottomY)
+        self:drawForecastStrip(px, py - HUDOverlay.FORECAST_H - HUDOverlay.PADDING)
     end
 
     -- Background panel
-    setTextColor(unpack(HUDOverlay.COLOR_BG))
-    drawFilledRect(px, py, HUDOverlay.PANEL_W, panelH)
+    setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_BG))
+    renderOverlay(self.fillOverlay, px, py, HUDOverlay.PANEL_W, panelH)
 
     -- Header bar
-    setTextColor(unpack(HUDOverlay.COLOR_HEADER_BG))
-    drawFilledRect(px, py + panelH - HUDOverlay.HEADER_H, HUDOverlay.PANEL_W, HUDOverlay.HEADER_H)
+    setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_HEADER_BG))
+    renderOverlay(self.fillOverlay, px, py + panelH - HUDOverlay.HEADER_H, HUDOverlay.PANEL_W, HUDOverlay.HEADER_H)
 
     -- Header text
     setTextColor(unpack(HUDOverlay.COLOR_HEADER_TEXT))
@@ -279,6 +345,18 @@ function HUDOverlay:draw()
     )
     setTextBold(false)
 
+    -- Empty state: no fields tracked on this map
+    if showEmpty then
+        setTextColor(unpack(HUDOverlay.COLOR_DIM_TEXT))
+        renderText(
+            px + HUDOverlay.PADDING,
+            py + HUDOverlay.PADDING + (HUDOverlay.ROW_H - HUDOverlay.TEXT_SIZE) * 0.5,
+            HUDOverlay.TEXT_SIZE,
+            (g_i18n ~= nil and g_i18n:getText("cs_hud_no_crop")) or "No field data"
+        )
+        return
+    end
+
     -- Field rows
     for i = 1, numRows do
         local row  = self.displayRows[i]
@@ -286,24 +364,42 @@ function HUDOverlay:draw()
 
         -- Selection highlight background
         if row.fieldId == self.selectedFieldId then
-            setTextColor(unpack(HUDOverlay.COLOR_ROW_HOVER))
-            drawFilledRect(px, rowY, HUDOverlay.PANEL_W, HUDOverlay.ROW_H)
+            setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_ROW_HOVER))
+            renderOverlay(self.fillOverlay, px, rowY, HUDOverlay.PANEL_W, HUDOverlay.ROW_H)
             -- Selection border (left edge stripe)
-            setTextColor(unpack(HUDOverlay.COLOR_SELECTED_BDR))
-            drawFilledRect(px, rowY, HUDOverlay.SELECTED_BORDER_W, HUDOverlay.ROW_H)
+            setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_SELECTED_BDR))
+            renderOverlay(self.fillOverlay, px, rowY, HUDOverlay.SELECTED_BORDER_W, HUDOverlay.ROW_H)
         end
 
         self:drawFieldRow(row, px, rowY)
     end
 
     -- Hint text at bottom of panel if no field selected
-    if self.selectedFieldId == nil and numRows > 0 then
+    if self.selectedFieldId == nil and not self.editMode then
         setTextColor(unpack(HUDOverlay.COLOR_DIM_TEXT))
         renderText(
             px + HUDOverlay.PADDING,
             py + HUDOverlay.PADDING,
             0.010,
             "click row for 5-day forecast"
+        )
+    end
+
+    -- Edit mode: orange border + hint text replacing the normal footer
+    if self.editMode then
+        local bw = HUDOverlay.EDIT_BORDER_W
+        setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_EDIT_BORDER))
+        renderOverlay(self.fillOverlay, px,                      py + panelH - bw, HUDOverlay.PANEL_W, bw)  -- top
+        renderOverlay(self.fillOverlay, px,                      py,               HUDOverlay.PANEL_W, bw)  -- bottom
+        renderOverlay(self.fillOverlay, px,                      py,               bw,                 panelH)  -- left
+        renderOverlay(self.fillOverlay, px + HUDOverlay.PANEL_W - bw, py,          bw,                 panelH)  -- right
+
+        setTextColor(unpack(HUDOverlay.COLOR_EDIT_BORDER))
+        renderText(
+            px + HUDOverlay.PADDING,
+            py + HUDOverlay.PADDING,
+            0.010,
+            "DRAG to move  |  RMB to exit"
         )
     end
 end
@@ -331,13 +427,13 @@ function HUDOverlay:drawFieldRow(row, px, rowY)
     -- Moisture bar background
     local barX = px + HUDOverlay.PANEL_W - HUDOverlay.BAR_W - HUDOverlay.PADDING * 2
     local barY = rowY + (HUDOverlay.ROW_H - HUDOverlay.BAR_H) * 0.5
-    setTextColor(unpack(HUDOverlay.COLOR_BAR_BG))
-    drawFilledRect(barX, barY, HUDOverlay.BAR_W, HUDOverlay.BAR_H)
+    setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_BAR_BG))
+    renderOverlay(self.fillOverlay, barX, barY, HUDOverlay.BAR_W, HUDOverlay.BAR_H)
 
     -- Moisture bar fill
     local barColor = self:getMoistureColor(moisture)
-    setTextColor(unpack(barColor))
-    drawFilledRect(barX, barY, HUDOverlay.BAR_W * moisture, HUDOverlay.BAR_H)
+    setOverlayColor(self.fillOverlay, unpack(barColor))
+    renderOverlay(self.fillOverlay, barX, barY, HUDOverlay.BAR_W * moisture, HUDOverlay.BAR_H)
 
     -- Percentage text
     setTextColor(unpack(HUDOverlay.COLOR_TEXT))
@@ -361,8 +457,8 @@ function HUDOverlay:drawForecastStrip(px, py)
     local fH          = HUDOverlay.FORECAST_H
 
     -- Background
-    setTextColor(unpack(HUDOverlay.COLOR_FORECAST_BG))
-    drawFilledRect(px, py, HUDOverlay.PANEL_W, fH)
+    setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_FORECAST_BG))
+    renderOverlay(self.fillOverlay, px, py, HUDOverlay.PANEL_W, fH)
 
     -- Header
     setTextColor(unpack(HUDOverlay.COLOR_HEADER_TEXT))
@@ -413,13 +509,13 @@ function HUDOverlay:drawForecastStrip(px, py)
 
         -- Bar background
         local bw = HUDOverlay.FORECAST_COL_W - HUDOverlay.PADDING
-        setTextColor(unpack(HUDOverlay.COLOR_BAR_BG))
-        drawFilledRect(cx, barBaseY, bw, barMaxH)
+        setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_BAR_BG))
+        renderOverlay(self.fillOverlay, cx, barBaseY, bw, barMaxH)
 
         -- Bar fill
         local fillH = barMaxH * val
-        setTextColor(unpack(self:getMoistureColor(val)))
-        drawFilledRect(cx, barBaseY, bw, fillH)
+        setOverlayColor(self.fillOverlay, unpack(self:getMoistureColor(val)))
+        renderOverlay(self.fillOverlay, cx, barBaseY, bw, fillH)
 
         -- Percentage text below bar
         setTextColor(unpack(HUDOverlay.COLOR_TEXT))
@@ -575,6 +671,10 @@ end
 function HUDOverlay:delete()
     if self.manager ~= nil and self.manager.eventBus ~= nil then
         self.manager.eventBus.unsubscribeAll(self)
+    end
+    if self.fillOverlay ~= nil and delete ~= nil then
+        delete(self.fillOverlay)
+        self.fillOverlay = nil
     end
     self.forecastCache   = nil
     self.selectedFieldId = nil

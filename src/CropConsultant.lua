@@ -99,6 +99,8 @@ end
 -- ============================================================
 function CropConsultant:hourlyEvaluate()
     if not self.isInitialized then return end
+    -- Respect the alertsEnabled setting (nil = not yet set = default true)
+    if self.alertsEnabled == false then return end
     if self.manager == nil or self.manager.soilSystem == nil then return end
 
     local env     = g_currentMission and g_currentMission.environment
@@ -106,6 +108,9 @@ function CropConsultant:hourlyEvaluate()
     if env ~= nil then
         hourKey = (env.currentMonotonicDay or 0) * 24 + (env.currentHour or 0)
     end
+
+    -- Use configured cooldown; fall back to class constant if not yet applied
+    local cooldownHours = self.alertCooldown or CropConsultant.COOLDOWN_HOURS
 
     for fieldId, data in pairs(self.manager.soilSystem.fieldData) do
         local moisture = data.moisture
@@ -122,7 +127,7 @@ function CropConsultant:hourlyEvaluate()
             if stress > 0.01 then
                 local cooldownKey = fieldId .. "_info"
                 local lastAlert   = self.alertCooldowns[cooldownKey] or -999
-                if (hourKey - lastAlert) >= CropConsultant.COOLDOWN_HOURS then
+                if (hourKey - lastAlert) >= cooldownHours then
                     self.alertCooldowns[cooldownKey] = hourKey
                     local cropName = self:getCropName(fieldId)
                     self:showAlert(fieldId, moisture, "INFO", cropName)
@@ -138,6 +143,7 @@ end
 -- ============================================================
 function CropConsultant:onCriticalThreshold(data)
     if not self.isInitialized then return end
+    if self.alertsEnabled == false then return end
     if data == nil or data.fieldId == nil then return end
 
     local fieldId = data.fieldId
@@ -147,9 +153,10 @@ function CropConsultant:onCriticalThreshold(data)
         hourKey = (env.currentMonotonicDay or 0) * 24 + (env.currentHour or 0)
     end
 
+    local cooldownHours = self.alertCooldown or CropConsultant.COOLDOWN_HOURS
     local cooldownKey = fieldId .. "_critical"
     local lastAlert   = self.alertCooldowns[cooldownKey] or -999
-    if (hourKey - lastAlert) < CropConsultant.COOLDOWN_HOURS then return end
+    if (hourKey - lastAlert) < cooldownHours then return end
 
     self.alertCooldowns[cooldownKey] = hourKey
 
@@ -164,6 +171,7 @@ end
 -- ============================================================
 function CropConsultant:onMoistureUpdated(data)
     if not self.isInitialized then return end
+    if self.alertsEnabled == false then return end
     if data == nil then return end
 
     local fieldId  = data.fieldId
@@ -180,9 +188,10 @@ function CropConsultant:onMoistureUpdated(data)
             hourKey = (env.currentMonotonicDay or 0) * 24 + (env.currentHour or 0)
         end
 
+        local cooldownHours = self.alertCooldown or CropConsultant.COOLDOWN_HOURS
         local cooldownKey = fieldId .. "_warning"
         local lastAlert   = self.alertCooldowns[cooldownKey] or -999
-        if (hourKey - lastAlert) < CropConsultant.COOLDOWN_HOURS then return end
+        if (hourKey - lastAlert) < cooldownHours then return end
         self.alertCooldowns[cooldownKey] = hourKey
 
         local cropName = self:getCropName(fieldId)
