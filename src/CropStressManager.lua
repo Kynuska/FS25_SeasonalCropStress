@@ -308,7 +308,9 @@ function CropStressManager:detectOptionalMods()
         self.consultant:enableNPCFavorMode()
     end
 
-    if g_usedPlusManager ~= nil then
+    -- UsedPlusAPI is the confirmed public static interface (XelaNull/FS25_UsedPlus).
+    -- g_usedPlusManager is the legacy/internal global from older versions — kept as fallback.
+    if UsedPlusAPI ~= nil or g_usedPlusManager ~= nil then
         csLog("FS25_UsedPlus detected — enabling finance integration")
         self.financeIntegration:enableUsedPlusMode()
         self.usedEquipmentMarketplace:enableUsedPlusMode()

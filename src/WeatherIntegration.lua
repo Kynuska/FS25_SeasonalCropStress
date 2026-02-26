@@ -265,11 +265,17 @@ function WeatherIntegration:delete()
 end
 -- ============================================================
 -- 5-DAY MOISTURE FORECAST
--- Projects moisture for a field over the next N in-game days
--- based on current weather state (linear extrapolation).
+-- Projects moisture for a field over the next N in-game days.
 --
--- LUADOC NOTE: Upgrade to use g_currentMission.environment.weather:getForecast()
--- if/when that API is confirmed available in FS25.
+-- No FS25 weather forecast Lua API exists (confirmed: weather:getForecast()
+-- is not in the public API as of FS25 v1.x). The XML savegame stores a
+-- <forecast> block but there is no confirmed Lua accessor for it.
+--
+-- Strategy used here:
+--   Day 1-2 : weight rain probability by env.cloudUpdater:getCloudCoverage()
+--             (a real, confirmed FS25 API) combined with current rain state.
+--   Day 3-5 : fall back to season-based average rain probability.
+--   All days: irrigation contribution is assumed to continue unchanged.
 -- ============================================================
 function WeatherIntegration:getMoistureForecast(fieldId, days)
     days = days or 5
@@ -290,20 +296,55 @@ function WeatherIntegration:getMoistureForecast(fieldId, days)
     local soilParams = SoilMoistureSystem.SOIL_PARAMS[soilType]
         or SoilMoistureSystem.SOIL_PARAMS.loamy
 
-    local evapPerHour  = SoilMoistureSystem.BASE_EVAP_RATE
-        * self:getHourlyEvapMultiplier()
-        * soilParams.evapMod
-    local rainPerHour  = self:getHourlyRainAmount() * soilParams.rainAbsorb
+    -- Cloud coverage query (confirmed FS25 API: env.cloudUpdater:getCloudCoverage() → 0.0-1.0)
+    local cloudCoverage = 0.0
+    local env = g_currentMission and g_currentMission.environment
+    if env ~= nil and env.cloudUpdater ~= nil
+    and type(env.cloudUpdater.getCloudCoverage) == "function" then
+        local ok, val = pcall(env.cloudUpdater.getCloudCoverage, env.cloudUpdater)
+        if ok and val ~= nil then cloudCoverage = val end
+    end
+
+    -- Seasonal baseline: fraction of hours that have rain on average per season.
+    -- 0=spring(moderate), 1=summer(dry), 2=autumn(moderate), 3=winter(wet)
+    local SEASON_RAIN_PROB = { [0]=0.30, [1]=0.12, [2]=0.28, [3]=0.35 }
+    local baseRainProb = SEASON_RAIN_PROB[self.currentSeason] or 0.25
+
+    -- Typical rain amount per raining hour (moderate rain, soil-independent)
+    local typicalRainPerHour = 0.010
+
+    -- Irrigation contribution (assumes currently active systems keep running)
     local irrigPerHour = 0.0
     if self.manager ~= nil and self.manager.irrigationManager ~= nil then
         irrigPerHour = self.manager.irrigationManager:getIrrigationRateForField(fieldId)
     end
 
-    local netHourly = rainPerHour + irrigPerHour - evapPerHour
+    local evapPerHour = SoilMoistureSystem.BASE_EVAP_RATE
+        * self:getHourlyEvapMultiplier()
+        * soilParams.evapMod
 
     local projections = {}
     local moisture    = current
+
     for day = 1, days do
+        local rainPerHour
+        if day <= 2 then
+            -- Near-term: cloud coverage predicts rain continuation / arrival.
+            -- If currently raining: cloud coverage sustains probability.
+            -- If currently dry: partial cloud coverage suggests rain may arrive.
+            local nearRainProb = self.isRaining
+                and math.max(0.2, cloudCoverage)
+                or  (cloudCoverage * 0.40)
+            local sourceRate = (self.hourlyRainAmount > 0) and self.hourlyRainAmount
+                                                            or typicalRainPerHour
+            rainPerHour = sourceRate * nearRainProb
+        else
+            -- Far-term (day 3+): seasonal probability only.
+            rainPerHour = typicalRainPerHour * baseRainProb
+        end
+
+        local rainGain  = rainPerHour * soilParams.rainAbsorb
+        local netHourly = rainGain + irrigPerHour - evapPerHour
         moisture = math.max(0.0, math.min(1.0, moisture + netHourly * 24))
         projections[day] = moisture
     end

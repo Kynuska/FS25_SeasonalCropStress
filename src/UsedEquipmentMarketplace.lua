@@ -32,10 +32,17 @@ function UsedEquipmentMarketplace:enableUsedPlusMode()
     csLog("UsedEquipmentMarketplace: UsedPlus integration enabled")
 end
 
--- Register pre-owned irrigation equipment with UsedPlus marketplace
+-- Register pre-owned irrigation equipment with UsedPlus marketplace.
+-- Uses UsedPlusAPI (confirmed public interface) with g_usedPlusManager as fallback.
+-- registerUsedEquipment() is NOT in the confirmed public API — guarded with nil check
+-- and pcall so this silently no-ops if the method doesn't exist.
 function UsedEquipmentMarketplace:registerUsedEquipment()
     if not self.usedPlusActive then return end
-    if g_usedPlusManager == nil or g_usedPlusManager.registerUsedEquipment == nil then return end
+    local api = UsedPlusAPI or g_usedPlusManager
+    if api == nil or api.registerUsedEquipment == nil then
+        csLog("UsedEquipmentMarketplace: registerUsedEquipment not available — marketplace registration skipped")
+        return
+    end
 
     -- Center Pivot used equipment entries
     local pivotConfigs = {
@@ -103,29 +110,34 @@ function UsedEquipmentMarketplace:registerUsedEquipment()
     end
 end
 
--- Register a single piece of equipment with UsedPlus
+-- Register a single piece of equipment with UsedPlus.
+-- Wrapped in pcall: API signature unconfirmed, prevents crash on mismatch.
 function UsedEquipmentMarketplace:registerSingleEquipment(config)
-    if g_usedPlusManager == nil or g_usedPlusManager.registerUsedEquipment == nil then return end
+    local api = UsedPlusAPI or g_usedPlusManager
+    if api == nil or api.registerUsedEquipment == nil then return end
 
     local equipmentData = {
-        name = config.name,
-        type = config.type,
-        basePrice = config.basePrice,
+        name           = config.name,
+        type           = config.type,
+        basePrice      = config.basePrice,
         conditionRange = config.conditionRange,
-        description = config.description,
-        image = config.image,
-        category = "IRRIGATION",
-        subcategory = "AGRICULTURAL_EQUIPMENT",
-        -- Optional: Add custom attributes for irrigation equipment
+        description    = config.description,
+        image          = config.image,
+        category       = "IRRIGATION",
+        subcategory    = "AGRICULTURAL_EQUIPMENT",
         attributes = {
-            coverageRadius = config.coverageRadius or 200,
-            flowRate = config.flowRate or 1000,
-            operationalCost = config.operationalCost or 15
-        }
+            coverageRadius  = config.coverageRadius  or 200,
+            flowRate        = config.flowRate        or 1000,
+            operationalCost = config.operationalCost or 15,
+        },
     }
 
-    g_usedPlusManager:registerUsedEquipment(equipmentData)
-    csLog(string.format("Registered used equipment: %s", config.name))
+    local ok, err = pcall(function() api:registerUsedEquipment(equipmentData) end)
+    if ok then
+        csLog(string.format("Registered used equipment: %s", config.name))
+    else
+        csLog(string.format("registerUsedEquipment failed for %s: %s", config.name, tostring(err)))
+    end
 end
 
 function UsedEquipmentMarketplace:delete()
