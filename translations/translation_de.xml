@@ -222,5 +222,12 @@
     <text name="helpLine_cs_i1_about_text"      text="Erstellt von TisonK. Fügt eine realistische Bodenfeuchtesimulation, saisonalen Pflanzenstress und Bewässerungsinfrastrukturverwaltung zu Farming Simulator 25 hinzu. Entwickelt, um das Feldmanagement strategischer zu gestalten — jedes Feld, jede Saison, jede Entscheidung zählt."/>
     <text name="helpLine_cs_i1_community_title" text="Community &amp; Support"/>
     <text name="helpLine_cs_i1_community_text"  text="Diesen Mod findest du im Farming Simulator ModHub. Für Fragen, Fehlerberichte und Updates besuche die Mod-Seite im ModHub oder das GitHub-Repository. Schau in die Community-Foren, um Tipps mit anderen Spielern zu teilen."/>
+
+    <!-- ========== OPTIONALE MOD-INTEGRATIONEN ========== -->
+    <text name="cs_cp_vehicle_on_field"  text="CoursePlay: %d Fahrzeug arbeitet auf diesem Feld"/>
+    <text name="cs_cp_vehicles_on_field" text="CoursePlay: %d Fahrzeuge arbeiten auf diesem Feld"/>
+    <text name="cs_ad_water_hint"    text="AutoDrive: %d Wasserpunkt(e) verfügbar — Wasserroute einrichten"/>
+    <text name="cs_ad_destinations"  text="AutoDrive: %d Ziel(e) konfiguriert"/>
+
     </texts>
 </l10n>

@@ -222,5 +222,12 @@
     <text name="helpLine_cs_i1_about_text"      text="Creato da TisonK. Aggiunge una simulazione realistica dell'umidità del suolo, stress stagionale delle colture e gestione dell'infrastruttura di irrigazione a Farming Simulator 25. Progettato per rendere la gestione delle colture più strategica — ogni campo, ogni stagione, ogni decisione conta."/>
     <text name="helpLine_cs_i1_community_title" text="Comunità &amp; Supporto"/>
     <text name="helpLine_cs_i1_community_text"  text="Trova questa mod sull'ModHub di Farming Simulator. Per domande, segnalazioni di bug e aggiornamenti, visita la pagina della mod sull'ModHub o il repository GitHub. Unisciti ai forum della community per condividere consigli con altri giocatori."/>
+
+    <!-- ========== INTEGRAZIONI MOD OPZIONALI ========== -->
+    <text name="cs_cp_vehicle_on_field"  text="CoursePlay: %d veicolo su questo campo"/>
+    <text name="cs_cp_vehicles_on_field" text="CoursePlay: %d veicoli su questo campo"/>
+    <text name="cs_ad_water_hint"    text="AutoDrive: %d punto/i d'acqua disponibile/i — imposta un percorso di trasporto"/>
+    <text name="cs_ad_destinations"  text="AutoDrive: %d destinazione/i configurata/e"/>
+
     </texts>
 </l10n>

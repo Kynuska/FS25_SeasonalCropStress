@@ -222,5 +222,12 @@
     <text name="helpLine_cs_i1_about_text"      text="Stworzony przez TisonK. Dodaje realistyczną symulację wilgotności gleby, sezonowy stres upraw i zarządzanie infrastrukturą nawadniania do Farming Simulator 25. Zaprojektowany, aby zarządzanie uprawami było bardziej strategiczne — każde pole, każdy sezon, każda decyzja ma znaczenie."/>
     <text name="helpLine_cs_i1_community_title" text="Społeczność &amp; pomoc"/>
     <text name="helpLine_cs_i1_community_text"  text="Znajdź ten mod w Farming Simulator ModHub. W przypadku pytań, zgłoszeń błędów i aktualizacji odwiedź stronę moda w ModHub lub repozytorium GitHub. Dołącz do forów społecznościowych, aby dzielić się wskazówkami z innymi graczami."/>
+
+    <!-- ========== OPCJONALNE INTEGRACJE MODÓW ========== -->
+    <text name="cs_cp_vehicle_on_field"  text="CoursePlay: %d pojazd pracuje na tym polu"/>
+    <text name="cs_cp_vehicles_on_field" text="CoursePlay: %d pojazdy pracują na tym polu"/>
+    <text name="cs_ad_water_hint"    text="AutoDrive: %d punkt(y) wodny dostępny — skonfiguruj trasę transportu wody"/>
+    <text name="cs_ad_destinations"  text="AutoDrive: %d cel(e) skonfigurowany/e"/>
+
     </texts>
 </l10n>

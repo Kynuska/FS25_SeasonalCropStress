@@ -222,5 +222,12 @@
     <text name="helpLine_cs_i1_about_text"      text="Gemaakt door TisonK. Voegt realistische bodemvochtsimulatie, seizoensgebonden gewasstress en beheer van irrigatie-infrastructuur toe aan Farming Simulator 25. Ontworpen om gewasbeheer strategischer te maken — elk veld, elk seizoen, elke beslissing telt."/>
     <text name="helpLine_cs_i1_community_title" text="Community &amp; Support"/>
     <text name="helpLine_cs_i1_community_text"  text="Vind deze mod op de Farming Simulator ModHub. Voor vragen, bugrapporten en updates, bezoek de modpagina op ModHub of de GitHub-repository. Sluit je aan bij de communityforums om tips te delen met andere spelers."/>
+
+    <!-- ========== OPTIONELE MOD-INTEGRATIES ========== -->
+    <text name="cs_cp_vehicle_on_field"  text="CoursePlay: %d voertuig actief op dit perceel"/>
+    <text name="cs_cp_vehicles_on_field" text="CoursePlay: %d voertuigen actief op dit perceel"/>
+    <text name="cs_ad_water_hint"    text="AutoDrive: %d waterbestemming(en) beschikbaar — stel een transportroute in"/>
+    <text name="cs_ad_destinations"  text="AutoDrive: %d bestemming(en) geconfigureerd"/>
+
     </texts>
 </l10n>
