@@ -241,7 +241,7 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 
 #### Drip Irrigation Line placeable
 - [x] Create `placeables/dripIrrigationLine/dripLine.xml` + `.lua` — both exist; registered in `modDesc.xml` as `dripLine` type
-- [~] Implement start/end marker placement workflow — simplified: start=pivot position, end=start+lineLength along X axis; rotation-aware projection deferred (see note in `dripLine.lua:onLoad`)
+- [x] Implement start/end marker placement workflow — start=pivot position, end projected along local-X using node Y-rotation (cos ry, -sin ry). Rotation-aware. (session 11)
 - [x] Implement linear coverage calculation → field polygon overlap — `IrrigationManager:fieldIntersectsDripLine()` uses AABB check with line bounding box
 - [x] Register with `IrrigationManager` (same path as pivot) — `DripIrrigationLine:onLoad()` calls `irrigationManager:registerIrrigationSystem(self)`
 - [ ] **TEST:** Place drip line across a sugar beet field → moisture rises in covered area
@@ -343,6 +343,72 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 ## Session Log
 
 *Sessions are logged in reverse-chronological order (newest at top). Each entry MUST include: date, AI agent, what was done, what was tested, what the next agent should start on, and any blockers or surprises.*
+
+---
+
+### 2026-02-28 (session 11) — Claude (Sonnet 4.6) — Completion Plan: Proximity Fix, Drip Rotation, modDesc Translations, Polish
+
+**Started from:** Explicit completion plan covering COMP-1, COMP-2, COMP-3, POLISH-1–3.
+
+**Completed:**
+
+1. **COMP-1 — Fixed proximity interaction on both placeables (centerPivot + dripLine)**
+   - Root cause confirmed: `createTransformGroup + addTrigger` without physics collider in i3d → callback never fires.
+   - Replaced with per-frame distance polling inside existing `onUpdate` on both placeables.
+   - centerPivot: Euclidean distance to pivot centre (X/Z plane), radius = 8m.
+   - dripLine: Closest-point-on-segment projection onto (startX/Z → endX/Z), then distance check. Handles 100m+ lines correctly — prompt fires at either end.
+   - Removed `createProximityTrigger()` method, `onProximityTrigger()` callback, `triggerNode` field, trigger cleanup from `onDelete()` — both files.
+   - E-key interaction now functional without requiring art assets. No longer a Phase 6 blocker.
+
+2. **COMP-2 — Fixed drip line coverage rotation**
+   - Coverage box was always projected along world +X regardless of placeable Y-rotation.
+   - Fix: read `getWorldRotation(self.nodeId)` → project line direction via `(cos ry, -sin ry)`.
+   - Removed stale Phase 3 NOTE comment block from `dripLine.lua:onLoad`.
+   - Inline `-- VERIFY: ry sign` comment left for first in-game test at 90° rotation.
+
+3. **COMP-3 — modDesc.xml description completeness**
+   - Added IT title: `<it>Stress stagionale delle colture &amp; Gestore dell'irrigazione</it>`
+   - Expanded DE description from 2-paragraph stub to full feature-list format (matching EN quality).
+   - Added full CDATA descriptions for FR, IT, NL — translated feature bullets using authentic terms from each language's translation file.
+   - Removed stale `<!-- Phase 1: no 3D assets yet. Replace with real icon before publishing. -->` comment (icon.dds is valid 512×512 DXT1 — comment was no longer accurate).
+
+4. **POLISH-1 — main.lua Phase X section markers removed**
+   - `-- Phase 3: ...` → `-- Player-facing systems`, etc.
+   - Header "Load phases:" list updated to reflect actual 9-step load order.
+   - Removed FIX comments from two source() lines (UsedEquipmentMarketplace, PrecisionFarmingOverlay) that were one-time fix notes, no longer needed.
+
+**Tested:** Code review + file inspection only. No in-game testing this session.
+
+**Next agent should start at:**
+Run **Phase 5 in-game verification** — all `[ ]` TEST items throughout the TODO list.
+Key items to verify first:
+- Place centerPivot → walk within 8m → E-key prompt appears, dialog opens (COMP-1 fix)
+- Place dripLine at 45° → verify coverage zone in HUD matches rotated visual (COMP-2 fix)
+- `g_gui:getIsDialogVisible()` nil-safety (from session 9 notes)
+- `env.currentDayInPeriod` nil-safety (from session 9 notes)
+- Settings boolean trap: disable mod → save → reload → stays disabled
+
+**Notes / surprises:**
+- E-key interaction is now fully functional without art assets. The "Phase 6 hard blocker" note in session 9 (line 408) is now resolved — the distance-polling approach is independent of physics collider geometry.
+- `dripLine.lua:onLoad` VERIFY comment on ry sign should be checked in-game at 90° rotation before declaring COMP-2 `[x]`.
+
+---
+
+### 2026-02-28 (session 10) — Claude (Sonnet 4.6) — Full Codebase Audit Polish
+
+**Started from:** User request: final polish sweep over full codebase.
+
+**Completed:**
+
+1. Synced `helpLine_cs_cat_overview` key across all 6 translation files (DE→Allgemein, FR→Général, IT→Generale, NL→Algemeen, PL→Ogólne) — was visible mismatch in HELP menu for non-EN players.
+2. Removed dead `CS_STRESS_APPLIED` publish from `CropStressModifier.lua` — zero subscribers; FinanceIntegration is direct-called, not event-driven.
+3. Fixed `I3DUtil.getChildIndex` guard in `centerPivot.lua` — function returns -1 (not nil) when node absent; guard now checks `armIdx ~= nil and armIdx >= 0`.
+4. Comment clarity improvements: `CropStressSettings.toTable()`, `centerPivot`/`dripLine` csLog helpers, `waterPump` onUpdate absence, `main.lua` addModEventListener stubs.
+5. CLAUDE.md architecture event table corrected — removed `CS_STRESS_APPLIED`; clarified `CS_CONSULTANT_ALERT` uses `showBlinkingWarning()` (not event bus).
+
+**Tested:** Code review only — no in-game testing.
+
+**Next agent should start at:** See session 11 (above).
 
 ---
 

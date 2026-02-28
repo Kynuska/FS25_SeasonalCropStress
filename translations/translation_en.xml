@@ -144,7 +144,7 @@
     <!-- Legacy key kept for safety -->
     <text name="helpLine_cs_category"          text="Seasonal Crop Stress"/>
     <!-- Category titles -->
-    <text name="helpLine_cs_cat_overview"      text="Overview"/>
+    <text name="helpLine_cs_cat_overview"      text="General"/>
     <text name="helpLine_cs_cat_settings"      text="Settings"/>
     <text name="helpLine_cs_cat_tips"          text="Tips &amp; Tricks"/>
     <text name="helpLine_cs_cat_info"          text="Mod Information"/>

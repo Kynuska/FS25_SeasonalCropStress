@@ -3,14 +3,16 @@
 -- Entry point. Loads all modules via source() in strict dependency
 -- order, then wires up FS25 lifecycle hooks.
 --
--- Load phases:
+-- Load order:
 --   1. Weather bridge
 --   2. Core simulation (soil, stress, irrigation)
---   3. Player-facing (HUD, consultant)
---   4. Optional mod bridges (activated at runtime if mods present)
---   5. Persistence
---   6. GUI panels
---   7. Central coordinator (depends on everything above)
+--   3. Settings
+--   4. Player-facing systems (HUD, consultant)
+--   5. Optional mod bridges (activated at runtime if mods present)
+--   6. Event bus
+--   7. Persistence
+--   8. GUI dialogs
+--   9. Central coordinator (depends on everything above)
 -- ============================================================
 
 local modDir = g_currentModDirectory
@@ -48,40 +50,40 @@ do
     end
 end
 
--- Phase 1: Weather bridge
+-- Weather bridge
 source(modDir .. "src/WeatherIntegration.lua")
 
--- Phase 2: Core simulation
+-- Core simulation
 source(modDir .. "src/SoilMoistureSystem.lua")
 source(modDir .. "src/CropStressModifier.lua")
 source(modDir .. "src/IrrigationManager.lua")
 
--- Phase 2.5: Settings
+-- Settings
 source(modDir .. "src/settings/CropStressSettings.lua")
 source(modDir .. "src/settings/CropStressSettingsIntegration.lua")
 
--- Phase 3: Player-facing systems
+-- Player-facing systems
 source(modDir .. "src/HUDOverlay.lua")
 source(modDir .. "src/CropConsultant.lua")
 
--- Phase 4: Optional mod bridges
+-- Optional mod bridges
 source(modDir .. "src/NPCIntegration.lua")
 source(modDir .. "src/FinanceIntegration.lua")
-source(modDir .. "src/UsedEquipmentMarketplace.lua")  -- FIX: was missing, caused nil crash in CropStressManager.new()
-source(modDir .. "src/PrecisionFarmingOverlay.lua")   -- FIX: was missing, caused nil crash in CropStressManager.new()
+source(modDir .. "src/UsedEquipmentMarketplace.lua")
+source(modDir .. "src/PrecisionFarmingOverlay.lua")
 
--- Phase 4.5: Events
+-- Event bus
 source(modDir .. "src/events/CropStressSettingsSyncEvent.lua")
 
--- Phase 5: Persistence
+-- Persistence
 source(modDir .. "src/SaveLoadHandler.lua")
 
--- Phase 6: GUI panels
+-- GUI dialogs
 source(modDir .. "gui/FieldMoisturePanel.lua")
 source(modDir .. "gui/IrrigationScheduleDialog.lua")
 source(modDir .. "gui/CropConsultantDialog.lua")
 
--- Phase 7: Central coordinator (must load last -- depends on all of the above)
+-- Central coordinator (must load last — depends on all modules above)
 source(modDir .. "src/CropStressManager.lua")
 
 -- ============================================================
@@ -288,11 +290,10 @@ FSBaseMission.sendInitialClientState = Utils.appendedFunction(
 -- addModEventListener is the correct FS25 pattern for raw mouse input in mods.
 -- FS25 button numbers: 1=left, 3=right, 2=middle (confirmed via FS25_NPCFavor).
 --
--- CRITICAL: FS25 calls keyEvent(), update(), draw(), and delete() on EVERY registered
--- mod event listener without nil-checking the method first. Passing an anonymous table
--- that only defines mouseEvent causes a Lua error when ESC is pressed (keyEvent() is nil),
--- FS25 silently catches it in pcall, considers the key handled, and InGameMenu never opens.
--- ALL listener methods must be present — stubs are fine for the ones we don't use.
+-- Defensive stubs for the listener table. Per confirmed FS25_NPCFavor research, FS25 DOES
+-- nil-check before calling keyEvent/update/draw/delete — ESC works correctly without stubs
+-- (NPCFavor omits them and ESC functions fine). These stubs are kept as defensive practice
+-- only; they do NOT prevent any crash.
 addModEventListener({
     update   = function(self, dt) end,
     draw     = function(self) end,

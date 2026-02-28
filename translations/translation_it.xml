@@ -144,7 +144,7 @@
     <!-- Chiave legacy conservata per compatibilità -->
     <text name="helpLine_cs_category"          text="Stress stagionale delle colture"/>
     <!-- Titoli delle categorie -->
-    <text name="helpLine_cs_cat_overview"      text="Panoramica"/>
+    <text name="helpLine_cs_cat_overview"      text="Generale"/>
     <text name="helpLine_cs_cat_settings"      text="Impostazioni"/>
     <text name="helpLine_cs_cat_tips"          text="Consigli &amp; Trucchi"/>
     <text name="helpLine_cs_cat_info"          text="Informazioni sulla Mod"/>

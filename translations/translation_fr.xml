@@ -144,7 +144,7 @@
     <!-- Clé héritée conservée pour compatibilité -->
     <text name="helpLine_cs_category"          text="Stress saisonnier des cultures"/>
     <!-- Titres de catégories -->
-    <text name="helpLine_cs_cat_overview"      text="Présentation"/>
+    <text name="helpLine_cs_cat_overview"      text="Général"/>
     <text name="helpLine_cs_cat_settings"      text="Paramètres"/>
     <text name="helpLine_cs_cat_tips"          text="Conseils &amp; Astuces"/>
     <text name="helpLine_cs_cat_info"          text="Informations sur le Mod"/>

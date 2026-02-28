@@ -144,7 +144,7 @@
     <!-- Veralteter Schlüssel für Kompatibilität behalten -->
     <text name="helpLine_cs_category"          text="Saisonaler Pflanzenstress"/>
     <!-- Kategorietitel -->
-    <text name="helpLine_cs_cat_overview"      text="Übersicht"/>
+    <text name="helpLine_cs_cat_overview"      text="Allgemein"/>
     <text name="helpLine_cs_cat_settings"      text="Einstellungen"/>
     <text name="helpLine_cs_cat_tips"          text="Tipps &amp; Tricks"/>
     <text name="helpLine_cs_cat_info"          text="Mod-Informationen"/>

@@ -13,6 +13,7 @@ IrrigationPivot.INTERACTION_RADIUS = 8  -- metres; player must be within this to
 
 -- ============================================================
 -- LOGGING HELPER
+-- local to this placeable module — not shared with src/ logging
 -- ============================================================
 local function csLog(msg)
     if g_logManager ~= nil then
@@ -41,7 +42,6 @@ function IrrigationPivot.new(isServer, isClient, customMt)
     self.isActive                = false
 
     -- Proximity interaction state (client-side only)
-    self.triggerNode             = nil
     self.playerInRange           = false
     self.actionEventId           = nil
 
@@ -80,14 +80,9 @@ function IrrigationPivot:onLoad(savegame)
     -- Find arm node in i3d
     if self.nodeId ~= nil then
         local armIdx = I3DUtil.getChildIndex(self.nodeId, "armNode")
-        if armIdx ~= nil then
+        if armIdx ~= nil and armIdx >= 0 then  -- getChildIndex returns -1 (not nil) when node not found
             self.armNode = getChildAt(self.nodeId, armIdx)
         end
-    end
-
-    -- Proximity trigger (client-only — no need to run on server)
-    if self.isClient then
-        self:createProximityTrigger()
     end
 
     -- Resolve IrrigationManager
@@ -97,56 +92,6 @@ function IrrigationPivot:onLoad(savegame)
         self.irrigationManager:registerIrrigationSystem(self)
     else
         csLog("centerPivot: IrrigationManager not available at onLoad — pivot not registered")
-    end
-end
-
--- ============================================================
--- PROXIMITY TRIGGER
--- Creates a spherical trigger node attached to the pivot root.
--- FS25 trigger callbacks fire with (triggerId, otherId, onEnter, onLeave, onStay).
--- We check if the other node is the local player's root node.
--- ============================================================
-function IrrigationPivot:createProximityTrigger()
-    if self.nodeId == nil then return end
-
-    -- Create a new transform group as a child of the root node
-    self.triggerNode = createTransformGroup("irrigationPivotTrigger")
-    if self.triggerNode == nil or self.triggerNode == 0 then
-        self.triggerNode = nil
-        return
-    end
-
-    link(self.nodeId, self.triggerNode)
-    setTranslation(self.triggerNode, 0, 0, 0)
-
-    -- IMPORTANT: addTrigger registers the callback but does NOT create a physics shape.
-    -- The actual trigger volume (sphere collider) must be defined in the i3d file as a
-    -- trigger node with the appropriate collision mask. This createTransformGroup node
-    -- acts as a parent for the i3d trigger node, or alternatively the i3d's own trigger
-    -- node should be looked up here via I3DUtil.getChildIndex and used directly.
-    -- Without a physics shape in the i3d, onProximityTrigger will never fire.
-    -- Use addTrigger(node, callbackName, target) — callbackName is a STRING method name.
-    -- FS25 calls: target[callbackName](target, triggerId, otherId, onEnter, onLeave, onStay)
-    addTrigger(self.triggerNode, "onProximityTrigger", self)
-
-    csLog(string.format("centerPivot %s: proximity trigger created (r=%.1fm)", tostring(self.id), IrrigationPivot.INTERACTION_RADIUS))
-end
-
--- Trigger callback — fires when any entity enters/leaves the sphere
-function IrrigationPivot:onProximityTrigger(triggerId, otherId, onEnter, onLeave, onStay)
-    -- Only care about the local player's root node
-    local player = g_localPlayer
-    if player == nil then return end
-
-    local playerNode = player.rootNode or player.nodeId
-    if playerNode == nil or otherId ~= playerNode then return end
-
-    if onEnter then
-        self.playerInRange = true
-        self:registerInteractionAction()
-    elseif onLeave then
-        self.playerInRange = false
-        self:removeInteractionAction()
     end
 end
 
@@ -226,6 +171,26 @@ function IrrigationPivot:onUpdate(dt)
         setRotation(self.armNode, 0, self.armRotation, 0)
     end
 
+    -- Distance poll for proximity interaction (client-only).
+    -- Replaces the physics-trigger approach which requires collider shapes in the i3d.
+    -- Runs every frame; cost is two getWorldTranslation calls + one distance check.
+    if self.isClient and self.nodeId ~= nil then
+        local player = g_localPlayer
+        if player ~= nil then
+            local px, _, pz = getWorldTranslation(player.rootNode or player.nodeId)
+            local sx, _, sz = getWorldTranslation(self.nodeId)
+            local r = IrrigationPivot.INTERACTION_RADIUS
+            local inRange = (px-sx)*(px-sx) + (pz-sz)*(pz-sz) <= r*r
+            if inRange and not self.playerInRange then
+                self.playerInRange = true
+                self:registerInteractionAction()
+            elseif not inRange and self.playerInRange then
+                self.playerInRange = false
+                self:removeInteractionAction()
+            end
+        end
+    end
+
     -- Re-register interaction if player is in range but action was cleared
     -- (e.g. after dialog was closed)
     if self.isClient and self.playerInRange and self.actionEventId == nil then
@@ -240,11 +205,6 @@ function IrrigationPivot:onDelete()
     -- Clean up interaction action event
     if self.isClient then
         self:removeInteractionAction()
-        if self.triggerNode ~= nil and self.triggerNode ~= 0 then
-            removeTrigger(self.triggerNode)
-            delete(self.triggerNode)
-            self.triggerNode = nil
-        end
     end
 
     if self.irrigationManager ~= nil then

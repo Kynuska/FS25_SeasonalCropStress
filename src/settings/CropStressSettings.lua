@@ -132,6 +132,9 @@ end
 
 -- Convert settings to a plain table (used for bulk network sync).
 -- NOTE: local named 't', not 'table' — shadowing the builtin is a footgun.
+-- NOTE: hudPanelX and hudPanelY ARE included in the output but are intentionally
+-- excluded from CropStressSettingsSyncEvent — they are client-local display
+-- preferences and must not be overwritten by a server-pushed sync.
 function CropStressSettings:toTable()
     local t = {}
     for key, value in pairs(self) do
