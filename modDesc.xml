@@ -7,6 +7,7 @@
         <en>Seasonal Crop Stress &amp; Irrigation Manager</en>
         <de>Saisonaler Pflanzenstress &amp; Bewässerungsmanager</de>
         <fr>Stress saisonnier des cultures &amp; gestionnaire d'irrigation</fr>
+        <it>Stress stagionale delle colture &amp; Gestore dell'irrigazione</it>
         <nl>Seizoensgebonden gewassstress &amp; irrigatiebeheer</nl>
     </title>
 
@@ -30,15 +31,86 @@ FEATURES:
 • Full save/load persistence of all field and irrigation state
 • Debug console commands (type csHelp in developer console)
         ]]></en>
-        <de><![CDATA[Fügt Bodenfeuchteverfolgung und Pflanzenstresssimulation zu FS25 hinzu.
+        <de><![CDATA[Fügt Bodenfeuchteverfolgung, Pflanzenstresssimulation und Bewässerungsmanagement zu Farming Simulator 25 hinzu.
 
-Jedes Feld verfolgt einen Bodenfeuchteanteil, der mit Regen steigt und durch Evapotranspiration (Temperatur, Jahreszeit, Bodentyp) sinkt. Wenn die Feuchte in kritischen Wachstumsphasen zu niedrig ist, akkumuliert sich Stress und reduziert den Ernteertrag.
+Jedes Feld verfolgt einen Bodenfeuchteanteil (0–100 %), der mit Regen steigt und durch Evapotranspiration (Temperatur, Jahreszeit, Bodentyp) sinkt. Wenn die Feuchte in kritischen Wachstumsphasen unter kultururspezifische Schwellenwerte fällt, akkumuliert sich Trockenstress und reduziert den Ernteertrag am Saisonende.
+
+FUNKTIONEN:
+• Bodenfeuchte-Simulation pro Feld, gesteuert durch das Spielwetter
+• Saisonale und temperaturbeeinflusste Evapotranspiration
+• Bodentyp-Modifikatoren: Sandig trocknet schnell aus, Tonig hält Feuchte
+• Kultuurspezifische kritische Wachstumsphasen (Weizen, Mais, Gerste, Raps u. v. m.)
+• Ertragsreduzierung bei der Ernte — bis zu 60 % Verlust bei maximalem Stress
+• Bodenfeuchte-HUD-Overlay mit 5-Tage-Prognose (Shift+M zum Ein-/Ausblenden)
+• Kreisbewässerung und Tröpfchenbewässerung mit Wasserpumpen-Infrastruktur
+• Bewässerungszeitplan-Dialog — Aktivtage und Zeitfenster einstellen (Shift+I)
+• Pflanzenbergungs-Dialog mit Risikoübersicht und Empfehlungen (Shift+C)
+• Optionale Integration mit FS25_NPCFavor (Alex Chen, Agrarberater-NPC)
+• Optionale Integration mit FS25_UsedPlus (Gebrauchtmarkt für Landmaschinen)
+• Vollständige Speicherung aller Feld- und Bewässerungsdaten
+• Debug-Konsolenbefehle (csHelp in der Entwicklerkonsole eingeben)
         ]]></de>
+        <fr><![CDATA[Ajoute un suivi de l'humidité du sol, une simulation du stress hydrique et un gestionnaire d'irrigation à Farming Simulator 25.
+
+Chaque parcelle suit un pourcentage d'humidité du sol (0–100 %) qui monte avec les pluies et descend par évapotranspiration selon la température, la saison et le type de sol. Lorsque l'humidité passe sous les seuils propres à chaque culture pendant les périodes critiques de croissance, le stress hydrique s'accumule et réduit le rendement en fin de saison.
+
+FONCTIONNALITÉS :
+• Simulation d'humidité du sol par parcelle, pilotée par la météo en temps réel
+• Évapotranspiration ajustée à la saison et à la température
+• Modificateurs de type de sol : Sableux sèche vite, Argileux retient l'humidité
+• Périodes critiques de croissance propres à chaque culture (blé, maïs, orge, colza, etc.)
+• Réduction de rendement à la récolte — jusqu'à 60 % de perte au stress maximal
+• Overlay HUD d'humidité du sol avec prévisions 5 jours (Maj+M pour afficher/masquer)
+• Pivot central et goutte-à-goutte avec infrastructure de pompe à eau
+• Programme d'irrigation — définissez les jours actifs et la plage horaire (Maj+I)
+• Dialogue Conseiller cultural avec résumé des risques et recommandations (Maj+C)
+• Intégration optionnelle avec FS25_NPCFavor (Alex Chen, agronome PNJ)
+• Intégration optionnelle avec FS25_UsedPlus (marché de matériel d'occasion)
+• Sauvegarde complète de l'état des parcelles et des systèmes d'irrigation
+• Commandes de débogage en console (taper csHelp dans la console développeur)
+        ]]></fr>
+        <it><![CDATA[Aggiunge il monitoraggio dell'umidità del terreno, la simulazione dello stress da siccità e la gestione dell'irrigazione a Farming Simulator 25.
+
+Ogni campo tiene traccia di una percentuale di umidità del terreno (0–100 %) che sale con la pioggia e scende per evapotraspirazione in base a temperatura, stagione e tipo di terreno. Quando l'umidità scende sotto le soglie specifiche della coltura nelle finestre critiche di crescita, lo stress da siccità si accumula e riduce la resa al raccolto.
+
+FUNZIONALITÀ:
+• Simulazione dell'umidità del terreno per campo, guidata dal meteo di gioco
+• Evapotraspirazione stagionale e influenzata dalla temperatura
+• Modificatori per tipo di terreno: Sabbioso si asciuga rapidamente, Argilloso trattiene l'umidità
+• Finestre critiche di crescita specifiche per coltura (grano, mais, orzo, colza e altro)
+• Riduzione della resa al raccolto — fino al 60 % di perdita allo stress massimo
+• Overlay HUD dell'umidità del terreno con previsioni a 5 giorni (Maiusc+M per mostrare/nascondere)
+• Irrigazione a perno e a goccia con infrastruttura pompa dell'acqua
+• Programma irrigazione — imposta i giorni attivi e la finestra oraria (Maiusc+I)
+• Dialogo Consulente colturale con riepilogo dei rischi e raccomandazioni (Maiusc+C)
+• Integrazione opzionale con FS25_NPCFavor (Alex Chen, agronomo PNG)
+• Integrazione opzionale con FS25_UsedPlus (mercato attrezzature usate)
+• Salvataggio completo dello stato dei campi e dei sistemi di irrigazione
+• Comandi di debug in console (digitare csHelp nella console sviluppatore)
+        ]]></it>
+        <nl><![CDATA[Voegt bodemvochtmonitoring, gewassstresssimulatie en irrigatiebeheer toe aan Farming Simulator 25.
+
+Elk veld houdt een bodemvochtpercentage bij (0–100 %) dat stijgt bij regen en daalt door evapotranspiratie op basis van temperatuur, seizoen en bodemtype. Als de vochtigheid tijdens kritieke groeivensters onder gewasspecifieke drempelwaarden zakt, accumuleert droogtestress en verlaagt de oogstopbrengst aan het einde van het seizoen.
+
+FUNCTIES:
+• Bodemvochtsimulatie per veld, aangestuurd door het spelweer
+• Seizoens- en temperatuurgecorrigeerde evapotranspiratie
+• Bodemtype-modifiers: Zandig droogt snel, Kleiig houdt vochtigheid vast
+• Gewasspecifieke kritieke groeivensters (tarwe, maïs, gerst, koolzaad en meer)
+• Opbrengstreductie bij oogst — tot 60 % verlies bij maximale stress
+• HUD-overlay bodemvochtigheid met 5-dagenprognose (Shift+M om in/uit te schakelen)
+• Cirkelberegening en druppelbevloeiing met waterpomp-infrastructuur
+• Irrigatieschema-dialoog — stel actieve dagen en tijdvenster in (Shift+I)
+• Gewasadviseur-dialoog met risicosamenvatting en aanbevelingen (Shift+C)
+• Optionele integratie met FS25_NPCFavor (Alex Chen, agronoom-NPC)
+• Optionele integratie met FS25_UsedPlus (marktplaats voor gebruikte machines)
+• Volledige opslag van veld- en irrigatiestatus
+• Debug-consoleopdrachten (typ csHelp in de ontwikkelaarsconsole)
+        ]]></nl>
     </description>
 
     <multiplayer supported="true"/>
 
-    <!-- Phase 1: no 3D assets yet. Replace with real icon before publishing. -->
     <iconFilename>icon.dds</iconFilename>
 
     <!--

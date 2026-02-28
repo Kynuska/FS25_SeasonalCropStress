@@ -54,7 +54,6 @@ function DripIrrigationLine.new(isServer, isClient, customMt)
     self.coverageMaxZ = 0
 
     -- Proximity interaction state
-    self.triggerNode        = nil
     self.playerInRange      = false
     self.actionEventId      = nil
 
@@ -93,28 +92,25 @@ function DripIrrigationLine:onLoad(savegame)
         end
     end
 
-    -- Get position from root node.
-    -- NOTE (Phase 3): The end position is currently always computed along the X axis
-    -- (endX = x + lineLength, endZ = z). This ignores the placeable's Y-rotation,
-    -- so coverage won't match the visual if the player rotates the object during placement.
-    -- Phase 3 fix: read the root node's rotation via getRotation(self.nodeId) and project
-    -- the line direction accordingly.
+    -- Get position and orientation from root node.
+    -- Project the line along local X (cos ry, -sin ry in world XZ) so that
+    -- coverage follows the placeable's Y-rotation set during placement.
+    -- VERIFY: if the line's "length" axis is local Z instead of local X, swap to
+    -- dirX = -math.sin(ry), dirZ = -math.cos(ry).
     local x, y, z = getWorldTranslation(self.nodeId)
+    local _, ry, _ = getWorldRotation(self.nodeId)
+    local dirX =  math.cos(ry)
+    local dirZ = -math.sin(ry)
     self.startX = x
     self.startZ = z
-    self.endX   = x + self.lineLength
-    self.endZ   = z
+    self.endX   = x + dirX * self.lineLength
+    self.endZ   = z + dirZ * self.lineLength
 
     -- Calculate coverage bounding box
     self.coverageMinX = math.min(self.startX, self.endX)
     self.coverageMaxX = math.max(self.startX, self.endX)
     self.coverageMinZ = math.min(self.startZ, self.endZ) - self.lineSpacing * 0.5
     self.coverageMaxZ = math.max(self.startZ, self.endZ) + self.lineSpacing * 0.5
-
-    -- Proximity trigger (client-only)
-    if self.isClient then
-        self:createProximityTrigger()
-    end
 
     -- Resolve IrrigationManager
     self.irrigationManager = g_cropStressManager and g_cropStressManager.irrigationManager or nil
@@ -123,47 +119,6 @@ function DripIrrigationLine:onLoad(savegame)
         self.irrigationManager:registerIrrigationSystem(self)
     else
         csLog("dripLine: IrrigationManager not available at onLoad — drip line not registered")
-    end
-end
-
--- ============================================================
--- PROXIMITY TRIGGER
--- ============================================================
-function DripIrrigationLine:createProximityTrigger()
-    if self.nodeId == nil then return end
-
-    self.triggerNode = createTransformGroup("dripLineTrigger")
-    if self.triggerNode == nil or self.triggerNode == 0 then
-        self.triggerNode = nil
-        return
-    end
-
-    link(self.nodeId, self.triggerNode)
-    setTranslation(self.triggerNode, 0, 0, 0)
-
-    -- IMPORTANT: addTrigger registers the callback but does NOT create a physics shape.
-    -- The actual trigger volume must be defined in the i3d file. Without a physics
-    -- shape, onProximityTrigger will never fire. See centerPivot.lua for identical note.
-    -- addTrigger second arg MUST be a string method name, not the table itself.
-    -- FS25 calls: self["onProximityTrigger"](self, triggerId, otherId, onEnter, onLeave, onStay)
-    addTrigger(self.triggerNode, "onProximityTrigger", self)
-
-    csLog(string.format("dripLine %s: proximity trigger created (r=%.1fm)", tostring(self.id), DripIrrigationLine.INTERACTION_RADIUS))
-end
-
-function DripIrrigationLine:onProximityTrigger(triggerId, otherId, onEnter, onLeave, onStay)
-    local player = g_localPlayer
-    if player == nil then return end
-
-    local playerNode = player.rootNode or player.nodeId
-    if playerNode == nil or otherId ~= playerNode then return end
-
-    if onEnter then
-        self.playerInRange = true
-        self:registerInteractionAction()
-    elseif onLeave then
-        self.playerInRange = false
-        self:removeInteractionAction()
     end
 end
 
@@ -227,6 +182,34 @@ function DripIrrigationLine:onUpdate(dt)
     local sys = mgr ~= nil and mgr.systems[self.id] or nil
     self.isActive = sys ~= nil and sys.isActive == true
 
+    -- Distance poll for proximity interaction (client-only).
+    -- Uses closest-point-on-segment to handle long lines correctly — a player
+    -- standing at either end of a 100 m drip line should trigger the prompt.
+    if self.isClient then
+        local player = g_localPlayer
+        if player ~= nil then
+            local px, _, pz = getWorldTranslation(player.rootNode or player.nodeId)
+            local lx = self.endX - self.startX
+            local lz = self.endZ - self.startZ
+            local len2 = lx*lx + lz*lz
+            local t = 0
+            if len2 > 0 then
+                t = math.max(0, math.min(1, ((px-self.startX)*lx + (pz-self.startZ)*lz) / len2))
+            end
+            local cx = self.startX + t*lx
+            local cz = self.startZ + t*lz
+            local r = DripIrrigationLine.INTERACTION_RADIUS
+            local inRange = (px-cx)*(px-cx) + (pz-cz)*(pz-cz) <= r*r
+            if inRange and not self.playerInRange then
+                self.playerInRange = true
+                self:registerInteractionAction()
+            elseif not inRange and self.playerInRange then
+                self.playerInRange = false
+                self:removeInteractionAction()
+            end
+        end
+    end
+
     -- Re-register interaction if player is in range but action was cleared
     if self.isClient and self.playerInRange and self.actionEventId == nil then
         self:registerInteractionAction()
@@ -239,11 +222,6 @@ end
 function DripIrrigationLine:onDelete()
     if self.isClient then
         self:removeInteractionAction()
-        if self.triggerNode ~= nil and self.triggerNode ~= 0 then
-            removeTrigger(self.triggerNode)
-            delete(self.triggerNode)
-            self.triggerNode = nil
-        end
     end
 
     if self.irrigationManager ~= nil then
