@@ -13,6 +13,7 @@ DripIrrigationLine.INTERACTION_RADIUS = 8  -- metres
 
 -- ============================================================
 -- LOGGING HELPER
+-- local to this placeable module — not shared with src/ logging
 -- ============================================================
 local function csLog(msg)
     if g_logManager ~= nil then

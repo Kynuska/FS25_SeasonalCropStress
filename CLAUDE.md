@@ -160,18 +160,20 @@ Hooks into FS25 lifecycle via `Utils.appendedFunction`:
 | `FSBaseMission.sendInitialClientState` | Multiplayer initial sync |
 | `HarvestingMachine.doGroundWorkArea` | Intercept harvest fill to apply yield multiplier |
 
-### Message Bus (g_messageCenter)
+### Message Bus (CropEventBus)
 
-All inter-system communication goes through `g_messageCenter`. Never call foreign system functions directly.
+Inter-system events use the custom `CropEventBus` (owned by `CropStressManager`) rather than `g_messageCenter`. This avoids dependence on FS25 integer-mapped MessageType IDs.
 
 | Event | Publisher | Subscribers |
 |-------|-----------|-------------|
 | `CS_MOISTURE_UPDATED` | SoilMoistureSystem | HUDOverlay, CropConsultant |
-| `CS_STRESS_APPLIED` | CropStressModifier | HUDOverlay, FinanceIntegration |
 | `CS_IRRIGATION_STARTED` | IrrigationManager | SoilMoistureSystem, FinanceIntegration |
 | `CS_IRRIGATION_STOPPED` | IrrigationManager | SoilMoistureSystem |
-| `CS_CONSULTANT_ALERT` | CropConsultant | HUDOverlay, NPCIntegration |
 | `CS_CRITICAL_THRESHOLD` | SoilMoistureSystem | CropConsultant |
+
+**Implementation notes:**
+- `CS_STRESS_APPLIED` was removed — FinanceIntegration is called directly from CropStressModifier (no subscriber existed).
+- `CS_CONSULTANT_ALERT` is not an event bus event — CropConsultant delivers alerts via `showBlinkingWarning()` and direct NPC call (no event published).
 
 ### Save/Load
 

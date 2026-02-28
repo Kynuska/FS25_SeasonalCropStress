@@ -288,11 +288,10 @@ FSBaseMission.sendInitialClientState = Utils.appendedFunction(
 -- addModEventListener is the correct FS25 pattern for raw mouse input in mods.
 -- FS25 button numbers: 1=left, 3=right, 2=middle (confirmed via FS25_NPCFavor).
 --
--- CRITICAL: FS25 calls keyEvent(), update(), draw(), and delete() on EVERY registered
--- mod event listener without nil-checking the method first. Passing an anonymous table
--- that only defines mouseEvent causes a Lua error when ESC is pressed (keyEvent() is nil),
--- FS25 silently catches it in pcall, considers the key handled, and InGameMenu never opens.
--- ALL listener methods must be present — stubs are fine for the ones we don't use.
+-- Defensive stubs for the listener table. Per confirmed FS25_NPCFavor research, FS25 DOES
+-- nil-check before calling keyEvent/update/draw/delete — ESC works correctly without stubs
+-- (NPCFavor omits them and ESC functions fine). These stubs are kept as defensive practice
+-- only; they do NOT prevent any crash.
 addModEventListener({
     update   = function(self, dt) end,
     draw     = function(self) end,

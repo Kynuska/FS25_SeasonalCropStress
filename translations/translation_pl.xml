@@ -144,7 +144,7 @@
     <!-- Stary klucz zachowany dla kompatybilności -->
     <text name="helpLine_cs_category"          text="Sezonowy stres upraw"/>
     <!-- Tytuły kategorii -->
-    <text name="helpLine_cs_cat_overview"      text="Przegląd"/>
+    <text name="helpLine_cs_cat_overview"      text="Ogólne"/>
     <text name="helpLine_cs_cat_settings"      text="Ustawienia"/>
     <text name="helpLine_cs_cat_tips"          text="Wskazówki &amp; Triki"/>
     <text name="helpLine_cs_cat_info"          text="Informacje o modzie"/>

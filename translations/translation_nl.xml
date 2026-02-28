@@ -144,7 +144,7 @@
     <!-- Legacy-sleutel behouden voor compatibiliteit -->
     <text name="helpLine_cs_category"          text="Seizoensgebonden gewassstress"/>
     <!-- Categorietitels -->
-    <text name="helpLine_cs_cat_overview"      text="Overzicht"/>
+    <text name="helpLine_cs_cat_overview"      text="Algemeen"/>
     <text name="helpLine_cs_cat_settings"      text="Instellingen"/>
     <text name="helpLine_cs_cat_tips"          text="Tips &amp; Trucs"/>
     <text name="helpLine_cs_cat_info"          text="Mod-informatie"/>

@@ -13,6 +13,7 @@ IrrigationPivot.INTERACTION_RADIUS = 8  -- metres; player must be within this to
 
 -- ============================================================
 -- LOGGING HELPER
+-- local to this placeable module — not shared with src/ logging
 -- ============================================================
 local function csLog(msg)
     if g_logManager ~= nil then
@@ -80,7 +81,7 @@ function IrrigationPivot:onLoad(savegame)
     -- Find arm node in i3d
     if self.nodeId ~= nil then
         local armIdx = I3DUtil.getChildIndex(self.nodeId, "armNode")
-        if armIdx ~= nil then
+        if armIdx ~= nil and armIdx >= 0 then  -- getChildIndex returns -1 (not nil) when node not found
             self.armNode = getChildAt(self.nodeId, armIdx)
         end
     end

@@ -70,3 +70,5 @@ function WaterPump:onWriteStream(streamId, connection)
     Placeable.onWriteStream(self, streamId, connection)
     -- No additional state to sync for Phase 2
 end
+
+-- no onUpdate needed: pumps are passive and register once at onLoad
