@@ -222,5 +222,14 @@
     <text name="helpLine_cs_i1_about_text"      text="Created by TisonK. Adds realistic soil moisture simulation, seasonal crop stress accumulation, and irrigation infrastructure management to Farming Simulator 25. Designed to make crop management more strategic — every field, every season, every decision counts."/>
     <text name="helpLine_cs_i1_community_title" text="Community &amp; Support"/>
     <text name="helpLine_cs_i1_community_text"  text="Find this mod on Github and KingMods. For questions, bug reports, and updates please visit the github repository."/>
+
+    <!-- ========== OPTIONAL MOD INTEGRATIONS ========== -->
+    <!-- CoursePlay context appended to stress alerts -->
+    <text name="cs_cp_vehicle_on_field"  text="CoursePlay: %d vehicle working this field"/>
+    <text name="cs_cp_vehicles_on_field" text="CoursePlay: %d vehicles working this field"/>
+    <!-- AutoDrive context appended to CRITICAL alerts -->
+    <text name="cs_ad_water_hint"    text="AutoDrive: %d water destination(s) available — consider a hauling route"/>
+    <text name="cs_ad_destinations"  text="AutoDrive: %d destination(s) configured"/>
+
     </texts>
 </l10n>

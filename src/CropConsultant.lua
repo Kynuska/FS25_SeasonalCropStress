@@ -226,6 +226,24 @@ function CropConsultant:showAlert(fieldId, moisture, severity, cropName)
     csLog(string.format("CropConsultant [%s] Field %d (%.0f%%): %s",
         severity, fieldId, moisture * 100, msg))
 
+    -- CoursePlay context: if CP vehicles are on this stressed field, show a follow-up hint
+    if self.manager ~= nil and self.manager.coursePlayIntegration ~= nil then
+        local cpCtx = self.manager.coursePlayIntegration:getContextForField(fieldId)
+        if cpCtx ~= nil then
+            g_currentMission:showBlinkingWarning(cpCtx, 4000)
+        end
+    end
+
+    -- AutoDrive context: for CRITICAL alerts, suggest setting up a water hauling route
+    if severity == "CRITICAL"
+    and self.manager ~= nil
+    and self.manager.autoDriveIntegration ~= nil then
+        local adHint = self.manager.autoDriveIntegration:getCriticalAlertHint()
+        if adHint ~= nil then
+            g_currentMission:showBlinkingWarning(adHint, 5000)
+        end
+    end
+
     -- Forward to NPC integration for dialog / favor generation
     if self.npcFavorMode
     and self.manager ~= nil

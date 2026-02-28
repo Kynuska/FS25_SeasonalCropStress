@@ -137,18 +137,28 @@ function SoilMoistureSystem:hourlyUpdate(weather)
         hourKey = (env.currentMonotonicDay or 0) * 24 + (env.currentHour or 0)
     end
 
+    -- Hoist SoilFertilizer integration reference outside the field loop — it is
+    -- constant for the entire tick and resolving it per-field is wasteful.
+    local settingsEvapMult = self.evapMultiplier or 1.0
+    local sfInteg = self.manager and self.manager.soilFertilizerIntegration
+    local sfHasEvap   = sfInteg ~= nil and type(sfInteg.getFieldEvapMod)   == "function"
+    local sfHasStress = sfInteg ~= nil and type(sfInteg.getFieldStressMod) == "function"
+
     for fieldId, data in pairs(self.fieldData) do
         local soilParams = SoilMoistureSystem.SOIL_PARAMS[data.soilType]
             or SoilMoistureSystem.SOIL_PARAMS.loamy
 
         -- Evapotranspiration loss this hour.
-        -- evapMultiplier  = weather-based (temperature + season) from WeatherIntegration
+        -- evapMultiplier   = weather-based (temperature + season) from WeatherIntegration
         -- settingsEvapMult = player-configured multiplier (difficulty × evap rate setting)
-        local settingsEvapMult = self.evapMultiplier or 1.0
+        -- sfEvapMod        = per-field organic matter modifier from FS25_SoilFertilizer (if present)
+        --                    High OM (>5%) lowers evap; poor OM (<1%) raises it. Default 1.0.
+        local sfEvapMod = sfHasEvap and sfInteg:getFieldEvapMod(fieldId) or 1.0
         local evapLoss = SoilMoistureSystem.BASE_EVAP_RATE
             * evapMultiplier
             * soilParams.evapMod
             * settingsEvapMult
+            * sfEvapMod
 
         -- Rain gain (modulated by soil absorption)
         local rainGain  = rainAmount * soilParams.rainAbsorb
@@ -170,7 +180,10 @@ function SoilMoistureSystem:hourlyUpdate(weather)
         -- Critical threshold check (12-hour cooldown per field to avoid spam).
         -- Use getCriticalMoisture() so the player's settings value is honoured;
         -- falls back to the class constant if applySettings() hasn't run yet.
-        if data.moisture <= self:getCriticalMoisture() then
+        -- SoilFertilizer pH modifier raises the threshold for acid/alkaline fields
+        -- (crops become moisture-stressed at a higher moisture level when pH is poor).
+        local sfStressMod = sfHasStress and sfInteg:getFieldStressMod(fieldId) or 0.0
+        if data.moisture <= (self:getCriticalMoisture() + sfStressMod) then
             local lastAlert = self.criticalAlertCooldown[fieldId] or -999
             if (hourKey - lastAlert) >= 12 then
                 self.criticalAlertCooldown[fieldId] = hourKey

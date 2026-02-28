@@ -71,6 +71,9 @@ source(modDir .. "src/NPCIntegration.lua")
 source(modDir .. "src/FinanceIntegration.lua")
 source(modDir .. "src/UsedEquipmentMarketplace.lua")
 source(modDir .. "src/PrecisionFarmingOverlay.lua")
+source(modDir .. "src/SoilFertilizerIntegration.lua")
+source(modDir .. "src/CoursePlayIntegration.lua")
+source(modDir .. "src/AutoDriveIntegration.lua")
 
 -- Event bus
 source(modDir .. "src/events/CropStressSettingsSyncEvent.lua")

@@ -111,6 +111,35 @@ function CropStressManager.new()
         csLog("WARNING: PrecisionFarmingOverlay class not loaded — check main.lua source() order")
         self.precisionFarmingOverlay = { initialize=function()end, delete=function()end, enablePrecisionFarmingMode=function()end }
     end
+
+    -- New optional mod bridges (loaded in main.lua after PrecisionFarmingOverlay)
+    local function makeNoop(methods)
+        local stub = {}
+        for _, m in ipairs(methods) do stub[m] = function() end end
+        return stub
+    end
+
+    if SoilFertilizerIntegration ~= nil then
+        self.soilFertilizerIntegration = SoilFertilizerIntegration.new(self)
+    else
+        csLog("WARNING: SoilFertilizerIntegration class not loaded — check main.lua source() order")
+        self.soilFertilizerIntegration = makeNoop({"initialize","delete","enableSoilFertilizerMode","hourlyRefresh","isActive","getFieldEvapMod","getFieldStressMod","getSummary"})
+    end
+
+    if CoursePlayIntegration ~= nil then
+        self.coursePlayIntegration = CoursePlayIntegration.new(self)
+    else
+        csLog("WARNING: CoursePlayIntegration class not loaded — check main.lua source() order")
+        self.coursePlayIntegration = makeNoop({"initialize","delete","enableCoursePlayMode","hourlyRefresh","isActive","getActiveVehicleCount","getVehiclesOnField","getContextForField"})
+    end
+
+    if AutoDriveIntegration ~= nil then
+        self.autoDriveIntegration = AutoDriveIntegration.new(self)
+    else
+        csLog("WARNING: AutoDriveIntegration class not loaded — check main.lua source() order")
+        self.autoDriveIntegration = makeNoop({"initialize","delete","enableAutoDriveMode","hourlyRefresh","isActive","getDestinationCount","getWaterDestinationCount","getCriticalAlertHint"})
+    end
+
     self.saveLoad           = SaveLoadHandler.new(self)
 
     return self
@@ -137,6 +166,9 @@ function CropStressManager:initialize()
     self.financeIntegration:initialize()
     self.usedEquipmentMarketplace:initialize()
     self.precisionFarmingOverlay:initialize()
+    self.soilFertilizerIntegration:initialize()
+    self.coursePlayIntegration:initialize()
+    self.autoDriveIntegration:initialize()
 
     -- Persistence handler
     self.saveLoad:initialize()
@@ -233,7 +265,12 @@ function CropStressManager:onHourlyTick()
     -- 1. Poll current weather state
     self.weatherIntegration:update()
 
-    -- 2. Advance soil moisture simulation
+    -- 2a. Refresh optional mod data caches before the simulation tick
+    self.soilFertilizerIntegration:hourlyRefresh()  -- pH + OM modifiers per field
+    self.coursePlayIntegration:hourlyRefresh()        -- CP vehicle positions
+    self.autoDriveIntegration:hourlyRefresh()         -- AutoDrive destination count
+
+    -- 2b. Advance soil moisture simulation (reads SoilFertilizer cache internally)
     self.soilSystem:hourlyUpdate(self.weatherIntegration)
 
     -- 3. Accumulate crop stress where moisture is critical
@@ -317,6 +354,27 @@ function CropStressManager:detectOptionalMods()
         csLog("Precision Farming DLC detected — enabling PF compat (Phase 4)")
         self.precisionFarmingOverlay:enablePrecisionFarmingMode()
     end
+
+    -- FS25_SoilFertilizer (sibling mod by same author)
+    -- Global: g_SoilFertilityManager (confirmed from SoilFertilizer main.lua)
+    if g_SoilFertilityManager ~= nil then
+        csLog("FS25_SoilFertilizer detected — soil pH and organic matter will affect moisture simulation")
+        self.soilFertilizerIntegration:enableSoilFertilizerMode()
+    end
+
+    -- CoursePlay FS25
+    -- Global: g_Courseplay (capital P — confirmed from Courseplay.lua; FS22 used lowercase g_courseplay)
+    if g_Courseplay ~= nil then
+        csLog("CoursePlay detected — CP vehicle activity will appear in stress alerts")
+        self.coursePlayIntegration:enableCoursePlayMode()
+    end
+
+    -- AutoDrive FS25
+    -- Global: AutoDrive (no g_ prefix — confirmed from AutoDrive.lua; FS22 used g_autoDrive)
+    if AutoDrive ~= nil then
+        csLog("AutoDrive detected — water destination hints will appear in critical alerts")
+        self.autoDriveIntegration:enableAutoDriveMode()
+    end
 end
 
 -- ============================================================
@@ -374,6 +432,9 @@ function CropStressManager:delete()
     CropEventBus.listeners = {}
 
     -- Subsystem cleanup (reverse order of init)
+    self.autoDriveIntegration:delete()
+    self.coursePlayIntegration:delete()
+    self.soilFertilizerIntegration:delete()
     self.precisionFarmingOverlay:delete()
     self.usedEquipmentMarketplace:delete()
     self.financeIntegration:delete()
@@ -417,6 +478,20 @@ function CropStressManager:consoleStatus()
     end
 
     print(string.format("  Fields tracked: %d", self.soilSystem:getFieldCount()))
+
+    -- Optional mod integration status
+    print("  Optional integrations:")
+    print(string.format("    NPCFavor:       %s", tostring(self.npcIntegration.npcFavorActive)))
+    print(string.format("    UsedPlus:       %s", tostring(self.financeIntegration.usedPlusActive)))
+    print(string.format("    PrecisionFarm:  %s", tostring(self.precisionFarmingOverlay.pfActive)))
+    print(string.format("    SoilFertilizer: %s", tostring(self.soilFertilizerIntegration.sfActive)))
+    print(string.format("    CoursePlay:     %s (vehicles active: %d)",
+        tostring(self.coursePlayIntegration.cpActive),
+        self.coursePlayIntegration:getActiveVehicleCount() or 0))
+    print(string.format("    AutoDrive:      %s (destinations: %d, water: %d)",
+        tostring(self.autoDriveIntegration.adActive),
+        self.autoDriveIntegration:getDestinationCount()      or 0,
+        self.autoDriveIntegration:getWaterDestinationCount() or 0))
 
     -- Print top 5 driest fields
     local sorted = self.soilSystem:getFieldsSortedByMoisture()
