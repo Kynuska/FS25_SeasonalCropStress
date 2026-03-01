@@ -1,68 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    dripLine.i3d — PLACEHOLDER
-    Minimal valid i3d for FS25 (schema version 1.6).
+    dripLine.i3d — PLACEHOLDER (FS25-compatible, transform-only)
+    No geometry / no .shapes file required — pure TransformGroup hierarchy.
     Replace with final art asset before release.
 
-    IMPORTANT: Root node must NOT be named "root" — that name is reserved
-    by the FS25 scene loader and causes FocusManager:94 nil-index crash.
-
-    Node structure expected by dripLine.lua:
-        dripLine_root  (transform, nodeId=1) — placeable root / self.nodeId
-        └── dripTube   (shape,     nodeId=2) — collision / visual placeholder
+    Node structure used by dripLine.lua:
+        dripLine_root  (TransformGroup, nodeId=1) — self.nodeId
+        ├── dripTube   (TransformGroup, nodeId=2) — end-point projection for coverage calc
+        └── testAreas  (TransformGroup, nodeId=3) — placement validation group
+              └── testAreaStart  (nodeId=4, at -1/0/-2) — one corner of 2×4 test box
+                    └── testAreaEnd  (nodeId=5, offset 2/0.1/4) — opposite corner
 -->
-<i3d name="dripLine" version="1.6"
+<i3D name="dripLine" version="1.6"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="http://i3d.giants.ch/schema/i3d-1.6.xsd">
 
     <Asset>
-        <Export program="GIANTS Editor 64bit" version="8.2.2"/>
+        <Export program="GIANTS Editor 64bit" version="10.0.10"/>
     </Asset>
 
     <Files/>
-
-    <Materials>
-        <Material name="dripTubeMat" materialId="1"
-                  ambientColor="0.1 0.1 0.1"
-                  diffuseColor="0.2 0.2 0.2 1"
-                  specularColor="0.1 0.1 0.1"
-                  cosPower="10" alphaBlending="false"
-                  castsShadows="true" receiveShadows="true"/>
-    </Materials>
-
-    <Shapes>
-        <IndexedTriangleSet name="dripTube_shape" shapeId="1" materialIds="1"
-                            castsShadows="true" receiveShadows="true">
-            <Vertices count="8" normal="true" uv0="true">
-                <v p="-0.1 0    -50" n="0 1 0" t0="0 0"/>
-                <v p=" 0.1 0    -50" n="0 1 0" t0="1 0"/>
-                <v p=" 0.1 0     50" n="0 1 0" t0="1 1"/>
-                <v p="-0.1 0     50" n="0 1 0" t0="0 1"/>
-                <v p="-0.1 0.1  -50" n="0 1 0" t0="0 0"/>
-                <v p=" 0.1 0.1  -50" n="0 1 0" t0="1 0"/>
-                <v p=" 0.1 0.1   50" n="0 1 0" t0="1 1"/>
-                <v p="-0.1 0.1   50" n="0 1 0" t0="0 1"/>
-            </Vertices>
-            <Triangles count="12">
-                <t vi="0 2 1"/>  <t vi="0 3 2"/>
-                <t vi="4 5 6"/>  <t vi="4 6 7"/>
-                <t vi="0 1 5"/>  <t vi="0 5 4"/>
-                <t vi="2 3 7"/>  <t vi="2 7 6"/>
-                <t vi="0 4 7"/>  <t vi="0 7 3"/>
-                <t vi="1 2 6"/>  <t vi="1 6 5"/>
-            </Triangles>
-        </IndexedTriangleSet>
-    </Shapes>
-
+    <Materials/>
+    <Shapes/>
     <Dynamics/>
 
     <Scene>
-        <!-- NOT named "root" — reserved by FS25 scene loader -->
         <TransformGroup name="dripLine_root" nodeId="1" translation="0 0 0" rotation="0 0 0" scale="1 1 1">
-            <Shape name="dripTube" nodeId="2" shapeId="1" translation="0 0 0"
-                   rigid="true" static="true" collision="true"
-                   collisionMask="1" kinematic="false"/>
+            <TransformGroup name="dripTube" nodeId="2" translation="0 0 0" rotation="0 0 0" scale="1 1 1"/>
+            <TransformGroup name="testAreas" nodeId="3" translation="0 0 0" rotation="0 0 0" scale="1 1 1">
+                <TransformGroup name="testAreaStart" nodeId="4" translation="-1 0 -2" rotation="0 0 0" scale="1 1 1">
+                    <TransformGroup name="testAreaEnd" nodeId="5" translation="2 0.1 4" rotation="0 0 0" scale="1 1 1"/>
+                </TransformGroup>
+            </TransformGroup>
         </TransformGroup>
     </Scene>
 
-</i3d>
+</i3D>

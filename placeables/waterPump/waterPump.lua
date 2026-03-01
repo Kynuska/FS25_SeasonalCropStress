@@ -40,7 +40,7 @@ function WaterPump.onLoad(self, savegame)
 
     -- Read custom config from the placeable XML
     if self.xmlFile ~= nil then
-        local base = self.baseKey .. ".pumpConfig"
+        local base = "placeable.pumpConfig"
         local wfc = getXMLFloat(self.xmlFile, base .. "#waterFlowCapacity")
         if wfc ~= nil then
             self.waterFlowCapacity = wfc

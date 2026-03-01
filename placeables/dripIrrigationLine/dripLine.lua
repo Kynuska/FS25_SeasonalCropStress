@@ -63,7 +63,7 @@ function DripIrrigationLine.onLoad(self, savegame)
 
     -- Read custom config from the placeable XML
     if self.xmlFile ~= nil then
-        local base = self.baseKey .. ".dripConfig"
+        local base = "placeable.dripConfig"
         local ll = getXMLFloat(self.xmlFile, base .. "#lineLength")
         local ls = getXMLFloat(self.xmlFile, base .. "#lineSpacing")
         local fr = getXMLFloat(self.xmlFile, base .. "#flowRatePerHour")

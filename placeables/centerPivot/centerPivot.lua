@@ -60,7 +60,7 @@ function IrrigationPivot.onLoad(self, savegame)
 
     -- Read custom config from the placeable XML
     if self.xmlFile ~= nil then
-        local base = self.baseKey .. ".irrigationConfig"
+        local base = "placeable.irrigationConfig"
         local r  = getXMLFloat(self.xmlFile,  base .. "#radius")
         local fr = getXMLFloat(self.xmlFile,  base .. "#flowRatePerHour")
         local oc = getXMLFloat(self.xmlFile,  base .. "#operationalCostPerHour")

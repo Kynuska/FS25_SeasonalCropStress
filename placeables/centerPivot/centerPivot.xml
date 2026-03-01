@@ -33,6 +33,17 @@
         <filename>placeables/centerPivot/centerPivot.i3d</filename>
     </base>
 
+    <placement useRandomYRotation="false" useManualYRotation="true">
+        <testAreas>
+            <testArea startNode="testAreaStart01" endNode="testAreaEnd01" />
+        </testAreas>
+    </placement>
+
+    <i3dMappings>
+        <i3dMapping id="testAreaStart01" node="0>1|0" />
+        <i3dMapping id="testAreaEnd01"   node="0>1|0|0" />
+    </i3dMappings>
+
     <!-- Custom irrigation parameters — read by IrrigationPivot:onLoad() via getXMLFloat/getXMLInt/getXMLString -->
     <irrigationConfig
         radius="200"
