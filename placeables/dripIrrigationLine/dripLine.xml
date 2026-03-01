@@ -5,22 +5,33 @@
     The Lua class (DripIrrigationLine) is registered via modDesc.xml <placeableTypes>.
     This file is referenced by modDesc.xml storeItem filename.
 -->
-<placeable type="fs25_seasonalcropstress_dripLine" descVersion="105">
+<placeable type="dripLine" descVersion="105">
 
     <storeData>
         <name>$l10n_cs_drip_name</name>
-        <specs>
-            <spec name="price" value="45000"/>
-            <spec name="dailyUpkeep" value="15"/>
-        </specs>
-        <category>PLACEABLE</category>
-        <image>placeables/dripIrrigationLine/dripLine_shop.dds</image>
+        <image>$data/placeables/brandless/dieselTanks/level01/store_dieselTanksLevel01.dds</image>
+        <functions>
+            <function>$l10n_cs_drip_function</function>
+        </functions>
+        <price>45000</price>
+        <dailyUpkeep>15</dailyUpkeep>
+        <canBeSold>true</canBeSold>
+        <showInStore>true</showInStore>
+        <lifetime>1000</lifetime>
+        <rotation>0</rotation>
+        <brand>NONE</brand>
+        <species>PLACEABLE</species>
+        <category>placeableMisc</category>
+        <brush>
+            <type>placeable</type>
+            <category>buildings</category>
+            <tab>tools</tab>
+        </brush>
     </storeData>
 
-    <filename>placeables/dripIrrigationLine/dripLine.i3d</filename>
-
-    <price value="45000"/>
-    <dailyUpkeep value="15"/>
+    <base>
+        <filename>placeables/dripIrrigationLine/dripLine.i3d</filename>
+    </base>
 
     <!-- Custom drip irrigation parameters — read by DripIrrigationLine:onLoad() -->
     <dripConfig

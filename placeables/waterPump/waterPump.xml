@@ -5,22 +5,33 @@
     The Lua class (WaterPump) is registered via modDesc.xml <placeableTypes>.
     This file is referenced by modDesc.xml storeItem filename.
 -->
-<placeable type="fs25_seasonalcropstress_waterPump" descVersion="105">
+<placeable type="waterPump" descVersion="105">
 
     <storeData>
-        <n>$l10n_cs_pump_name</n>
-        <specs>
-            <spec name="price" value="12000"/>
-            <spec name="dailyUpkeep" value="5"/>
-        </specs>
-        <category>PLACEABLE</category>
-        <image>placeables/waterPump/waterPump_shop.dds</image>
+        <name>$l10n_cs_pump_name</name>
+        <image>$data/placeables/brandless/waterTanks/level01/store_waterTankLevel01.dds</image>
+        <functions>
+            <function>$l10n_cs_pump_function</function>
+        </functions>
+        <price>12000</price>
+        <dailyUpkeep>5</dailyUpkeep>
+        <canBeSold>true</canBeSold>
+        <showInStore>true</showInStore>
+        <lifetime>1000</lifetime>
+        <rotation>0</rotation>
+        <brand>NONE</brand>
+        <species>PLACEABLE</species>
+        <category>waterTanks</category>
+        <brush>
+            <type>placeable</type>
+            <category>buildings</category>
+            <tab>tools</tab>
+        </brush>
     </storeData>
 
-    <filename>placeables/waterPump/waterPump.i3d</filename>
-
-    <price value="12000"/>
-    <dailyUpkeep value="5"/>
+    <base>
+        <filename>placeables/waterPump/waterPump.i3d</filename>
+    </base>
 
     <!-- Custom pump parameters — read by WaterPump:onLoad() via getXMLFloat -->
     <pumpConfig

@@ -77,9 +77,12 @@
     <text name="cs_favor_seasonal_plan"   text="Przejrzyj sezonowy plan nawadniania"/>
 
     <!-- ========== PLACEABLES ========== -->
-    <text name="cs_pivot_name" text="Nawadnianie pivot"/>
-    <text name="cs_pump_name"  text="Pompa wodna"/>
-    <text name="cs_drip_name"  text="Linia nawadniania kroplowego"/>
+    <text name="cs_pivot_name"     text="Nawadnianie pivot"/>
+    <text name="cs_pump_name"      text="Pompa wodna"/>
+    <text name="cs_drip_name"      text="Linia nawadniania kroplowego"/>
+    <text name="cs_pivot_function" text="Nawadnianie pivotowe na dużym promieniu. Pokrywa okrągłe obszary pól. Wymaga pompy wodnej."/>
+    <text name="cs_pump_function"  text="Zasila systemy pivot i kroplowe. Umieść blisko źródła wody."/>
+    <text name="cs_drip_function"  text="Precyzyjne nawadnianie kroplowe wzdłuż rzędów pól. Wymaga pompy wodnej."/>
 
     <!-- ========== IRRIGATION PERFORMANCE VALUES (dynamic, format strings) ========== -->
     <text name="cs_irr_flow_rate_value"   text="Przepływ: %.3f/h"/>

@@ -77,9 +77,12 @@
     <text name="cs_favor_seasonal_plan"   text="Revoir le plan d'irrigation saisonnier"/>
 
     <!-- ========== PLACEABLES ========== -->
-    <text name="cs_pivot_name" text="Pivot central d'irrigation"/>
-    <text name="cs_pump_name"  text="Pompe à eau"/>
-    <text name="cs_drip_name"  text="Ligne de goutte-à-goutte"/>
+    <text name="cs_pivot_name"     text="Pivot central d'irrigation"/>
+    <text name="cs_pump_name"      text="Pompe à eau"/>
+    <text name="cs_drip_name"      text="Ligne de goutte-à-goutte"/>
+    <text name="cs_pivot_function" text="Irrigation par pivot à large rayon. Couvre une zone circulaire. Nécessite une pompe à eau."/>
+    <text name="cs_pump_function"  text="Alimente les pivots et lignes goutte-à-goutte. Placer près d'une source d'eau."/>
+    <text name="cs_drip_function"  text="Irrigation goutte-à-goutte précise en rangée. Nécessite une pompe à eau."/>
 
     <!-- ========== IRRIGATION PERFORMANCE VALUES (dynamic, format strings) ========== -->
     <text name="cs_irr_flow_rate_value"   text="Débit : %.3f/h"/>

@@ -77,9 +77,12 @@
     <text name="cs_favor_seasonal_plan"   text="Review the seasonal irrigation plan"/>
 
     <!-- ========== PLACEABLES ========== -->
-    <text name="cs_pivot_name" text="Center Pivot Irrigator"/>
-    <text name="cs_pump_name"  text="Water Pump"/>
-    <text name="cs_drip_name"  text="Drip Irrigation Line"/>
+    <text name="cs_pivot_name"     text="Center Pivot Irrigator"/>
+    <text name="cs_pump_name"      text="Water Pump"/>
+    <text name="cs_drip_name"      text="Drip Irrigation Line"/>
+    <text name="cs_pivot_function" text="Large-radius center pivot irrigation. Covers circular field areas. Requires a Water Pump."/>
+    <text name="cs_pump_function"  text="Powers center pivot and drip irrigation systems. Place near a water source."/>
+    <text name="cs_drip_function"  text="Precise low-flow irrigation along field rows. Requires a Water Pump."/>
 
     <!-- ========== IRRIGATION PERFORMANCE VALUES (dynamic, format strings) ========== -->
     <text name="cs_irr_flow_rate_value"   text="Flow Rate: %.3f/hr"/>

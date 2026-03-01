@@ -77,9 +77,12 @@
     <text name="cs_favor_seasonal_plan"   text="Revisiona il piano di irrigazione stagionale"/>
 
     <!-- ========== PLACEABLES ========== -->
-    <text name="cs_pivot_name" text="Irrigatore a perno centrale"/>
-    <text name="cs_pump_name"  text="Pompa dell'acqua"/>
-    <text name="cs_drip_name"  text="Linea di irrigazione a goccia"/>
+    <text name="cs_pivot_name"     text="Irrigatore a perno centrale"/>
+    <text name="cs_pump_name"      text="Pompa dell'acqua"/>
+    <text name="cs_drip_name"      text="Linea di irrigazione a goccia"/>
+    <text name="cs_pivot_function" text="Irrigazione a perno ad ampio raggio. Copre aree circolari. Richiede una pompa dell'acqua."/>
+    <text name="cs_pump_function"  text="Alimenta perni e linee a goccia. Posizionare vicino a una fonte d'acqua."/>
+    <text name="cs_drip_function"  text="Irrigazione a goccia precisa per file. Richiede una pompa dell'acqua."/>
 
     <!-- ========== IRRIGATION PERFORMANCE VALUES (dynamic, format strings) ========== -->
     <text name="cs_irr_flow_rate_value"   text="Portata: %.3f/h"/>

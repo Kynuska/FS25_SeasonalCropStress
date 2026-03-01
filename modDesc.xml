@@ -150,14 +150,29 @@ FUNCTIES:
     -->
     <l10n filenamePrefix="translations/translation" defaultLanguage="en"/>
 
+    <placeableSpecializations>
+        <specialization name="irrigationPivot" className="IrrigationPivot" filename="placeables/centerPivot/centerPivot.lua"/>
+        <specialization name="waterPump"        className="WaterPump"        filename="placeables/waterPump/waterPump.lua"/>
+        <specialization name="dripLine"         className="DripIrrigationLine" filename="placeables/dripIrrigationLine/dripLine.lua"/>
+    </placeableSpecializations>
+
     <placeableTypes>
-        <placeableType name="irrigationPivot" parent="simplePlaceable"
-            filename="placeables/centerPivot/centerPivot.lua"/>
-        <placeableType name="waterPump" parent="simplePlaceable"
-            filename="placeables/waterPump/waterPump.lua"/>
-        <placeableType name="dripLine" parent="simplePlaceable"
-            filename="placeables/dripIrrigationLine/dripLine.lua"/>
+        <type name="irrigationPivot" parent="simplePlaceable" filename="$dataS/scripts/placeables/Placeable.lua">
+            <specialization name="irrigationPivot"/>
+        </type>
+        <type name="waterPump" parent="simplePlaceable" filename="$dataS/scripts/placeables/Placeable.lua">
+            <specialization name="waterPump"/>
+        </type>
+        <type name="dripLine" parent="simplePlaceable" filename="$dataS/scripts/placeables/Placeable.lua">
+            <specialization name="dripLine"/>
+        </type>
     </placeableTypes>
+
+    <storeItems>
+        <storeItem xmlFilename="placeables/centerPivot/centerPivot.xml"/>
+        <storeItem xmlFilename="placeables/waterPump/waterPump.xml"/>
+        <storeItem xmlFilename="placeables/dripIrrigationLine/dripLine.xml"/>
+    </storeItems>
 
     <!--
         In-game help pages accessible from the pause menu → Help.

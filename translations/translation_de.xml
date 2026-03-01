@@ -77,9 +77,12 @@
     <text name="cs_favor_seasonal_plan"   text="Saisonalen Bewässerungsplan überprüfen"/>
 
     <!-- ========== PLACEABLES ========== -->
-    <text name="cs_pivot_name" text="Kreisbewässerung"/>
-    <text name="cs_pump_name"  text="Wasserpumpe"/>
-    <text name="cs_drip_name"  text="Tropfbewässerungsleitung"/>
+    <text name="cs_pivot_name"     text="Kreisbewässerung"/>
+    <text name="cs_pump_name"      text="Wasserpumpe"/>
+    <text name="cs_drip_name"      text="Tropfbewässerungsleitung"/>
+    <text name="cs_pivot_function" text="Großflächige Kreisbewässerung. Deckt kreisförmige Feldbereiche ab. Benötigt eine Wasserpumpe."/>
+    <text name="cs_pump_function"  text="Versorgt Kreis- und Tropfbewässerungsanlagen. In Wassernähe aufstellen."/>
+    <text name="cs_drip_function"  text="Präzise Reihenbewässerung mit niedrigem Durchfluss. Benötigt eine Wasserpumpe."/>
 
     <!-- ========== IRRIGATION PERFORMANCE VALUES (dynamic, format strings) ========== -->
     <text name="cs_irr_flow_rate_value"   text="Durchfluss: %.3f/Std."/>

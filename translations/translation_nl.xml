@@ -77,9 +77,12 @@
     <text name="cs_favor_seasonal_plan"   text="Herzie het seizoensgebonden irrigatieplan"/>
 
     <!-- ========== PLACEABLES ========== -->
-    <text name="cs_pivot_name" text="Cirkelberegening"/>
-    <text name="cs_pump_name"  text="Waterpomp"/>
-    <text name="cs_drip_name"  text="Druppelirrigatielijn"/>
+    <text name="cs_pivot_name"     text="Cirkelberegening"/>
+    <text name="cs_pump_name"      text="Waterpomp"/>
+    <text name="cs_drip_name"      text="Druppelirrigatielijn"/>
+    <text name="cs_pivot_function" text="Grote cirkelberegening. Dekt cirkelvormige veldgebieden. Vereist een waterpomp."/>
+    <text name="cs_pump_function"  text="Voedt cirkel- en druppelirrigatiesystemen. Plaats nabij een waterbron."/>
+    <text name="cs_drip_function"  text="Precieze druppelirrigatie langs veldrijbanen. Vereist een waterpomp."/>
 
     <!-- ========== IRRIGATION PERFORMANCE VALUES (dynamic, format strings) ========== -->
     <text name="cs_irr_flow_rate_value"   text="Doorvoer: %.3f/u"/>
