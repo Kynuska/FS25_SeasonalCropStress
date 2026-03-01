@@ -316,6 +316,17 @@ FUNCTIES:
                 </paragraph>
             </page>
 
+            <page title="$l10n_helpLine_cs_i2_title" iconSliceId="icon_info">
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_i2_npc_title" />
+                    <text  text="$l10n_helpLine_cs_i2_npc_text"  />
+                </paragraph>
+                <paragraph>
+                    <title text="$l10n_helpLine_cs_i2_vehicle_title" />
+                    <text  text="$l10n_helpLine_cs_i2_vehicle_text"  />
+                </paragraph>
+            </page>
+
         </category>
 
     </helpLines>

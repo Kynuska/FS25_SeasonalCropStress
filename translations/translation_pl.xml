@@ -186,8 +186,8 @@
     <text name="helpLine_cs_p6_what_text"      text="Naciśnij Shift+C, aby otworzyć Konsultanta upraw. Pokazuje on 5 pól najwyższego ryzyka uszeregowanych według wilgotności i poziomu stresu, wraz z zrozumiałym zaleceniem na najbliższe 24 godziny i 3-dniową prognozą wilgotności."/>
     <text name="helpLine_cs_p6_act_title"      text="Działanie zgodnie z zaleceniami"/>
     <text name="helpLine_cs_p6_act_text"       text="Pola oznaczone KRYTYCZNE wymagają nawadniania dzisiaj, aby zapobiec stratom w plonach. Pola oznaczone OSTRZEŻENIE powinny być nawadniane w ciągu jednego lub dwóch dni. Użyj przycisku Otwórz menedżera nawadniania w Konsultancie, aby szybko zaplanować nawadnianie dla najgorszego pola."/>
-    <text name="helpLine_cs_p6_npc_title"      text="Opcjonalnie: Alex Chen (Agronom)"/>
-    <text name="helpLine_cs_p6_npc_text"       text="Jeśli zainstalowano FS25_NPCFavor, Alex Chen pojawi się jako NPC Agronom. Buduj relację z Alexem poprzez przysługi, aby odblokować wczesne ostrzeżenia o suszy i uzyskać specjalistyczne porady dotyczące nawadniania."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Opcjonalne integracje"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Kilka opcjonalnych modów rozszerza system. FS25_NPCFavor: Alex Chen pojawia się jako NPC Agronom — wykonuj przysługi, aby odblokować wczesne ostrzeżenia o suszy i specjalistyczne porady. FS25_SoilFertilizer: pH gleby i materia organiczna modyfikują ewapotranspirację na pole. FS25_UsedPlus: Koszty operacyjne i zużycie sprzętu są śledzone. CoursePlay: Liczba aktywnych pojazdów pojawia się w alertach pola. AutoDrive: Wskazówki dotyczące celów wodnych pojawiają się w krytycznych alertach. DLC Rolnictwo precyzyjne: Dane wilgotności gleby są dostępne w widoku mapy PF."/>
 
     <!-- Ustawienia: Strona 1 — Ustawienia ogólne -->
     <text name="helpLine_cs_s1_title"          text="Ustawienia ogólne"/>
@@ -206,7 +206,7 @@
     <!-- Wskazówki &amp; Triki: Strona 1 (HUD &amp; sterowanie) -->
     <text name="helpLine_cs_p4_title"          text="HUD &amp; sterowanie"/>
     <text name="helpLine_cs_p4_hud_title"      text="Nakładka HUD wilgotności"/>
-    <text name="helpLine_cs_p4_hud_text"       text="Naciśnij Shift+M, aby włączyć lub wyłączyć HUD wilgotności. Wyświetla on każde pole z jego poziomem wilgotności, typem uprawy i statusem stresu. 5-dniowa prognoza pokazuje, czy wilgotność rośnie, czy spada, abyś mógł planować z wyprzedzeniem."/>
+    <text name="helpLine_cs_p4_hud_text"       text="Naciśnij Shift+M, aby włączyć lub wyłączyć HUD wilgotności. Wyświetla on każde pole z jego poziomem wilgotności, typem uprawy i statusem stresu. 5-dniowa prognoza pokazuje, czy wilgotność rośnie, czy spada, abyś mógł planować z wyprzedzeniem. Panel można też przeciągnąć w dowolne miejsce na ekranie, klikając i zwalniając."/>
     <text name="helpLine_cs_p4_status_title"   text="Kolory statusu"/>
     <text name="helpLine_cs_p4_status_text"    text="Zielony oznacza zdrowe pole, nie wymaga działania. Żółty to ostrzeżenie: wilgotność spada, zalecane wkrótce nawadnianie. Czerwony jest krytyczny: uprawa cierpi na stres suszy i straty w plonach już narastają — nawadniaj natychmiast."/>
     <text name="helpLine_cs_p4_keys_title"     text="Skróty klawiszowe"/>
@@ -225,6 +225,13 @@
     <text name="helpLine_cs_i1_about_text"      text="Stworzony przez TisonK. Dodaje realistyczną symulację wilgotności gleby, sezonowy stres upraw i zarządzanie infrastrukturą nawadniania do Farming Simulator 25. Zaprojektowany, aby zarządzanie uprawami było bardziej strategiczne — każde pole, każdy sezon, każda decyzja ma znaczenie."/>
     <text name="helpLine_cs_i1_community_title" text="Społeczność &amp; pomoc"/>
     <text name="helpLine_cs_i1_community_text"  text="Znajdź ten mod w Farming Simulator ModHub. W przypadku pytań, zgłoszeń błędów i aktualizacji odwiedź stronę moda w ModHub lub repozytorium GitHub. Dołącz do forów społecznościowych, aby dzielić się wskazówkami z innymi graczami."/>
+
+    <!-- Informacje o modzie: Strona 2 — Opcjonalne integracje -->
+    <text name="helpLine_cs_i2_title"          text="Opcjonalne integracje"/>
+    <text name="helpLine_cs_i2_npc_title"      text="FS25_NPCFavor &amp; FS25_SoilFertilizer"/>
+    <text name="helpLine_cs_i2_npc_text"       text="With FS25_NPCFavor installed, Alex Chen appears as an Agronomist NPC on your farm. Completing favors for Alex builds your relationship and unlocks early drought warnings and specialist irrigation advice. With FS25_SoilFertilizer, each field's soil pH and organic matter content adjusts evapotranspiration — fields with poor soil health dry out faster, making good soil management worthwhile alongside irrigation."/>
+    <text name="helpLine_cs_i2_vehicle_title"  text="CoursePlay, AutoDrive &amp; Precision Farming"/>
+    <text name="helpLine_cs_i2_vehicle_text"   text="When CoursePlay is active, the number of autonomous vehicles working a stressed field is shown in that field's alert. When AutoDrive is detected, critical drought alerts include available water destination counts and a suggestion to set up a hauling route. With FS25_UsedPlus, hourly irrigation running costs are charged and equipment wear accumulates realistically. If the Precision Farming DLC is active, soil moisture data is shown directly in the PF soil map overlay."/>
 
     <!-- ========== OPCJONALNE INTEGRACJE MODÓW ========== -->
     <text name="cs_cp_vehicle_on_field"  text="CoursePlay: %d pojazd pracuje na tym polu"/>

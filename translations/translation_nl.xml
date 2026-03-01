@@ -186,8 +186,8 @@
     <text name="helpLine_cs_p6_what_text"      text="Druk op Shift+C om de Gewasadviseur te openen. Hij toont je 5 meest risicovolle velden gerangschikt op vochtigheid en stressniveau, met een begrijpelijke aanbeveling voor de komende 24 uur en een 3-dagenprognose voor de vochtigheid."/>
     <text name="helpLine_cs_p6_act_title"      text="Handelen op advies"/>
     <text name="helpLine_cs_p6_act_text"       text="Velden gemarkeerd KRITIEK moeten vandaag worden geïrrigeerd om oogstverlies te voorkomen. Velden gemarkeerd WAARSCHUWING moeten binnen een à twee dagen worden geïrrigeerd. Gebruik de knop Irrigatiebeheer openen in de adviseur om snel een schema in te stellen voor het slechtste veld."/>
-    <text name="helpLine_cs_p6_npc_title"      text="Optioneel: Alex Chen (Agronoom)"/>
-    <text name="helpLine_cs_p6_npc_text"       text="Als FS25_NPCFavor is geïnstalleerd, verschijnt Alex Chen als Agronoom-NPC. Bouw je relatie met Alex op via gunsten om vroege droogtewaarschuwingen en gespecialiseerd irrigatieadvies te ontgrendelen."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Optionele integraties"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Meerdere optionele mods breiden het systeem uit. FS25_NPCFavor: Alex Chen verschijnt als Agronoom-NPC — voltooi gunsten voor vroege droogtewaarschuwingen en gespecialiseerd advies. FS25_SoilFertilizer: Bodem-pH en organische stof beïnvloeden de evapotranspiratie per veld. FS25_UsedPlus: Bedrijfskosten en slijtage worden bijgehouden. CoursePlay: Actieve voertuigaantallen verschijnen in veldwaarschuwingen. AutoDrive: Waterbestemmingen worden getoond in kritieke waarschuwingen. Precision Farming DLC: Bodemvochtigheidsgegevens zijn beschikbaar in de PF-kaartweergave."/>
 
     <!-- Instellingen: Pagina 1 — Algemene instellingen -->
     <text name="helpLine_cs_s1_title"          text="Algemene instellingen"/>
@@ -206,7 +206,7 @@
     <!-- Tips &amp; Trucs: Pagina 1 (HUD &amp; bediening) -->
     <text name="helpLine_cs_p4_title"          text="HUD &amp; bediening"/>
     <text name="helpLine_cs_p4_hud_title"      text="Vochtigheids-HUD-overlay"/>
-    <text name="helpLine_cs_p4_hud_text"       text="Druk op Shift+M om de vochtigheids-HUD aan of uit te zetten. Hij toont elk veld met zijn vochtigheidsniveau, gewastype en stressstatus. Een 5-dagenprognose laat zien of de vochtigheid stijgt of daalt zodat je vooruit kunt plannen."/>
+    <text name="helpLine_cs_p4_hud_text"       text="Druk op Shift+M om de vochtigheids-HUD aan of uit te zetten. Hij toont elk veld met zijn vochtigheidsniveau, gewastype en stressstatus. Een 5-dagenprognose laat zien of de vochtigheid stijgt of daalt zodat je vooruit kunt plannen. Je kunt het paneel ook naar een andere positie op het scherm slepen door te klikken en los te laten."/>
     <text name="helpLine_cs_p4_status_title"   text="Statuskleuren"/>
     <text name="helpLine_cs_p4_status_text"    text="Groen betekent dat het veld gezond is en geen actie nodig heeft. Geel is een waarschuwing: de vochtigheid daalt en irrigatie is binnenkort aan te raden. Rood is kritiek: het gewas lijdt aan droogtestress en oogstverlies neemt toe — direct irrigeren."/>
     <text name="helpLine_cs_p4_keys_title"     text="Sneltoetsen"/>
@@ -225,6 +225,13 @@
     <text name="helpLine_cs_i1_about_text"      text="Gemaakt door TisonK. Voegt realistische bodemvochtsimulatie, seizoensgebonden gewasstress en beheer van irrigatie-infrastructuur toe aan Farming Simulator 25. Ontworpen om gewasbeheer strategischer te maken — elk veld, elk seizoen, elke beslissing telt."/>
     <text name="helpLine_cs_i1_community_title" text="Community &amp; Support"/>
     <text name="helpLine_cs_i1_community_text"  text="Vind deze mod op de Farming Simulator ModHub. Voor vragen, bugrapporten en updates, bezoek de modpagina op ModHub of de GitHub-repository. Sluit je aan bij de communityforums om tips te delen met andere spelers."/>
+
+    <!-- Mod-informatie: Pagina 2 — Optionele integraties -->
+    <text name="helpLine_cs_i2_title"          text="Optionele integraties"/>
+    <text name="helpLine_cs_i2_npc_title"      text="FS25_NPCFavor &amp; FS25_SoilFertilizer"/>
+    <text name="helpLine_cs_i2_npc_text"       text="With FS25_NPCFavor installed, Alex Chen appears as an Agronomist NPC on your farm. Completing favors for Alex builds your relationship and unlocks early drought warnings and specialist irrigation advice. With FS25_SoilFertilizer, each field's soil pH and organic matter content adjusts evapotranspiration — fields with poor soil health dry out faster, making good soil management worthwhile alongside irrigation."/>
+    <text name="helpLine_cs_i2_vehicle_title"  text="CoursePlay, AutoDrive &amp; Precision Farming"/>
+    <text name="helpLine_cs_i2_vehicle_text"   text="When CoursePlay is active, the number of autonomous vehicles working a stressed field is shown in that field's alert. When AutoDrive is detected, critical drought alerts include available water destination counts and a suggestion to set up a hauling route. With FS25_UsedPlus, hourly irrigation running costs are charged and equipment wear accumulates realistically. If the Precision Farming DLC is active, soil moisture data is shown directly in the PF soil map overlay."/>
 
     <!-- ========== OPTIONELE MOD-INTEGRATIES ========== -->
     <text name="cs_cp_vehicle_on_field"  text="CoursePlay: %d voertuig actief op dit perceel"/>

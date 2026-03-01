@@ -186,8 +186,8 @@
     <text name="helpLine_cs_p6_what_text"      text="Appuyez sur Maj+C pour ouvrir le Conseiller cultural. Il affiche vos 5 parcelles les plus à risque classées par humidité et niveau de stress, ainsi qu'une recommandation claire pour les prochaines 24 heures et une prévision d'humidité sur 3 jours."/>
     <text name="helpLine_cs_p6_act_title"      text="Agir sur les conseils"/>
     <text name="helpLine_cs_p6_act_text"       text="Les parcelles marquées CRITIQUE doivent être irriguées aujourd'hui pour éviter des pertes de rendement. Les parcelles marquées AVERTISSEMENT devraient être irriguées dans un ou deux jours. Utilisez le bouton Ouvrir gestionnaire d'irrigation pour planifier rapidement l'arrosage de la parcelle la plus critique."/>
-    <text name="helpLine_cs_p6_npc_title"      text="En option : Alex Chen (Agronome)"/>
-    <text name="helpLine_cs_p6_npc_text"       text="Si FS25_NPCFavor est installé, Alex Chen apparaît comme NPC Agronome. Développez votre relation avec Alex grâce à des services pour débloquer des alertes précoces de sécheresse et des conseils d'irrigation spécialisés."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Intégrations optionnelles"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Plusieurs mods optionnels étendent le système. FS25_NPCFavor : Alex Chen apparaît comme NPC agronome — accomplissez des services pour débloquer les alertes précoces et des conseils spécialisés. FS25_SoilFertilizer : Le pH du sol et la matière organique modifient l'évapotranspiration par parcelle. FS25_UsedPlus : Les coûts de fonctionnement et l'usure des équipements sont suivis. CoursePlay : Le nombre de véhicules actifs s'affiche dans les alertes. AutoDrive : Les destinations d'eau apparaissent dans les alertes critiques. DLC Agriculture de précision : L'humidité du sol est visible dans la vue carte PF."/>
 
     <!-- Paramètres : Page 1 — Paramètres généraux -->
     <text name="helpLine_cs_s1_title"          text="Paramètres généraux"/>
@@ -206,7 +206,7 @@
     <!-- Conseils &amp; Astuces : Page 1 (HUD &amp; commandes) -->
     <text name="helpLine_cs_p4_title"          text="HUD &amp; commandes"/>
     <text name="helpLine_cs_p4_hud_title"      text="Superposition HUD d'humidité"/>
-    <text name="helpLine_cs_p4_hud_text"       text="Appuyez sur Maj+M pour afficher ou masquer le HUD d'humidité. Il liste chaque parcelle avec son niveau d'humidité, son type de culture et son état de stress. Une prévision sur 5 jours indique si l'humidité monte ou baisse."/>
+    <text name="helpLine_cs_p4_hud_text"       text="Appuyez sur Maj+M pour afficher ou masquer le HUD d'humidité. Il liste chaque parcelle avec son niveau d'humidité, son type de culture et son état de stress. Une prévision sur 5 jours indique si l'humidité monte ou baisse. Vous pouvez aussi faire glisser le panneau n'importe où à l'écran en cliquant et relâchant."/>
     <text name="helpLine_cs_p4_status_title"   text="Couleurs de statut"/>
     <text name="helpLine_cs_p4_status_text"    text="Vert signifie que la parcelle est saine et qu'aucune action n'est nécessaire. Jaune est un avertissement : l'humidité baisse et l'irrigation est bientôt conseillée. Rouge est critique : la culture subit un stress hydrique et la perte de rendement augmente — irriguer immédiatement."/>
     <text name="helpLine_cs_p4_keys_title"     text="Raccourcis clavier"/>
@@ -225,6 +225,13 @@
     <text name="helpLine_cs_i1_about_text"      text="Créé par TisonK. Ajoute une simulation réaliste de l'humidité du sol, du stress saisonnier des cultures et de la gestion de l'infrastructure d'irrigation à Farming Simulator 25. Conçu pour rendre la gestion des cultures plus stratégique — chaque champ, chaque saison, chaque décision compte."/>
     <text name="helpLine_cs_i1_community_title" text="Communauté &amp; Support"/>
     <text name="helpLine_cs_i1_community_text"  text="Retrouvez ce mod sur le ModHub de Farming Simulator. Pour les questions, rapports de bugs et mises à jour, visitez la page du mod sur le ModHub ou le dépôt GitHub. Rejoignez les forums communautaires pour partager des conseils avec d'autres joueurs."/>
+
+    <!-- Informations sur le Mod : Page 2 — Intégrations optionnelles -->
+    <text name="helpLine_cs_i2_title"          text="Intégrations optionnelles"/>
+    <text name="helpLine_cs_i2_npc_title"      text="FS25_NPCFavor &amp; FS25_SoilFertilizer"/>
+    <text name="helpLine_cs_i2_npc_text"       text="With FS25_NPCFavor installed, Alex Chen appears as an Agronomist NPC on your farm. Completing favors for Alex builds your relationship and unlocks early drought warnings and specialist irrigation advice. With FS25_SoilFertilizer, each field's soil pH and organic matter content adjusts evapotranspiration — fields with poor soil health dry out faster, making good soil management worthwhile alongside irrigation."/>
+    <text name="helpLine_cs_i2_vehicle_title"  text="CoursePlay, AutoDrive &amp; Precision Farming"/>
+    <text name="helpLine_cs_i2_vehicle_text"   text="When CoursePlay is active, the number of autonomous vehicles working a stressed field is shown in that field's alert. When AutoDrive is detected, critical drought alerts include available water destination counts and a suggestion to set up a hauling route. With FS25_UsedPlus, hourly irrigation running costs are charged and equipment wear accumulates realistically. If the Precision Farming DLC is active, soil moisture data is shown directly in the PF soil map overlay."/>
 
     <!-- ========== INTÉGRATIONS MODS OPTIONNELLES ========== -->
     <text name="cs_cp_vehicle_on_field"  text="CoursePlay : %d véhicule sur cette parcelle"/>
