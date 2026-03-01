@@ -38,13 +38,10 @@ function WaterPump.onLoad(self, savegame)
     self.irrigationManager = nil
     self.waterFlowCapacity = 1000  -- default; overwritten from XML below
 
-    -- Read custom config from the placeable XML
+    -- Read custom config from the placeable XML (self.xmlFile is an XMLFile object in FS25)
     if self.xmlFile ~= nil then
         local base = "placeable.pumpConfig"
-        local wfc = getXMLFloat(self.xmlFile, base .. "#waterFlowCapacity")
-        if wfc ~= nil then
-            self.waterFlowCapacity = wfc
-        end
+        self.waterFlowCapacity = self.xmlFile:getFloat(base .. "#waterFlowCapacity", self.waterFlowCapacity)
     end
 
     -- waterFlowCapacity must be set BEFORE registerWaterSource so the

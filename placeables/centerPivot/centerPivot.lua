@@ -58,21 +58,16 @@ function IrrigationPivot.onLoad(self, savegame)
     self.playerInRange           = false
     self.actionEventId           = nil
 
-    -- Read custom config from the placeable XML
+    -- Read custom config from the placeable XML (self.xmlFile is an XMLFile object in FS25)
     if self.xmlFile ~= nil then
         local base = "placeable.irrigationConfig"
-        local r  = getXMLFloat(self.xmlFile,  base .. "#radius")
-        local fr = getXMLFloat(self.xmlFile,  base .. "#flowRatePerHour")
-        local oc = getXMLFloat(self.xmlFile,  base .. "#operationalCostPerHour")
-        local sh = getXMLInt(self.xmlFile,    base .. "#defaultStartHour")
-        local eh = getXMLInt(self.xmlFile,    base .. "#defaultEndHour")
-        if r  ~= nil then self.radius                 = r  end
-        if fr ~= nil then self.flowRatePerHour        = fr end
-        if oc ~= nil then self.operationalCostPerHour = oc end
-        if sh ~= nil then self.defaultStartHour       = sh end
-        if eh ~= nil then self.defaultEndHour         = eh end
+        self.radius                 = self.xmlFile:getFloat(base .. "#radius",                 self.radius)
+        self.flowRatePerHour        = self.xmlFile:getFloat(base .. "#flowRatePerHour",        self.flowRatePerHour)
+        self.operationalCostPerHour = self.xmlFile:getFloat(base .. "#operationalCostPerHour", self.operationalCostPerHour)
+        self.defaultStartHour       = self.xmlFile:getInt(  base .. "#defaultStartHour",       self.defaultStartHour)
+        self.defaultEndHour         = self.xmlFile:getInt(  base .. "#defaultEndHour",         self.defaultEndHour)
 
-        local daysStr = getXMLString(self.xmlFile, base .. "#defaultActiveDays")
+        local daysStr = self.xmlFile:getString(base .. "#defaultActiveDays", nil)
         if daysStr ~= nil then
             local days = {}
             for v in string.gmatch(daysStr, "[^,]+") do
