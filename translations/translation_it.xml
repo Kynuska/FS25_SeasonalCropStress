@@ -77,9 +77,12 @@
     <text name="cs_favor_seasonal_plan"   text="Revisiona il piano di irrigazione stagionale"/>
 
     <!-- ========== PLACEABLES ========== -->
-    <text name="cs_pivot_name" text="Irrigatore a perno centrale"/>
-    <text name="cs_pump_name"  text="Pompa dell'acqua"/>
-    <text name="cs_drip_name"  text="Linea di irrigazione a goccia"/>
+    <text name="cs_pivot_name"     text="Irrigatore a perno centrale"/>
+    <text name="cs_pump_name"      text="Pompa dell'acqua"/>
+    <text name="cs_drip_name"      text="Linea di irrigazione a goccia"/>
+    <text name="cs_pivot_function" text="Irrigazione a perno ad ampio raggio. Copre aree circolari. Richiede una pompa dell'acqua."/>
+    <text name="cs_pump_function"  text="Alimenta perni e linee a goccia. Posizionare vicino a una fonte d'acqua."/>
+    <text name="cs_drip_function"  text="Irrigazione a goccia precisa per file. Richiede una pompa dell'acqua."/>
 
     <!-- ========== IRRIGATION PERFORMANCE VALUES (dynamic, format strings) ========== -->
     <text name="cs_irr_flow_rate_value"   text="Portata: %.3f/h"/>
@@ -183,8 +186,8 @@
     <text name="helpLine_cs_p6_what_text"      text="Premi Maiusc+C per aprire il Consulente delle colture. Mostra i tuoi 5 campi a più alto rischio classificati per umidità e livello di stress, insieme a una raccomandazione in linguaggio semplice per le prossime 24 ore e una previsione di umidità a 3 giorni."/>
     <text name="helpLine_cs_p6_act_title"      text="Agire sui consigli"/>
     <text name="helpLine_cs_p6_act_text"       text="I campi contrassegnati come CRITICI necessitano di irrigazione oggi per prevenire la perdita del raccolto. I campi contrassegnati come AVVISO dovrebbero essere irrigati entro un giorno o due. Usa il pulsante Apri gestore irrigazione all'interno del Consulente per programmare rapidamente l'acqua per il campo peggiore."/>
-    <text name="helpLine_cs_p6_npc_title"      text="Opzionale: Alex Chen (Agronomo)"/>
-    <text name="helpLine_cs_p6_npc_text"       text="Se FS25_NPCFavor è installato, Alex Chen apparirà come NPC Agronomo. Costruisci la tua relazione con Alex attraverso favori per sbloccare avvisi precoci di siccità e accedere a consigli specializzati sull'irrigazione."/>
+    <text name="helpLine_cs_p6_npc_title"      text="Integrazioni opzionali"/>
+    <text name="helpLine_cs_p6_npc_text"       text="Diversi mod opzionali estendono il sistema. FS25_NPCFavor: Alex Chen appare come NPC Agronomo — completa favori per sbloccare avvisi precoci di siccità e consigli specializzati. FS25_SoilFertilizer: pH del suolo e sostanza organica modificano l'evapotraspirazione per campo. FS25_UsedPlus: Costi operativi e usura dell'attrezzatura vengono tracciati. CoursePlay: Il numero di veicoli attivi appare negli avvisi campo. AutoDrive: Le destinazioni d'acqua vengono mostrate negli avvisi critici. DLC Agricoltura di Precisione: I dati di umidità del suolo sono disponibili nella vista mappa PF."/>
 
     <!-- Impostazioni: Pagina 1 — Impostazioni generali -->
     <text name="helpLine_cs_s1_title"          text="Impostazioni generali"/>
@@ -203,7 +206,7 @@
     <!-- Consigli &amp; Trucchi: Pagina 1 (HUD &amp; controlli) -->
     <text name="helpLine_cs_p4_title"          text="HUD &amp; controlli"/>
     <text name="helpLine_cs_p4_hud_title"      text="Sovrapposizione HUD umidità"/>
-    <text name="helpLine_cs_p4_hud_text"       text="Premi Maiusc+M per attivare o disattivare l'HUD dell'umidità. Elenca ogni campo con il suo livello di umidità, tipo di coltura e stato di stress. Una previsione a 5 giorni mostra se l'umidità è in aumento o in diminuzione in modo che tu possa pianificare in anticipo."/>
+    <text name="helpLine_cs_p4_hud_text"       text="Premi Maiusc+M per attivare o disattivare l'HUD dell'umidità. Elenca ogni campo con il suo livello di umidità, tipo di coltura e stato di stress. Una previsione a 5 giorni mostra se l'umidità è in aumento o in diminuzione in modo che tu possa pianificare in anticipo. Puoi anche trascinare il pannello in qualsiasi posizione sullo schermo facendo clic e rilasciando."/>
     <text name="helpLine_cs_p4_status_title"   text="Colori di stato"/>
     <text name="helpLine_cs_p4_status_text"    text="Verde significa che il campo è sano e non è necessaria alcuna azione. Giallo è un avviso: l'umidità sta diminuendo e l'irrigazione è consigliabile a breve. Rosso è critico: la coltura è sotto stress da siccità e la perdita di resa è già in atto — irrigare immediatamente."/>
     <text name="helpLine_cs_p4_keys_title"     text="Scorciatoie da tastiera"/>
@@ -222,6 +225,13 @@
     <text name="helpLine_cs_i1_about_text"      text="Creato da TisonK. Aggiunge una simulazione realistica dell'umidità del suolo, stress stagionale delle colture e gestione dell'infrastruttura di irrigazione a Farming Simulator 25. Progettato per rendere la gestione delle colture più strategica — ogni campo, ogni stagione, ogni decisione conta."/>
     <text name="helpLine_cs_i1_community_title" text="Comunità &amp; Supporto"/>
     <text name="helpLine_cs_i1_community_text"  text="Trova questa mod sull'ModHub di Farming Simulator. Per domande, segnalazioni di bug e aggiornamenti, visita la pagina della mod sull'ModHub o il repository GitHub. Unisciti ai forum della community per condividere consigli con altri giocatori."/>
+
+    <!-- Informazioni sulla Mod: Pagina 2 — Integrazioni opzionali -->
+    <text name="helpLine_cs_i2_title"          text="Integrazioni opzionali"/>
+    <text name="helpLine_cs_i2_npc_title"      text="FS25_NPCFavor &amp; FS25_SoilFertilizer"/>
+    <text name="helpLine_cs_i2_npc_text"       text="With FS25_NPCFavor installed, Alex Chen appears as an Agronomist NPC on your farm. Completing favors for Alex builds your relationship and unlocks early drought warnings and specialist irrigation advice. With FS25_SoilFertilizer, each field's soil pH and organic matter content adjusts evapotranspiration — fields with poor soil health dry out faster, making good soil management worthwhile alongside irrigation."/>
+    <text name="helpLine_cs_i2_vehicle_title"  text="CoursePlay, AutoDrive &amp; Precision Farming"/>
+    <text name="helpLine_cs_i2_vehicle_text"   text="When CoursePlay is active, the number of autonomous vehicles working a stressed field is shown in that field's alert. When AutoDrive is detected, critical drought alerts include available water destination counts and a suggestion to set up a hauling route. With FS25_UsedPlus, hourly irrigation running costs are charged and equipment wear accumulates realistically. If the Precision Farming DLC is active, soil moisture data is shown directly in the PF soil map overlay."/>
 
     <!-- ========== INTEGRAZIONI MOD OPZIONALI ========== -->
     <text name="cs_cp_vehicle_on_field"  text="CoursePlay: %d veicolo su questo campo"/>

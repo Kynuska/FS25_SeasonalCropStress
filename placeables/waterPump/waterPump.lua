@@ -1,11 +1,12 @@
 -- ============================================================
 -- waterPump.lua
--- Water pump placeable. Registers with IrrigationManager as a water source.
+-- Water pump placeable — FS25 specialization pattern.
+-- Registers with IrrigationManager as a water source.
 -- ============================================================
 
--- ============================================================
--- LOGGING HELPER
--- ============================================================
+WaterPump = {}
+WaterPump.MOD_NAME = g_currentModName
+
 local function csLog(msg)
     if g_logManager ~= nil then
         g_logManager:devInfo("[CropStress]", msg)
@@ -14,39 +15,38 @@ local function csLog(msg)
     end
 end
 
-WaterPump = {}
-local WaterPump_mt = Class(WaterPump, Placeable)
-
-function WaterPump.new(isServer, isClient, customMt)
-    -- Placeable.new() takes only the metatable in FS25
-    local self = Placeable.new(customMt or WaterPump_mt)
-    self.isServer = isServer
-    self.isClient = isClient
-
-    -- irrigationManager must NOT be read here — g_cropStressManager doesn't exist yet.
-    -- Looked up in onLoad instead.
-    self.irrigationManager = nil
-    self.waterFlowCapacity = 1000  -- default; overwritten in onLoad from XML
-    return self
+-- ============================================================
+-- SPECIALIZATION REGISTRATION
+-- ============================================================
+function WaterPump.prerequisitesPresent(specializations)
+    return true
 end
 
-function WaterPump:onLoad(savegame)
-    Placeable.onLoad(self, savegame)
+function WaterPump.registerFunctions(placeableType)
+    -- No additional public functions needed for water pump
+end
 
-    -- Read custom config from the placeable's XML file
+function WaterPump.registerEventListeners(placeableType)
+    SpecializationUtil.registerEventListener(placeableType, "onLoad",   WaterPump)
+    SpecializationUtil.registerEventListener(placeableType, "onDelete", WaterPump)
+end
+
+-- ============================================================
+-- LIFECYCLE
+-- ============================================================
+function WaterPump.onLoad(self, savegame)
+    self.irrigationManager = nil
+    self.waterFlowCapacity = 1000  -- default; overwritten from XML below
+
+    -- Read custom config from the placeable XML (self.xmlFile is an XMLFile object in FS25)
     if self.xmlFile ~= nil then
-        local base = self.baseKey .. ".pumpConfig"
-        local wfc = getXMLFloat(self.xmlFile, base .. "#waterFlowCapacity")
-        if wfc ~= nil then
-            self.waterFlowCapacity = wfc
-        end
+        local base = "placeable.pumpConfig"
+        self.waterFlowCapacity = self.xmlFile:getFloat(base .. "#waterFlowCapacity", self.waterFlowCapacity)
     end
-
-    -- Resolve IrrigationManager now that the mission is loaded
-    self.irrigationManager = g_cropStressManager and g_cropStressManager.irrigationManager or nil
 
     -- waterFlowCapacity must be set BEFORE registerWaterSource so the
     -- manager records the correct capacity on first registration
+    self.irrigationManager = g_cropStressManager and g_cropStressManager.irrigationManager or nil
     if self.irrigationManager ~= nil then
         self.irrigationManager:registerWaterSource(self)
     else
@@ -54,21 +54,11 @@ function WaterPump:onLoad(savegame)
     end
 end
 
-function WaterPump:onDelete()
+function WaterPump.onDelete(self)
     if self.irrigationManager ~= nil then
         self.irrigationManager:deregisterWaterSource(self.id)
     end
-    Placeable.onDelete(self)
 end
 
-function WaterPump:onReadStream(streamId, connection)
-    Placeable.onReadStream(self, streamId, connection)
-    -- No additional state to sync for Phase 2
-end
-
-function WaterPump:onWriteStream(streamId, connection)
-    Placeable.onWriteStream(self, streamId, connection)
-    -- No additional state to sync for Phase 2
-end
-
--- no onUpdate needed: pumps are passive and register once at onLoad
+-- No onUpdate needed: pumps are passive and register once at onLoad.
+-- No onReadStream / onWriteStream: no additional state to sync.

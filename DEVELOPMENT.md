@@ -346,6 +346,111 @@ Work through these **in order**. Do not skip ahead. Dependencies flow downward.
 
 ---
 
+### 2026-03-01 (session 13) — Claude (Sonnet 4.6) — Placeable Placement Fix: XMLFile API + testAreas
+
+**Started from:** Session 12 left two blockers preventing in-game placement of all three placeables. Items were visible in shop and showed pictures/descriptions, but could not be placed.
+
+**Completed:**
+
+1. **Fixed `self.baseKey` nil crash (all three Lua files)**
+   - Root cause: FS25 specialization `onLoad` does NOT set `self.baseKey`. Only the old standalone `Placeable:onLoad(xmlFile, key)` pattern sets it. All three files had `self.baseKey .. ".configKey"` which crashed with "attempt to concatenate nil with string".
+   - Fix: hardcoded `local base = "placeable.configKey"` in each file.
+
+2. **Fixed `getXMLFloat`/`getXMLInt`/`getXMLString` wrong-type crash (all three Lua files)**
+   - Root cause: FS25 now passes `self.xmlFile` as an **XMLFile object** (table), not a raw integer handle. Global `getXMLFloat(self.xmlFile, key)` expects an Int → crashes: `Argument 1 has wrong type. Expected: Int. Actual: Table`.
+   - Fix: switched all three files to the object method API:
+     - `self.xmlFile:getFloat(key, default)`, `self.xmlFile:getInt(key, default)`, `self.xmlFile:getString(key, default)`
+   - Pattern confirmed from UsedPlus `OilServicePoint.lua` (working reference mod).
+
+3. **Added placement validation structure (all three i3d + XML files)**
+   - Root cause: FS25 requires `<placement><testAreas>` + `<i3dMappings>` in XML and corresponding nodes in i3d for placement to be allowed.
+   - **i3d change**: added `testAreas` TransformGroup with `testAreaStart` and `testAreaEnd` NESTED inside it (FS25 convention — world transforms of both nodes define the bounding box corners).
+   - **XML change**: added `<placement useRandomYRotation="false" useManualYRotation="true"><testAreas><testArea startNode="testAreaStart01" endNode="testAreaEnd01"/></testAreas></placement>` — attribute names are `startNode`/`endNode` (confirmed from vanilla `waterTankLevel01.xml`).
+   - **XML change**: added `<i3dMappings>` with `node="0>B|C|D"` paths matching each i3d hierarchy.
+   - Node sizes: centerPivot = 5×5m, waterPump = 2×2m, dripLine = 2×4m.
+
+4. **Documented all new patterns in CLAUDE.md**
+   - Added three new rows to "What DOESN'T Work" table: `getXMLFloat` with table, `self.baseKey`, placement validation requirements.
+
+**Tested:** In-game — waterPump placed twice successfully. Log shows:
+- `[CropStress] Water source 700 registered at (0.0, 0.0)` ✅
+- `[CropStress] Water source 701 registered at (-750.8, 114.7)` ✅
+- `getXMLFloat: Argument 1 has wrong type` error (session 13 fix deployed — retest needed after reload)
+
+**Remaining warnings (non-fatal, acceptable for placeholder):**
+- "Missing clear areas", "Missing indoor areas", "Missing ai update areas", "Missing leveling areas" — these are optional FS25 placement features requiring full i3d art assets. Will be addressed in Phase 6 when final meshes are added.
+
+**Unrelated error (not ours):**
+- `FSBaseMission.lua:2472: attempt to index nil with 'id'` — fires 45s before any of our placeables load. No call stack through our code. Vanilla or other-mod issue.
+
+**Commits:** `765199d` (placement fix), `8b5e5e9` (XMLFile API fix), `38a77b6` (CLAUDE.md docs)
+
+**Next agent should start at:**
+1. Reload game and confirm NO more `getXMLFloat` errors in log for waterPump
+2. Test centerPivot and dripLine placement
+3. Run Phase 5 in-game verification — all `[ ]` TEST items throughout the TODO list
+
+**Notes / surprises:**
+- FS25 `self.xmlFile` in specialization `onLoad` is an XMLFile **object** (table with `:getFloat()`, `:getInt()`, `:getString()` methods). Global `getXML*` functions do NOT work with it.
+- FS25 `testAreaEnd` must be a CHILD NODE of `testAreaStart` in the i3d. The engine reads world transforms of both to compute the axis-aligned bounding box.
+- XML `<testArea>` uses `startNode`/`endNode` attributes (not `startIndex`/`endIndex`). Confirmed from vanilla `waterTankLevel01.xml`.
+- i3d path notation `"0>B|C"`: `0` = scene child 0 (root), `>B` = its Bth child, `|C` = that child's Cth child.
+
+---
+
+### 2026-03-01 (session 12) — Claude (Sonnet 4.6) — Placeable Shop Registration: Full Fix
+
+**Started from:** User request to add center pivot, drip line, and water pump to the in-game shop (Mods & DLC section). Items were not visible anywhere in the shop.
+
+**Completed:**
+
+1. **modDesc.xml — full placeable registration overhaul**
+   - Added `<placeableSpecializations>` block (was completely absent)
+   - Rewrote `<placeableTypes>` to use `parent="simplePlaceable"` + `filename="$dataS/scripts/placeables/Placeable.lua"` + `<specialization>` child (matching UsedPlus pattern)
+   - Added `<storeItems>` block with `xmlFilename` attributes (not `filename`) for all three placeables
+
+2. **Lua files — converted all three from standalone class to specialization pattern**
+   - Removed `Class(X, Placeable)`, `new()`, super calls
+   - Added `prerequisitesPresent`, `registerFunctions`, `registerEventListeners` (required by FS25 specialization system)
+   - All methods changed from instance to static (`X.method(self, ...)`)
+   - Field init moved from `new()` → `onLoad(self, savegame)`
+
+3. **Placeable XMLs — storeData structure fixed**
+   - `type` attribute: corrected to short name (`irrigationPivot`, `waterPump`, `dripLine`) — FS25 auto-prefixes with mod name
+   - `<species>PLACEABLE</species>` (uppercase) — confirmed correct; lowercase also accepted
+   - Added `<lifetime>1000</lifetime>` and `<rotation>0</rotation>`
+   - Added `<brush><type>placeable</type><category>buildings</category><tab>tools</tab></brush>`
+   - Fixed `<category>` from invalid `buildingsTechnology` → `waterTanks` / `placeableMisc`
+   - **Root cause of complete shop invisibility: invalid `<tab>technology</tab>` → no shop tab assigned → hidden from all tabs.** Fixed to `<tab>tools</tab>` (confirmed valid)
+   - Fixed missing shop images: `<image>` now uses `$data/` paths pointing to vanilla game water/tank DDS files (placeholder until final art)
+   - Added `<functions><function>$l10n_cs_*_function</function></functions>` description block
+
+4. **Translations — added function description keys (all 6 languages)**
+   - `cs_pivot_function`, `cs_pump_function`, `cs_drip_function` added to EN/DE/FR/IT/NL/PL
+
+**Debugging process (documented for future reference):**
+- Items not in shop → added `<storeItems>` → still not visible → wrong `filename`/`xmlFilename` → corrected
+- Items still not in shop → missing `<placeableSpecializations>` block → added; Lua files rewritten to specialization pattern
+- Items still not in shop → type name was full-prefixed in XML → corrected to short name
+- Items in shop with "Invalid category" + "Missing brush tab" warnings → `buildingsTechnology` and `technology` are not valid FS25 values
+- Items in shop but "could not load item" + no pictures → missing shop DDS files → fixed with `$data/` game image references
+
+**Tested:** In-game confirmed — all three items appear in Shop → Buildings → Tools tab. Names, prices, daily upkeep, and descriptions display correctly. Placeholder images visible. No "could not load item" errors.
+
+**Checked off in TODO:**
+- `[ ]` → `[x]` Phase 6: `Update centerPivot.xml and waterPump.xml shop thumbnail paths` (using `$data/` placeholder; real art still pending)
+
+**Next agent should start at:**
+Run Phase 5 in-game verification — all `[ ]` TEST items throughout the TODO list.
+
+**Notes / surprises:**
+- `<tab>technology</tab>` is NOT a valid FS25 brush tab — causes silent shop exclusion with only a "Missing brush tab" warning. Valid tabs (confirmed from game data): `tools`, `containers`, `silos`, `siloExtensions`, `generators`, `decoration`, `others`, `constructibles`, `farmhouses`, `sheds`, `sellingPoints`, `bees`, `chickens`, `cows`, `horses`, `pigs`, `sheeps`, `greenhouses`, `lights`, `newFences`, `uncategorized`
+- `<category>buildingsTechnology</category>` is also invalid. Valid categories include: `waterTanks`, `placeableMisc`, `misc`, `dieselTanks`, `silos`, `storages`, `generators`, `production`, `sellingPoints`, `animalpens`, `farmhouses`, `sheds`, `gardenSheds`, `fences`, `decoration`, `fillableTanks`, `floodLighting`, `siloExtensions`, `beeHives`, `productionPoints`
+- `$data/` prefix in `<image>` path resolves from game install directory — no DDS needed in mod zip
+- FS25 placeable specialization pattern confirmed working; all three placeables load with zero errors
+
+---
+
 ### 2026-02-28 (session 11) — Claude (Sonnet 4.6) — Completion Plan: Proximity Fix, Drip Rotation, modDesc Translations, Polish
 
 **Started from:** Explicit completion plan covering COMP-1, COMP-2, COMP-3, POLISH-1–3.
