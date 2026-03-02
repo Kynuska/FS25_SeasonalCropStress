@@ -382,9 +382,10 @@ end
 -- ============================================================
 function CropStressManager:onOpenConsultantDialog()
     if g_gui == nil then return end
-    local dialog = g_gui:showDialog("CropConsultantDialog")
-    if dialog ~= nil then
-        dialog:onConsultantDialogOpen()
+    g_gui:showDialog("CropConsultantDialog")
+    -- Use stored instance — showDialog() returns a FS25 wrapper, not our Lua object
+    if self.consultantDialogInstance ~= nil then
+        self.consultantDialogInstance:onConsultantDialogOpen()
     end
 end
 
@@ -411,11 +412,10 @@ function CropStressManager:onOpenIrrigationDialog()
     end
 
     if firstId ~= nil then
-        -- showDialog returns the dialog instance; call onDialogOpen manually
-        -- because the 3-arg form of showDialog does not forward args to the callback
-        local dialog = g_gui:showDialog("IrrigationScheduleDialog")
-        if dialog ~= nil then
-            dialog:onIrrigationDialogOpen(firstId)
+        g_gui:showDialog("IrrigationScheduleDialog")
+        -- Use stored instance — showDialog() returns a FS25 wrapper, not our Lua object
+        if self.irrigationDialogInstance ~= nil then
+            self.irrigationDialogInstance:onIrrigationDialogOpen(firstId)
         end
     else
         if g_currentMission ~= nil then
@@ -562,12 +562,12 @@ function CropStressManager:consoleConsultant()
         print("CropStress: g_gui not available")
         return
     end
-    local dialog = g_gui:showDialog("CropConsultantDialog")
-    if dialog ~= nil then
-        dialog:onConsultantDialogOpen()
+    g_gui:showDialog("CropConsultantDialog")
+    if self.consultantDialogInstance ~= nil then
+        self.consultantDialogInstance:onConsultantDialogOpen()
         print("CropStress: CropConsultant dialog opened")
     else
-        print("CropStress: CropConsultantDialog not registered — check main.lua loadGui call")
+        print("CropStress: consultantDialogInstance not set — was loadGui called?")
     end
 end
 

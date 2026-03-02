@@ -200,16 +200,21 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
             end
         end
 
-        safeLoadDialog(
-            modDir .. "gui/IrrigationScheduleDialog.xml",
-            "IrrigationScheduleDialog",
-            IrrigationScheduleDialog.new()
-        )
-        safeLoadDialog(
-            modDir .. "gui/CropConsultantDialog.xml",
-            "CropConsultantDialog",
-            CropConsultantDialog.new()
-        )
+        -- Create instances first, save references, then pass to loadGui.
+        -- g_gui:showDialog() returns a FS25 wrapper, NOT our Lua instance.
+        -- The only reliable way to call methods on the dialog after showDialog()
+        -- is to hold a direct reference to the original instance we passed here.
+        local irrDialogInstance         = IrrigationScheduleDialog.new()
+        local consultantDialogInstance  = CropConsultantDialog.new()
+
+        safeLoadDialog(modDir .. "gui/IrrigationScheduleDialog.xml", "IrrigationScheduleDialog", irrDialogInstance)
+        safeLoadDialog(modDir .. "gui/CropConsultantDialog.xml",     "CropConsultantDialog",     consultantDialogInstance)
+
+        -- Store on the manager for use by onOpenIrrigationDialog / onOpenConsultantDialog
+        if g_csManager ~= nil then
+            g_csManager.irrigationDialogInstance = irrDialogInstance
+            g_csManager.consultantDialogInstance = consultantDialogInstance
+        end
     end
 
     -- Register console debug commands
