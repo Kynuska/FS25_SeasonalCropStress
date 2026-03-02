@@ -115,7 +115,15 @@ function CropStressManager.new()
     -- New optional mod bridges (loaded in main.lua after PrecisionFarmingOverlay)
     local function makeNoop(methods)
         local stub = {}
-        for _, m in ipairs(methods) do stub[m] = function() end end
+        for _, m in ipairs(methods) do
+            if m == "isActive" then
+                stub[m] = function() return false end
+            elseif m == "getActiveVehicleCount" or m == "getDestinationCount" or m == "getWaterDestinationCount" then
+                stub[m] = function() return 0 end
+            else
+                stub[m] = function() end
+            end
+        end
         return stub
     end
 
@@ -198,8 +206,17 @@ end
 -- Called from onStartMission (after fields and save data are available).
 -- Re-runs field enumeration if the initial attempt during loadMission00Finished
 -- found zero fields (fieldManager was nil too early in the lifecycle).
+-- Also retries the harvest hook here — by onStartMission all base-game classes
+-- including HarvestingMachine are guaranteed to be in scope.
 function CropStressManager:lateInitialize()
     if not self.isInitialized then return end
+
+    -- Retry harvest hook — loadMission00Finished retry may still be too early
+    -- on some FS25 builds. onStartMission is the last guaranteed safe point.
+    if not CropStressModifier.harvestHookInstalled then
+        CropStressModifier.installHarvestHook()
+    end
+
     if self.soilSystem:getFieldCount() == 0 then
         local found = self.soilSystem:enumerateFields()
         csLog(string.format(
@@ -283,9 +300,11 @@ function CropStressManager:onHourlyTick()
     self.consultant:hourlyEvaluate()
 
     if self.debugMode then
+        local seasonName = WeatherIntegration.SEASON_NAMES[self.weatherIntegration:getCurrentSeason()]
+            or tostring(self.weatherIntegration:getCurrentSeason())
         csLog(string.format(
-            "Hourly tick complete. Season=%d Temp=%.1f Rain=%s",
-            self.weatherIntegration:getCurrentSeason(),
+            "Hourly tick complete. Season=%s Temp=%.1f Rain=%s",
+            seasonName,
             self.weatherIntegration:getCurrentTemp(),
             tostring(self.weatherIntegration.isRaining)
         ))
@@ -476,15 +495,15 @@ function CropStressManager:consoleStatus()
 
     -- Optional mod integration status
     print("  Optional integrations:")
-    print(string.format("    NPCFavor:       %s", tostring(self.npcIntegration.npcFavorActive)))
-    print(string.format("    UsedPlus:       %s", tostring(self.financeIntegration.usedPlusActive)))
-    print(string.format("    PrecisionFarm:  %s", tostring(self.precisionFarmingOverlay.pfActive)))
-    print(string.format("    SoilFertilizer: %s", tostring(self.soilFertilizerIntegration.sfActive)))
+    print(string.format("    NPCFavor:       %s", tostring(self.npcIntegration.npcFavorActive or false)))
+    print(string.format("    UsedPlus:       %s", tostring(self.financeIntegration.usedPlusActive or false)))
+    print(string.format("    PrecisionFarm:  %s", tostring(self.precisionFarmingOverlay.pfActive or false)))
+    print(string.format("    SoilFertilizer: %s", tostring(self.soilFertilizerIntegration.sfActive or false)))
     print(string.format("    CoursePlay:     %s (vehicles active: %d)",
-        tostring(self.coursePlayIntegration.cpActive),
+        tostring(self.coursePlayIntegration.cpActive or false),
         self.coursePlayIntegration:getActiveVehicleCount() or 0))
     print(string.format("    AutoDrive:      %s (destinations: %d, water: %d)",
-        tostring(self.autoDriveIntegration.adActive),
+        tostring(self.autoDriveIntegration.adActive or false),
         self.autoDriveIntegration:getDestinationCount()      or 0,
         self.autoDriveIntegration:getWaterDestinationCount() or 0))
 

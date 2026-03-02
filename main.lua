@@ -258,7 +258,7 @@ Mission00.onStartMission = Utils.appendedFunction(Mission00.onStartMission, func
         end
         
         -- Enumerate fields first (fieldManager is guaranteed ready at this lifecycle stage).
-        -- lateInitialize() is a no-op if fields were already found during loadMission00Finished.
+        -- lateInitialize() also retries the harvest hook (last safe point for all base classes).
         g_csManager:lateInitialize()
         g_csManager:loadFromXMLFile()
     end

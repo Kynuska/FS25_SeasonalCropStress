@@ -89,10 +89,15 @@ function SoilMoistureSystem:enumerateFields()
         return 0
     end
 
-    -- currentSeason is a direct property on the environment object, not a method call
+    -- currentSeason is a direct property on the environment object, not a method call.
+    -- Normalise to 0-based (spring=0) — some FS25 builds return 1-based (1–4).
     local season = 0
     if g_currentMission.environment ~= nil then
-        season = g_currentMission.environment.currentSeason or 0
+        local rawSeason = g_currentMission.environment.currentSeason or 0
+        if rawSeason >= 1 and rawSeason <= 4 then
+            rawSeason = rawSeason - 1
+        end
+        season = rawSeason
     end
     local startMoisture = SoilMoistureSystem.SEASON_START_MOISTURE[season] or 0.50
 
