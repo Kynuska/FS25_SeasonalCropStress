@@ -1,0 +1,40 @@
+2026-03-02 23:46:12.443 [CropStress] WARNING: FocusManager guard skipped — FocusManager not available at load time
+2026-03-02 23:46:12.444 [CropStress] WeatherIntegration module loaded
+2026-03-02 23:46:12.450 [CropStress] CsDialogLoader loaded
+2026-03-02 23:46:12.452 [CropStress] HarvestingMachine not found — harvest hook skipped
+2026-03-02 23:46:12.452 [CropStress] PlayerInputComponent hook installed
+2026-03-02 23:46:47.642 [CropStress] CropStressManager created (v1.0.0.0)
+2026-03-02 23:48:16.647 [CropStress] ESC menu hook installed
+2026-03-02 23:48:16.647 [CropStress] HarvestingMachine not found — harvest hook skipped
+2026-03-02 23:48:16.647 [CropStress] WeatherIntegration initialized. Season=Winter Temp=-5.6°C Rain=false
+2026-03-02 23:48:16.647 [CropStress] SoilMoistureSystem: fieldManager unavailable — field enumeration deferred
+2026-03-02 23:48:16.647 [CropStress] IrrigationManager initialized
+2026-03-02 23:48:16.647 [CropStress] HUDOverlay initialized (Phase 3 — with forecast strip)
+2026-03-02 23:48:16.647 [CropStress] CropConsultant initialized (standalone mode)
+2026-03-02 23:48:16.647 [CropStress] NPCIntegration: FS25_NPCFavor not detected — running without NPC integration
+2026-03-02 23:48:16.647 [CropStress] UsedEquipmentMarketplace initialized
+2026-03-02 23:48:16.647 [CropStress] PrecisionFarmingOverlay initialized
+2026-03-02 23:48:16.647 [CropStress] SoilFertilizerIntegration: FS25_SoilFertilizer not detected — running without soil chemistry
+2026-03-02 23:48:16.647 [CropStress] CoursePlayIntegration: CoursePlay not detected — running without CP context
+2026-03-02 23:48:16.647 [CropStress] AutoDriveIntegration: AutoDrive not detected — running without AD context
+2026-03-02 23:48:16.647 [CropStress] CropStressManager initialized. Fields tracked: 0
+2026-03-02 23:49:43.108 [CropStress] Water source 601 registered at (-757.1, 117.6)
+2026-03-02 23:49:43.109 [CropStress] Water source 602 registered at (-757.6, 115.6)
+2026-03-02 23:49:43.110 [CropStress] Water source 603 registered at (-757.6, 115.6)
+2026-03-02 23:49:43.112 [CropStress] Water source 604 registered at (-757.6, 115.6)
+2026-03-02 23:49:43.113 [CropStress] Water source 605 registered at (-757.6, 115.6)
+2026-03-02 23:49:43.113 [CropStress] Water source 606 registered at (-757.6, 115.6)
+2026-03-02 23:49:43.114 [CropStress] Water source 607 registered at (-757.6, 115.6)
+2026-03-02 23:49:43.114 [CropStress] Water source 608 registered at (-757.6, 115.6)
+2026-03-02 23:49:43.173 [CropStress] Irrigation system 618 (pivot) registered, covers 0 fields, water source 607 (distance 8.3 m, pressure 100%)
+2026-03-02 23:49:50.863 [CropStress] SoilMoistureSystem: fieldManager unavailable — field enumeration deferred
+2026-03-02 23:50:00.134 [CropStress] Settings loaded from C:/Users/tison/Documents/My Games/FarmingSimulator2025/savegame1/cropStressSettings.xml
+2026-03-02 23:50:00.134 [CropStress] Settings applied to all subsystems
+2026-03-02 23:50:00.134 [CropStress] HarvestingMachine not found — harvest hook skipped
+2026-03-02 23:50:00.134 [CropStress] SoilMoistureSystem: fieldManager unavailable — field enumeration deferred
+2026-03-02 23:50:00.134 [CropStress] CropStressManager lateInit: 0 fields now tracked
+2026-03-02 23:50:00.134 [CropStress] SaveLoadHandler: no xmlFile available — skipping load (fresh game)
+2026-03-02 23:50:06.094 [CropStress] HUD toggled: false
+2026-03-02 23:50:06.394 [CropStress] HUD toggled: true
+2026-03-02 23:50:33.605 [CropStress] CsDialogLoader 'CropConsultantDialog' loaded OK
+2026-03-02 23:50:34.709 [CropStress] CsDialogLoader 'IrrigationScheduleDialog' loaded OK

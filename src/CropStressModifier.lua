@@ -77,31 +77,28 @@ function CropStressModifier:hourlyUpdate()
     local soilSystem = self.manager.soilSystem
     if soilSystem == nil then return end
 
-    for fieldId, data in pairs(soilSystem.fieldData) do
-        local moisture = data.moisture
-
-        -- Get the field object to read crop type and growth stage
-        -- NOTE: getFieldByIndex vs getFields() — verify the correct lookup in LUADOC.
-        -- Some FS25 versions use fieldManager:getFieldByIndex(id), others differ.
-        local field = nil
-        if g_currentMission.fieldManager.getFieldByIndex ~= nil then
-            field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
-        end
-        if field == nil then
-            -- Fallback: iterate all fields (slower but safe)
-            local fields = g_currentMission.fieldManager:getFields()
-            for _, f in pairs(fields) do
-                if f.fieldId == fieldId then
-                    field = f
-                    break
-                end
+    -- Build a fieldId→field lookup table ONCE per tick (not inside the loop).
+    -- Calling getFields() inside the loop was O(n²): one full table scan per tracked field.
+    -- getFieldByIndex() looks up by array index, NOT by fieldId — so it can silently return
+    -- the wrong field. Building a map from getFields() is O(n) and always correct.
+    local fieldById = {}
+    local ok, allFields = pcall(function()
+        return g_currentMission.fieldManager:getFields()
+    end)
+    if ok and allFields ~= nil then
+        for _, f in pairs(allFields) do
+            if f.fieldId ~= nil then
+                fieldById[f.fieldId] = f
             end
         end
-        if field == nil then
-            -- Not found this tick — skip silently
-        else
-            self:processFieldStress(field, fieldId, moisture)
+    end
+
+    for fieldId, data in pairs(soilSystem.fieldData) do
+        local field = fieldById[fieldId]
+        if field ~= nil then
+            self:processFieldStress(field, fieldId, data.moisture)
         end
+        -- If field not found this tick, skip silently — will retry next hour
     end
 end
 

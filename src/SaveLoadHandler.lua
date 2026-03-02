@@ -48,6 +48,7 @@ end
 -- ============================================================
 -- SAVE
 -- xmlFile is the XMLFile OBJECT provided by FS25 (method API, not globals).
+-- Fallback to global functions if object methods don't exist.
 -- ============================================================
 function SaveLoadHandler:saveToXMLFile(xmlFile)
     if not self.isInitialized then return end
@@ -55,15 +56,48 @@ function SaveLoadHandler:saveToXMLFile(xmlFile)
 
     local root = "careerSavegame.cropStress"
 
+    -- Helper functions that work with both object and global APIs
+    local function setInt(key, value)
+        if xmlFile.setInt then
+            xmlFile:setInt(key, value)
+        else
+            setXMLInt(xmlFile, key, value)
+        end
+    end
+    
+    local function setFloat(key, value)
+        if xmlFile.setFloat then
+            xmlFile:setFloat(key, value)
+        else
+            setXMLFloat(xmlFile, key, value)
+        end
+    end
+    
+    local function setBool(key, value)
+        if xmlFile.setBool then
+            xmlFile:setBool(key, value)
+        else
+            setXMLBool(xmlFile, key, value)
+        end
+    end
+    
+    local function setString(key, value)
+        if xmlFile.setString then
+            xmlFile:setString(key, value)
+        else
+            setXMLString(xmlFile, key, value)
+        end
+    end
+
     -- Field moisture & stress
     local soilSystem = self.manager.soilSystem
     if soilSystem ~= nil then
         local i = 0
         for fieldId, data in pairs(soilSystem.fieldData) do
             local key = string.format("%s.fields.field(%d)", root, i)
-            xmlFile:setInt(   key .. "#id",       fieldId)
-            xmlFile:setFloat( key .. "#moisture", data.moisture)
-            xmlFile:setFloat( key .. "#stress",   self.manager.stressModifier:getStress(fieldId))
+            setInt(   key .. "#id",       fieldId)
+            setFloat( key .. "#moisture", data.moisture)
+            setFloat( key .. "#stress",   self.manager.stressModifier:getStress(fieldId))
             i = i + 1
         end
     end
@@ -71,8 +105,8 @@ function SaveLoadHandler:saveToXMLFile(xmlFile)
     -- HUD state
     local hud = self.manager.hudOverlay
     if hud ~= nil then
-        xmlFile:setBool(root .. ".hud#visible",       hud.isVisible or false)
-        xmlFile:setBool(root .. ".hud#firstRunShown", hud.firstRunShown or false)
+        setBool(root .. ".hud#visible",       hud.isVisible or false)
+        setBool(root .. ".hud#firstRunShown", hud.firstRunShown or false)
     end
 
     -- Irrigation schedules
@@ -81,15 +115,15 @@ function SaveLoadHandler:saveToXMLFile(xmlFile)
         local i = 0
         for sysId, system in pairs(irrMgr.systems) do
             local key = string.format("%s.irrigation.system(%d)", root, i)
-            xmlFile:setInt(   key .. "#id",        sysId)
-            xmlFile:setInt(   key .. "#startHour", system.schedule.startHour)
-            xmlFile:setInt(   key .. "#endHour",   system.schedule.endHour)
-            xmlFile:setBool(  key .. "#isActive",  system.isActive or false)
+            setInt(   key .. "#id",        sysId)
+            setInt(   key .. "#startHour", system.schedule.startHour)
+            setInt(   key .. "#endHour",   system.schedule.endHour)
+            setBool(  key .. "#isActive",  system.isActive or false)
             local dayStrs = {}
             for _, v in ipairs(system.schedule.activeDays) do
                 table.insert(dayStrs, v and "1" or "0")
             end
-            xmlFile:setString(key .. "#activeDays", table.concat(dayStrs, ","))
+            setString(key .. "#activeDays", table.concat(dayStrs, ","))
             i = i + 1
         end
     end
@@ -100,6 +134,7 @@ end
 -- ============================================================
 -- LOAD
 -- xmlFile is the XMLFile OBJECT on missionInfo (method API, not globals).
+-- Fallback to global functions if object methods don't exist.
 -- ============================================================
 function SaveLoadHandler:loadFromXMLFile()
     if not self.isInitialized then return end
@@ -115,11 +150,38 @@ function SaveLoadHandler:loadFromXMLFile()
 
     local root = "careerSavegame.cropStress"
 
-    -- readBool helper: nil (key absent) returns default; preserves explicit false
-    local function readBool(key, default)
-        local v = xmlFile:getBool(key)
-        if v == nil then return default end
-        return v
+    -- Helper functions that work with both object and global APIs
+    local function getInt(key, default)
+        if xmlFile.getInt then
+            return xmlFile:getInt(key) or default
+        else
+            return getXMLInt(xmlFile, key) or default
+        end
+    end
+    
+    local function getFloat(key, default)
+        if xmlFile.getFloat then
+            return xmlFile:getFloat(key) or default
+        else
+            return getXMLFloat(xmlFile, key) or default
+        end
+    end
+    
+    local function getBool(key, default)
+        if xmlFile.getBool then
+            local v = xmlFile:getBool(key)
+            return v == nil and default or v
+        else
+            return getXMLBool(xmlFile, key) or default
+        end
+    end
+    
+    local function getString(key, default)
+        if xmlFile.getString then
+            return xmlFile:getString(key) or default
+        else
+            return getXMLString(xmlFile, key) or default
+        end
     end
 
     -- Field moisture & stress
@@ -129,10 +191,10 @@ function SaveLoadHandler:loadFromXMLFile()
         local i = 0
         while true do
             local key     = string.format("%s.fields.field(%d)", root, i)
-            local fieldId = xmlFile:getInt(key .. "#id")
+            local fieldId = getInt(key .. "#id", nil)
             if fieldId == nil then break end
-            local moisture = xmlFile:getFloat(key .. "#moisture") or 0.50
-            local stress   = xmlFile:getFloat(key .. "#stress")   or 0.0
+            local moisture = getFloat(key .. "#moisture", 0.50)
+            local stress   = getFloat(key .. "#stress",   0.0)
             if soilSystem.fieldData[fieldId] ~= nil then
                 soilSystem.fieldData[fieldId].moisture = math.max(0.0, math.min(1.0, moisture))
                 if stressModifier ~= nil then
@@ -147,8 +209,8 @@ function SaveLoadHandler:loadFromXMLFile()
     -- HUD state
     local hud = self.manager.hudOverlay
     if hud ~= nil then
-        hud.isVisible     = readBool(root .. ".hud#visible",       false)
-        hud.firstRunShown = readBool(root .. ".hud#firstRunShown", false)
+        hud.isVisible     = getBool(root .. ".hud#visible",       false)
+        hud.firstRunShown = getBool(root .. ".hud#firstRunShown", false)
     end
 
     -- Irrigation schedules
@@ -158,13 +220,13 @@ function SaveLoadHandler:loadFromXMLFile()
         local restored = 0
         while true do
             local key   = string.format("%s.irrigation.system(%d)", root, i)
-            local sysId = xmlFile:getInt(key .. "#id")
+            local sysId = getInt(key .. "#id", nil)
             if sysId == nil then break end
             local system = irrMgr.systems[sysId]
             if system ~= nil then
-                system.schedule.startHour = xmlFile:getInt(key .. "#startHour") or system.schedule.startHour
-                system.schedule.endHour   = xmlFile:getInt(key .. "#endHour")   or system.schedule.endHour
-                local daysStr = xmlFile:getString(key .. "#activeDays")
+                system.schedule.startHour = getInt(key .. "#startHour", system.schedule.startHour)
+                system.schedule.endHour   = getInt(key .. "#endHour",   system.schedule.endHour)
+                local daysStr = getString(key .. "#activeDays", nil)
                 if daysStr ~= nil then
                     local days = {}
                     for v in string.gmatch(daysStr, "[^,]+") do
@@ -172,7 +234,7 @@ function SaveLoadHandler:loadFromXMLFile()
                     end
                     if #days == 7 then system.schedule.activeDays = days end
                 end
-                local wasActive = readBool(key .. "#isActive", false)
+                local wasActive = getBool(key .. "#isActive", false)
                 if wasActive and not system.isActive then
                     irrMgr:activateSystem(sysId)
                 end

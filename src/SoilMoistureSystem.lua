@@ -74,6 +74,7 @@ function SoilMoistureSystem:initialize()
     end
 
     self.isInitialized = true
+    self.enumerationAttempts = 0
 
     -- Try to enumerate fields now; if fieldManager isn't ready, CropStressManager
     -- will call enumerateFields() again in lateInitialize() during onStartMission.
@@ -83,6 +84,9 @@ end
 -- Populate fieldData for every field on the map.
 -- Safe to call multiple times — skips fields already in fieldData (preserves save data).
 -- Returns the number of NEW fields added.
+-- Also nils enumerationAttempts when successful so CropStressManager:update() stops
+-- calling retryEnumeration() — this covers both the lateInitialize() direct-call path
+-- and the per-frame retry path.
 function SoilMoistureSystem:enumerateFields()
     if g_currentMission == nil or g_currentMission.fieldManager == nil then
         csLog("SoilMoistureSystem: fieldManager unavailable — field enumeration deferred")
@@ -119,6 +123,9 @@ function SoilMoistureSystem:enumerateFields()
     end
 
     if count > 0 then
+        -- Signal CropStressManager:update() to stop calling retryEnumeration().
+        -- Covers both the direct lateInitialize() path and the per-frame retry path.
+        self.enumerationAttempts = nil
         csLog(string.format(
             "SoilMoistureSystem: %d fields enumerated (season %d, start moisture=%.0f%%)",
             count, season, startMoisture * 100
@@ -291,4 +298,41 @@ end
 -- Override CRITICAL_MOISTURE for settings compatibility
 function SoilMoistureSystem:getCriticalMoisture()
     return self.criticalMoisture or SoilMoistureSystem.CRITICAL_MOISTURE
+end
+
+-- Retry mechanism for field enumeration.
+-- Called every frame from CropStressManager:update() until fields are found.
+-- Rate-limited to one real attempt per ~60 frames (~1 second at 60 fps) so we
+-- don't hammer getFields() continuously. Keeps retrying indefinitely — on large
+-- maps fieldManager can stay nil for several seconds after onStartMission.
+-- Sets enumerationAttempts = nil on success to signal CropStressManager to stop.
+function SoilMoistureSystem:retryEnumeration()
+    -- Already have data — nil the signal and stop.
+    if self.fieldData ~= nil and next(self.fieldData) ~= nil then
+        self.enumerationAttempts = nil
+        return true
+    end
+
+    local RETRY_INTERVAL = 60  -- frames between actual getFields() calls (~1 s at 60 fps)
+
+    if self.enumerationAttempts == nil then
+        self.enumerationAttempts = 0
+    end
+
+    -- Fire immediately on frame 0, then every RETRY_INTERVAL frames after.
+    local shouldAttempt = (self.enumerationAttempts % RETRY_INTERVAL) == 0
+    self.enumerationAttempts = self.enumerationAttempts + 1
+
+    if not shouldAttempt then
+        return false
+    end
+
+    local attempt = math.floor((self.enumerationAttempts - 1) / RETRY_INTERVAL) + 1
+    if self.manager and self.manager.debugMode then
+        csLog(string.format("SoilMoistureSystem: field enumeration retry #%d", attempt))
+    end
+
+    -- enumerateFields() nils enumerationAttempts on success (stops future calls)
+    local count = self:enumerateFields()
+    return count > 0
 end

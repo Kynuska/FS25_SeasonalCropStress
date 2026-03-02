@@ -295,7 +295,11 @@ end
 function IrrigationScheduleDialog:onStartHourMinus()
     local system = self:getCurrentSystem()
     if system == nil then return end
-    system.schedule.startHour = (system.schedule.startHour - 1 + 24) % 24
+    local prev = (system.schedule.startHour - 1 + 24) % 24
+    -- Guard: startHour must not equal endHour (zero-duration schedule)
+    if prev ~= system.schedule.endHour then
+        system.schedule.startHour = prev
+    end
     self:updateTimeDisplays(system)
 end
 
@@ -437,8 +441,14 @@ end
 function IrrigationScheduleDialog:getCropName(fieldId)
     if g_currentMission == nil or g_currentMission.fieldManager == nil then return "?" end
     local field = nil
+    -- getFieldByIndex() uses array index, NOT fieldId — validate the result matches
     if g_currentMission.fieldManager.getFieldByIndex ~= nil then
-        field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
+        local ok, result = pcall(function()
+            return g_currentMission.fieldManager:getFieldByIndex(fieldId)
+        end)
+        if ok and result ~= nil and result.fieldId == fieldId then
+            field = result
+        end
     end
     if field == nil then
         local fields = g_currentMission.fieldManager:getFields()
@@ -447,9 +457,18 @@ function IrrigationScheduleDialog:getCropName(fieldId)
         end
     end
     if field == nil then return "?" end
-    local ft = type(field.getFruitType) == "function" and field:getFruitType() or field.fruitType
+    local ft = nil
+    if type(field.getFruitType) == "function" then
+        local ok, result = pcall(function() return field:getFruitType() end)
+        if ok then ft = result end
+    end
+    if ft == nil then ft = field.fruitType end
     if ft ~= nil and ft.name ~= nil then
+        local name = ft.name:lower()
+        if name == "grass" or name == "drygrass" or name == "weed" or name == "stone" then
+            return "Fallow"
+        end
         return ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
     end
-    return "?"
+    return "Fallow"
 end

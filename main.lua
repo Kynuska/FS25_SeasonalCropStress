@@ -18,7 +18,7 @@
 local modDir = g_currentModDirectory
 
 -- ============================================================
--- FOCUSMANAGER NIL-NODE GUARD — patch the CLASS, not the instance.
+-- FOCUSMANAGER NIL-NODE GUARD — patch the specific method that crashes.
 --
 -- Root cause (FS25 v1.16 regression):
 --   When any mod calls g_gui:loadGui() the GUI system calls
@@ -29,10 +29,8 @@ local modDir = g_currentModDirectory
 --   → "table index is nil" crash, which leaves currentFocusElement
 --   in a corrupt state → FocusManager.lua:126 cascade every frame.
 --
--- Why CLASS-level (not instance): g_gui.focusManager is nil at both
--- mod load time AND loadMission00Finished in FS25 v1.16. Patching
--- FocusManager (the class table) covers all instances via Lua __index
--- dispatch and is unaffected by when g_gui initialises its fields.
+-- Why method-level guard: The crash happens in the specific callback
+-- method, so we guard that method directly rather than the entire class.
 -- ============================================================
 do
     if type(FocusManager) == "table" and type(FocusManager.loadSharedI3DFileFinished) == "function" then
@@ -44,9 +42,9 @@ do
             end
             return origFn(self, i3dNode, failedReason, args)
         end
-        print("[CropStress] FocusManager nil-node guard applied to FocusManager class")
+        print("[CropStress] FocusManager nil-node guard applied to loadSharedI3DFileFinished method")
     else
-        print("[CropStress] WARNING: FocusManager class guard skipped — FocusManager not available at load time")
+        print("[CropStress] WARNING: FocusManager guard skipped — FocusManager not available at load time")
     end
 end
 

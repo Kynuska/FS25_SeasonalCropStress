@@ -276,19 +276,39 @@ end
 function CropConsultantDialog:getCropName(fieldId)
     if g_currentMission == nil or g_currentMission.fieldManager == nil then return "?" end
     local field = nil
+    -- getFieldByIndex() uses array index, NOT fieldId — validate the result matches
     if g_currentMission.fieldManager.getFieldByIndex ~= nil then
-        field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
+        local ok, result = pcall(function()
+            return g_currentMission.fieldManager:getFieldByIndex(fieldId)
+        end)
+        if ok and result ~= nil and result.fieldId == fieldId then
+            field = result
+        end
     end
     if field == nil then
-        local fields = g_currentMission.fieldManager:getFields()
-        for _, f in pairs(fields) do
-            if f.fieldId == fieldId then field = f; break end
+        local ok, fields = pcall(function() return g_currentMission.fieldManager:getFields() end)
+        if ok and fields ~= nil then
+            for _, f in pairs(fields) do
+                if f.fieldId == fieldId then field = f; break end
+            end
         end
     end
     if field == nil then return "?" end
-    local ft = type(field.getFruitType) == "function" and field:getFruitType() or field.fruitType
+    local ft = nil
+    if type(field.getFruitType) == "function" then
+        local ok, result = pcall(function() return field:getFruitType() end)
+        if ok then ft = result end
+    end
+    if ft == nil then ft = field.fruitType end
     if ft ~= nil and ft.name ~= nil then
+        local name = ft.name:lower()
+        -- Map FS25 internal weed/grass fruit types to "Fallow" for display
+        if name == "grass" or name == "drygrass" or name == "weed"
+        or name == "stone" or name == "meadow" then
+            return "Fallow"
+        end
         return ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
     end
-    return "?"
+    -- Field found but no crop planted
+    return "Fallow"
 end

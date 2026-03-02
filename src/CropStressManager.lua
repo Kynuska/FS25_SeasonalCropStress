@@ -257,6 +257,11 @@ function CropStressManager:update(dt)
     if not self.isInitialized then return end
     if g_currentMission == nil then return end
 
+    -- Retry field enumeration if it hasn't succeeded yet
+    if self.soilSystem ~= nil and self.soilSystem.enumerationAttempts ~= nil then
+        self.soilSystem:retryEnumeration()
+    end
+
     local env = g_currentMission.environment
     if env == nil then return end
 
@@ -433,7 +438,9 @@ function CropStressManager:onOpenIrrigationDialog()
         CsDialogLoader.show("IrrigationScheduleDialog", "setSystemId", firstId)
     else
         if g_currentMission ~= nil then
-            g_currentMission:showBlinkingWarning(g_i18n:getText("cs_no_irrigation_systems"), 3000)
+            g_currentMission:showBlinkingWarning(
+                (g_i18n ~= nil and g_i18n:getText("cs_no_irrigation_systems"))
+                or "No irrigation systems registered.", 3000)
         end
     end
 end
@@ -495,17 +502,17 @@ function CropStressManager:consoleStatus()
 
     -- Optional mod integration status
     print("  Optional integrations:")
-    print(string.format("    NPCFavor:       %s", tostring(self.npcIntegration.npcFavorActive or false)))
-    print(string.format("    UsedPlus:       %s", tostring(self.financeIntegration.usedPlusActive or false)))
-    print(string.format("    PrecisionFarm:  %s", tostring(self.precisionFarmingOverlay.pfActive or false)))
-    print(string.format("    SoilFertilizer: %s", tostring(self.soilFertilizerIntegration.sfActive or false)))
+    print(string.format("    NPCFavor:       %s", tostring(self.npcIntegration and self.npcIntegration.npcFavorActive or false)))
+    print(string.format("    UsedPlus:       %s", tostring(self.financeIntegration and self.financeIntegration.usedPlusActive or false)))
+    print(string.format("    PrecisionFarm:  %s", tostring(self.precisionFarmingOverlay and self.precisionFarmingOverlay.pfActive or false)))
+    print(string.format("    SoilFertilizer: %s", tostring(self.soilFertilizerIntegration and self.soilFertilizerIntegration.sfActive or false)))
     print(string.format("    CoursePlay:     %s (vehicles active: %d)",
-        tostring(self.coursePlayIntegration.cpActive or false),
-        self.coursePlayIntegration:getActiveVehicleCount() or 0))
+        tostring(self.coursePlayIntegration and self.coursePlayIntegration.cpActive or false),
+        self.coursePlayIntegration and self.coursePlayIntegration:getActiveVehicleCount() or 0))
     print(string.format("    AutoDrive:      %s (destinations: %d, water: %d)",
-        tostring(self.autoDriveIntegration.adActive or false),
-        self.autoDriveIntegration:getDestinationCount()      or 0,
-        self.autoDriveIntegration:getWaterDestinationCount() or 0))
+        tostring(self.autoDriveIntegration and self.autoDriveIntegration.adActive or false),
+        self.autoDriveIntegration and self.autoDriveIntegration:getDestinationCount()      or 0,
+        self.autoDriveIntegration and self.autoDriveIntegration:getWaterDestinationCount() or 0))
 
     -- Print top 5 driest fields
     local sorted = self.soilSystem:getFieldsSortedByMoisture()
