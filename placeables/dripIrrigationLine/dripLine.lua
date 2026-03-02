@@ -196,10 +196,9 @@ function DripIrrigationLine.onInteractPressed(self)
     if not self.playerInRange then return end
     if g_cropStressManager == nil then return end
 
-    g_gui:showDialog("IrrigationScheduleDialog")
-    if g_cropStressManager.irrigationDialogInstance ~= nil then
-        g_cropStressManager.irrigationDialogInstance:onIrrigationDialogOpen(self.id)
-    end
+    -- CsDialogLoader.show() calls setSystemId(self.id) BEFORE showDialog(),
+    -- so onOpen() sees a valid systemId when it fires.
+    CsDialogLoader.show("IrrigationScheduleDialog", "setSystemId", self.id)
 
     self:removeInteractionAction()
 end

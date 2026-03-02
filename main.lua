@@ -81,6 +81,9 @@ source(modDir .. "src/events/CropStressSettingsSyncEvent.lua")
 -- Persistence
 source(modDir .. "src/SaveLoadHandler.lua")
 
+-- GUI dialog loader (must precede dialog scripts)
+source(modDir .. "src/gui/CsDialogLoader.lua")
+
 -- GUI dialogs
 source(modDir .. "gui/FieldMoisturePanel.lua")
 source(modDir .. "gui/IrrigationScheduleDialog.lua")
@@ -179,43 +182,15 @@ Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00
 
     g_csManager:initialize()
 
-    -- Register dialogs with the GUI system.
-    -- PATTERN (from FS25_NPCFavor/DialogLoader.lua — confirmed working):
-    --   g_gui:loadGui(xml, name, instance)  ← 3 args: xml, name string, pre-created instance
-    --   Do NOT pass a 4th arg (false) — that code path triggers the FS25 v1.16
-    --   shared-i3d nil-node bug (FocusManager.lua:94) on any dialog loaded after
-    --   the first mod has already cached the button focus-ring i3d.
-    -- Wrap in pcall and verify via g_gui.guis[name] (matches NPCFavor pattern).
-    if g_gui ~= nil then
-        local function safeLoadDialog(xmlPath, name, instance)
-            local ok, err = pcall(function()
-                g_gui:loadGui(xmlPath, name, instance)
-            end)
-            if not ok then
-                print("[CropStress] WARNING: " .. name .. " load error: " .. tostring(err))
-            elseif g_gui.guis and g_gui.guis[name] then
-                print("[CropStress] " .. name .. " loaded OK")
-            else
-                print("[CropStress] WARNING: " .. name .. " not in g_gui.guis after loadGui")
-            end
-        end
-
-        -- Create instances first, save references, then pass to loadGui.
-        -- g_gui:showDialog() returns a FS25 wrapper, NOT our Lua instance.
-        -- The only reliable way to call methods on the dialog after showDialog()
-        -- is to hold a direct reference to the original instance we passed here.
-        local irrDialogInstance         = IrrigationScheduleDialog.new()
-        local consultantDialogInstance  = CropConsultantDialog.new()
-
-        safeLoadDialog(modDir .. "gui/IrrigationScheduleDialog.xml", "IrrigationScheduleDialog", irrDialogInstance)
-        safeLoadDialog(modDir .. "gui/CropConsultantDialog.xml",     "CropConsultantDialog",     consultantDialogInstance)
-
-        -- Store on the manager for use by onOpenIrrigationDialog / onOpenConsultantDialog
-        if g_csManager ~= nil then
-            g_csManager.irrigationDialogInstance = irrDialogInstance
-            g_csManager.consultantDialogInstance = consultantDialogInstance
-        end
-    end
+    -- Register dialogs with CsDialogLoader (NPCFavor confirmed pattern).
+    -- Dialogs are lazily loaded on first CsDialogLoader.show() call:
+    --   ensureLoaded() creates the instance + calls g_gui:loadGui()
+    --   → g_gui:loadGui() calls onCreate() → superClass().onCreate() auto-wires elements
+    --   show() calls the data setter BEFORE g_gui:showDialog() fires onOpen()
+    -- No stored instance references needed on g_csManager.
+    CsDialogLoader.init(modDir)
+    CsDialogLoader.register("IrrigationScheduleDialog", IrrigationScheduleDialog, "gui/IrrigationScheduleDialog.xml")
+    CsDialogLoader.register("CropConsultantDialog",     CropConsultantDialog,     "gui/CropConsultantDialog.xml")
 
     -- Register console debug commands
     if addConsoleCommand ~= nil then
@@ -241,6 +216,9 @@ end)
 
 -- 5. Cleanup on mission unload
 FSBaseMission.delete = Utils.appendedFunction(FSBaseMission.delete, function(self)
+    -- Reset dialog instances so the next mission load creates fresh ones.
+    CsDialogLoader.cleanup()
+
     if g_csManager ~= nil then
         g_csManager:delete()
         g_csManager = nil

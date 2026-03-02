@@ -381,12 +381,9 @@ end
 -- INPUT EVENT — CONSULTANT DIALOG
 -- ============================================================
 function CropStressManager:onOpenConsultantDialog()
-    if g_gui == nil then return end
-    g_gui:showDialog("CropConsultantDialog")
-    -- Use stored instance — showDialog() returns a FS25 wrapper, not our Lua object
-    if self.consultantDialogInstance ~= nil then
-        self.consultantDialogInstance:onConsultantDialogOpen()
-    end
+    -- CsDialogLoader lazily loads the dialog on first call, then shows it.
+    -- No data setter needed — CropConsultantDialog.onOpen() reads live data.
+    CsDialogLoader.show("CropConsultantDialog")
 end
 
 -- ============================================================
@@ -412,11 +409,9 @@ function CropStressManager:onOpenIrrigationDialog()
     end
 
     if firstId ~= nil then
-        g_gui:showDialog("IrrigationScheduleDialog")
-        -- Use stored instance — showDialog() returns a FS25 wrapper, not our Lua object
-        if self.irrigationDialogInstance ~= nil then
-            self.irrigationDialogInstance:onIrrigationDialogOpen(firstId)
-        end
+        -- CsDialogLoader.show() calls setSystemId(firstId) BEFORE showDialog(),
+        -- so onOpen() sees a valid systemId when it fires.
+        CsDialogLoader.show("IrrigationScheduleDialog", "setSystemId", firstId)
     else
         if g_currentMission ~= nil then
             g_currentMission:showBlinkingWarning(g_i18n:getText("cs_no_irrigation_systems"), 3000)
@@ -558,16 +553,11 @@ end
 
 
 function CropStressManager:consoleConsultant()
-    if g_gui == nil then
-        print("CropStress: g_gui not available")
-        return
-    end
-    g_gui:showDialog("CropConsultantDialog")
-    if self.consultantDialogInstance ~= nil then
-        self.consultantDialogInstance:onConsultantDialogOpen()
+    local shown = CsDialogLoader.show("CropConsultantDialog")
+    if shown then
         print("CropStress: CropConsultant dialog opened")
     else
-        print("CropStress: consultantDialogInstance not set — was loadGui called?")
+        print("CropStress: CropConsultant dialog failed to open — check log for CsDialogLoader errors")
     end
 end
 

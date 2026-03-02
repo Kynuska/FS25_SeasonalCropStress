@@ -7,7 +7,7 @@
     onClose points to cleanup-only handler — do NOT call self:close() inside it.
     Pattern follows TakeLoanDialog.xml per CLAUDE.md.
 -->
-<GUI onOpen="onOpen" onCreate="onCreate" onClose="onConsultantDialogClose">
+<GUI onOpen="onOpen" onCreate="onCreate" onClose="onClose">
     <GuiElement profile="newLayer" />
     <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
     <GuiElement profile="dialogBg" id="dialogElement" size="800px 600px">

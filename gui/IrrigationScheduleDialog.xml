@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     IrrigationScheduleDialog.xml
-    NOTE: onOpen="onOpen" is present and calls IrrigationScheduleDialog:onOpen(), which
-    calls superClass().onOpen() to initialise the FS25 focus/input system. The actual
-    content population (system data, schedule) is NOT done in onOpen — it requires the
-    systemId argument, which XML cannot pass. Content is populated by calling
-    g_csManager.irrigationDialogInstance:onIrrigationDialogOpen(systemId) after showDialog().
-    NOTE: g_gui:showDialog() returns a FS25 wrapper object, NOT our Lua instance. Always
-    store the instance returned by IrrigationScheduleDialog.new() and call methods on it directly.
-    NOTE: MultiTextOption is intentionally avoided — fs25_multiTextOption triggers an
-    async i3d load in FocusManager that returns a nil nodeId in FS25 v1.16, causing
-    FocusManager.lua:94: table index is nil. Use +/- button pairs instead.
+    Pattern: CsDialogLoader (NPCFavor confirmed, FS25 v1.16)
+      onCreate="onCreate"  → IrrigationScheduleDialog:onCreate() calls superClass().onCreate(self)
+                             → FS25 auto-wires all id= elements into self.* on the instance
+      onOpen="onOpen"      → IrrigationScheduleDialog:onOpen() calls superClass().onOpen(self)
+                             then populates display from pre-set self.systemId
+      onClose="onClose"    → cleanup only; do NOT call self:close() from this handler
+    Opening flow:
+      CsDialogLoader.show("IrrigationScheduleDialog", "setSystemId", id)
+        1. calls instance:setSystemId(id)  — pre-sets systemId BEFORE showDialog
+        2. calls g_gui:showDialog(...)     — fires onOpen(), which reads self.systemId
+    NOTE: MultiTextOption intentionally avoided — triggers FocusManager nil-node crash in FS25 v1.16.
 -->
-<GUI onOpen="onOpen" onCreate="onCreate" onClose="onIrrigationDialogClose">
+<GUI onOpen="onOpen" onCreate="onCreate" onClose="onClose">
     <GuiElement profile="newLayer" />
     <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
     <GuiElement profile="dialogBg" id="dialogElement" size="780px 580px">
@@ -20,7 +21,7 @@
         <ThreePartBitmap profile="fs25_dialogBgTop" />
         <ThreePartBitmap profile="fs25_dialogBgBottom" />
         <GuiElement profile="fs25_dialogContentContainer" id="content">
-            <Text id="title" profile="fs25_dialogTitle" text="$l10n_cs_irr_title" />
+            <Text id="irrTitle" profile="fs25_dialogTitle" text="$l10n_cs_irr_title" />
 
             <!-- Water source status -->
             <Text profile="fs25_dialogText" position="-350px 0px" text="$l10n_cs_irr_water_source" />
