@@ -1,75 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     IrrigationScheduleDialog.xml
-    Pattern: CsDialogLoader (NPCFavor confirmed, FS25 v1.16)
-      onCreate="onCreate"  → IrrigationScheduleDialog:onCreate() calls superClass().onCreate(self)
-                             → FS25 auto-wires all id= elements into self.* on the instance
-      onOpen="onOpen"      → IrrigationScheduleDialog:onOpen() calls superClass().onOpen(self)
-                             then populates display from pre-set self.systemId
-      onClose="onClose"    → cleanup only; do NOT call self:close() from this handler
+    Pattern: CsDialogLoader / NPCFavor 3-layer button pattern (FS25 v1.16 confirmed)
+      onCreate="onCreate" → superClass().onCreate(self) auto-wires all id= elements
+      onOpen="onOpen"     → populates display from pre-set self.systemId
+      onClose="onClose"   → cleanup only; do NOT call self:close() from this handler
+
     Opening flow:
       CsDialogLoader.show("IrrigationScheduleDialog", "setSystemId", id)
         1. calls instance:setSystemId(id)  — pre-sets systemId BEFORE showDialog
         2. calls g_gui:showDialog(...)     — fires onOpen(), which reads self.systemId
+
+    Button pattern (NPCFavor 3-layer):
+      Bitmap (bg visual) + Button (invisible hit target, onFocus/onLeave) + Text (label)
+      Lua applyHover/applyDayHover methods drive color changes on focus/leave events.
+      Day buttons use color-based selected state (green=active) instead of setSelected().
+
     NOTE: MultiTextOption intentionally avoided — triggers FocusManager nil-node crash in FS25 v1.16.
 -->
 <GUI onOpen="onOpen" onCreate="onCreate" onClose="onClose">
     <GuiElement profile="newLayer" />
     <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
-    <GuiElement profile="dialogBg" id="dialogElement" size="780px 580px">
+    <GuiElement profile="dialogBg" id="dialogElement" size="780px 720px">
         <ThreePartBitmap profile="fs25_dialogBgMiddle" />
         <ThreePartBitmap profile="fs25_dialogBgTop" />
         <ThreePartBitmap profile="fs25_dialogBgBottom" />
         <GuiElement profile="fs25_dialogContentContainer" id="content">
+
             <Text id="irrTitle" profile="fs25_dialogTitle" text="$l10n_cs_irr_title" />
 
-            <!-- Water source status -->
+            <!-- ── Water source status ─────────────────────────────── -->
             <Text profile="fs25_dialogText" position="-350px 0px" text="$l10n_cs_irr_water_source" />
             <Text id="waterSourceValue" profile="fs25_dialogText" position="-100px 0px" text="$l10n_cs_irr_connected" />
 
-            <!-- Schedule section -->
+            <!-- ── Schedule section ────────────────────────────────── -->
             <Text profile="fs25_dialogText" position="-350px -40px" text="$l10n_cs_irr_schedule" />
 
-            <!-- Day toggle buttons (btn_day_1 .. btn_day_7 looked up by name in Lua) -->
-            <Button id="btn_day_1" profile="buttonActivate" position="-350px -75px" size="35px 30px" text="$l10n_cs_day_mon" onClick="onDayToggle1" onClickSoundDisabled="true" />
-            <Button id="btn_day_2" profile="buttonActivate" position="-310px -75px" size="35px 30px" text="$l10n_cs_day_tue" onClick="onDayToggle2" onClickSoundDisabled="true" />
-            <Button id="btn_day_3" profile="buttonActivate" position="-270px -75px" size="35px 30px" text="$l10n_cs_day_wed" onClick="onDayToggle3" onClickSoundDisabled="true" />
-            <Button id="btn_day_4" profile="buttonActivate" position="-230px -75px" size="35px 30px" text="$l10n_cs_day_thu" onClick="onDayToggle4" onClickSoundDisabled="true" />
-            <Button id="btn_day_5" profile="buttonActivate" position="-190px -75px" size="35px 30px" text="$l10n_cs_day_fri" onClick="onDayToggle5" onClickSoundDisabled="true" />
-            <Button id="btn_day_6" profile="buttonActivate" position="-150px -75px" size="35px 30px" text="$l10n_cs_day_sat" onClick="onDayToggle6" onClickSoundDisabled="true" />
-            <Button id="btn_day_7" profile="buttonActivate" position="-110px -75px" size="35px 30px" text="$l10n_cs_day_sun" onClick="onDayToggle7" onClickSoundDisabled="true" />
+            <!-- Day toggle buttons: 3-layer (Bitmap bg + Button hit + Text label)    -->
+            <!-- Bg/Button at Y=-75px, Text at Y=-80px (NPCFavor 5px offset pattern)  -->
+            <!-- onFocus/onLeave drive color changes via IrrigationScheduleDialog:applyDayHover() -->
 
-            <!-- Start time: - button / display text / + button -->
+            <Bitmap  profile="csDayBtnBg"  id="btnDay1Bg"   position="-350px -75px"/>
+            <Button  profile="csDayBtnHit" id="btnDay1"     position="-350px -75px" onClick="onDayToggle1" onFocus="onBtnDay1Focus" onLeave="onBtnDay1Leave"/>
+            <Text    profile="csDayBtnText" id="btnDay1Text" position="-350px -80px" text="$l10n_cs_day_mon"/>
+
+            <Bitmap  profile="csDayBtnBg"  id="btnDay2Bg"   position="-310px -75px"/>
+            <Button  profile="csDayBtnHit" id="btnDay2"     position="-310px -75px" onClick="onDayToggle2" onFocus="onBtnDay2Focus" onLeave="onBtnDay2Leave"/>
+            <Text    profile="csDayBtnText" id="btnDay2Text" position="-310px -80px" text="$l10n_cs_day_tue"/>
+
+            <Bitmap  profile="csDayBtnBg"  id="btnDay3Bg"   position="-270px -75px"/>
+            <Button  profile="csDayBtnHit" id="btnDay3"     position="-270px -75px" onClick="onDayToggle3" onFocus="onBtnDay3Focus" onLeave="onBtnDay3Leave"/>
+            <Text    profile="csDayBtnText" id="btnDay3Text" position="-270px -80px" text="$l10n_cs_day_wed"/>
+
+            <Bitmap  profile="csDayBtnBg"  id="btnDay4Bg"   position="-230px -75px"/>
+            <Button  profile="csDayBtnHit" id="btnDay4"     position="-230px -75px" onClick="onDayToggle4" onFocus="onBtnDay4Focus" onLeave="onBtnDay4Leave"/>
+            <Text    profile="csDayBtnText" id="btnDay4Text" position="-230px -80px" text="$l10n_cs_day_thu"/>
+
+            <Bitmap  profile="csDayBtnBg"  id="btnDay5Bg"   position="-190px -75px"/>
+            <Button  profile="csDayBtnHit" id="btnDay5"     position="-190px -75px" onClick="onDayToggle5" onFocus="onBtnDay5Focus" onLeave="onBtnDay5Leave"/>
+            <Text    profile="csDayBtnText" id="btnDay5Text" position="-190px -80px" text="$l10n_cs_day_fri"/>
+
+            <Bitmap  profile="csDayBtnBg"  id="btnDay6Bg"   position="-150px -75px"/>
+            <Button  profile="csDayBtnHit" id="btnDay6"     position="-150px -75px" onClick="onDayToggle6" onFocus="onBtnDay6Focus" onLeave="onBtnDay6Leave"/>
+            <Text    profile="csDayBtnText" id="btnDay6Text" position="-150px -80px" text="$l10n_cs_day_sat"/>
+
+            <Bitmap  profile="csDayBtnBg"  id="btnDay7Bg"   position="-110px -75px"/>
+            <Button  profile="csDayBtnHit" id="btnDay7"     position="-110px -75px" onClick="onDayToggle7" onFocus="onBtnDay7Focus" onLeave="onBtnDay7Leave"/>
+            <Text    profile="csDayBtnText" id="btnDay7Text" position="-110px -80px" text="$l10n_cs_day_sun"/>
+
+            <!-- ── Start time: label / − / display / + ─────────────── -->
             <Text profile="fs25_dialogText" position="-350px -120px" text="$l10n_cs_irr_start_time" />
             <Button profile="buttonActivate" id="startHourMinus" position="-210px -120px" size="30px 28px" text="-" onClick="onStartHourMinus" />
-            <Text   profile="fs25_dialogText" id="startHourText" position="-155px -120px" size="60px 28px" text="00:00" />
-            <Button profile="buttonActivate" id="startHourPlus"  position="-90px  -120px" size="30px 28px" text="+" onClick="onStartHourPlus" />
+            <Text   profile="fs25_dialogText" id="startHourText"  position="-155px -120px" size="60px 28px" text="00:00" />
+            <Button profile="buttonActivate" id="startHourPlus"   position="-90px  -120px" size="30px 28px" text="+" onClick="onStartHourPlus" />
 
-            <!-- End time: - button / display text / + button -->
+            <!-- ── End time: label / − / display / + ───────────────── -->
             <Text profile="fs25_dialogText" position="-350px -160px" text="$l10n_cs_irr_end_time" />
             <Button profile="buttonActivate" id="endHourMinus" position="-210px -160px" size="30px 28px" text="-" onClick="onEndHourMinus" />
             <Text   profile="fs25_dialogText" id="endHourText"   position="-155px -160px" size="60px 28px" text="00:00" />
-            <Button profile="buttonActivate" id="endHourPlus"  position="-90px  -160px" size="30px 28px" text="+" onClick="onEndHourPlus" />
+            <Button profile="buttonActivate" id="endHourPlus"    position="-90px  -160px" size="30px 28px" text="+" onClick="onEndHourPlus" />
 
-            <!-- Performance section -->
-            <Text profile="fs25_dialogText" position="-350px -220px" text="$l10n_cs_irr_performance" />
-            <Text id="flowRate"   profile="fs25_dialogText" position="-350px -255px" text="$l10n_cs_irr_flow_rate" />
-            <Text id="efficiency" profile="fs25_dialogText" position="-350px -285px" text="$l10n_cs_irr_efficiency" />
-            <Text id="cost"       profile="fs25_dialogText" position="-350px -315px" text="$l10n_cs_irr_cost" />
-            <Text id="wear"       profile="fs25_dialogText" position="-350px -345px" text="$l10n_cs_irr_wear" />
+            <!-- ── Performance section ──────────────────────────────── -->
+            <Text profile="fs25_dialogText" position="-350px -210px" text="$l10n_cs_irr_performance" />
+            <Text id="flowRate"   profile="fs25_dialogText" position="-350px -245px" text="$l10n_cs_irr_flow_rate" />
+            <Text id="efficiency" profile="fs25_dialogText" position="-350px -275px" text="$l10n_cs_irr_efficiency" />
+            <Text id="cost"       profile="fs25_dialogText" position="-350px -305px" text="$l10n_cs_irr_cost" />
+            <Text id="wear"       profile="fs25_dialogText" position="-350px -335px" text="$l10n_cs_irr_wear" />
 
-            <!-- Covered fields list -->
-            <Text profile="fs25_dialogText" position="-350px -385px" text="$l10n_cs_irr_covered_fields" />
-            <GuiElement id="coveredFieldsContainer" position="-350px -415px" size="300px 120px">
+            <!-- ── Covered fields list ──────────────────────────────── -->
+            <Text profile="fs25_dialogText" position="-350px -375px" text="$l10n_cs_irr_covered_fields" />
+            <GuiElement id="coveredFieldsContainer" position="-350px -405px" size="740px 110px">
                 <!-- Items added dynamically in Lua -->
             </GuiElement>
+
+            <!-- ── Action buttons (3-layer, centered) ──────────────── -->
+            <!-- Irrigate Now: bg/hit at -530, text at -535 (NPCFavor 5px offset) -->
+            <Bitmap  profile="csActionBtnBg"   id="btnIrrigateNowBg"   position="0px -530px"/>
+            <Button  profile="csActionBtnHit"  id="btnIrrigateNow"     position="0px -530px" onClick="onIrrigateNow" onFocus="onBtnIrrigateNowFocus" onLeave="onBtnIrrigateNowLeave"/>
+            <Text    profile="csActionBtnText"  id="btnIrrigateNowText" position="0px -535px" text="$l10n_cs_irr_irrigate_now"/>
+
+            <!-- Save Schedule: bg/hit at -575, text at -580 -->
+            <Bitmap  profile="csActionBtnBg"   id="btnSaveBg"   position="0px -575px"/>
+            <Button  profile="csActionBtnHit"  id="btnSave"     position="0px -575px" onClick="onSaveSchedule" onFocus="onBtnSaveFocus" onLeave="onBtnSaveLeave"/>
+            <Text    profile="csActionBtnText"  id="btnSaveText" position="0px -580px" text="$l10n_cs_irr_save_schedule"/>
+
         </GuiElement>
 
-        <!-- Button box at bottom -->
+        <!-- Close button only — action buttons now live in content area -->
         <BoxLayout profile="fs25_dialogButtonBox" id="buttonBox">
-            <Button profile="buttonActivate" id="btnIrrigateNow" text="$l10n_cs_irr_irrigate_now"  onClick="onIrrigateNow" />
-            <Button profile="buttonActivate" id="btnSave"        text="$l10n_cs_irr_save_schedule" onClick="onSaveSchedule" />
-            <Button profile="buttonOK"       id="btnClose"       text="$l10n_cs_close"             onClick="onCloseClicked" />
+            <Button profile="buttonOK" id="btnClose" text="$l10n_cs_close" onClick="onCloseClicked" />
         </BoxLayout>
     </GuiElement>
+
+    <GUIProfiles>
+        <!-- Suppress "Could not retrieve" log warnings for FS25 built-in profiles -->
+        <Profile name="fs25_guiElement" extends="baseReference"/>
+
+        <!-- ── Wide action button background (Irrigate Now, Save Schedule) ── -->
+        <Profile name="csActionBtnBg" extends="baseReference" with="anchorTopCenter">
+            <size value="300px 34px"/>
+            <imageColor value="0.15 0.15 0.18 1"/>
+        </Profile>
+
+        <!-- ── Wide action button hit target (invisible, catches mouse/focus) ── -->
+        <Profile name="csActionBtnHit" extends="emptyPanel" with="anchorTopCenter">
+            <size value="300px 34px"/>
+            <isFocusable value="true"/>
+        </Profile>
+
+        <!-- ── Wide action button text label ── -->
+        <Profile name="csActionBtnText" extends="fs25_textDefault" with="anchorTopCenter">
+            <size value="300px 24px"/>
+            <textSize value="14px"/>
+            <textBold value="true"/>
+            <textColor value="1 1 1 1"/>
+            <textAlignment value="center"/>
+        </Profile>
+
+        <!-- ── Day toggle button background ── -->
+        <Profile name="csDayBtnBg" extends="baseReference">
+            <size value="35px 28px"/>
+            <imageColor value="0.15 0.15 0.18 1"/>
+        </Profile>
+
+        <!-- ── Day toggle button hit target ── -->
+        <Profile name="csDayBtnHit" extends="emptyPanel">
+            <size value="35px 28px"/>
+            <isFocusable value="true"/>
+        </Profile>
+
+        <!-- ── Day toggle button text label ── -->
+        <Profile name="csDayBtnText" extends="fs25_textDefault">
+            <size value="35px 20px"/>
+            <textSize value="11px"/>
+            <textBold value="true"/>
+            <textColor value="1 1 1 1"/>
+            <textAlignment value="center"/>
+        </Profile>
+    </GUIProfiles>
 </GUI>

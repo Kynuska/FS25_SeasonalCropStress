@@ -2,17 +2,21 @@
 -- CropConsultantDialog.lua
 -- Agronomist consultation panel.
 --
--- Pattern: CsDialogLoader / NPCFavor confirmed pattern (FS25 v1.16)
+-- Pattern: CsDialogLoader / NPCFavor 3-layer button pattern (FS25 v1.16)
 --   • CsDialogLoader creates instance + calls g_gui:loadGui()
 --   • onCreate() ONLY calls superClass().onCreate(self) in pcall
---     → FS25 auto-wires all elements by id into self.*
---   • onOpen() calls superClass().onOpen(self) then calls refreshContent()
---   • onClose() calls superClass().onClose(self) for cleanup
+--     → FS25 auto-wires all id= elements into self.*
+--   • onOpen() calls super then calls refreshContent() (reads live data)
+--   • onClose() calls super for cleanup
+--
+-- Button pattern (3-layer, NPCFavor):
+--   Bitmap bg + invisible Button hit (onFocus/onLeave) + Text label
+--   applyHover() drives color changes on focus/leave events.
 --
 -- Auto-wired element names (must match id= in CropConsultantDialog.xml):
---   self.titleText, self.subtitleText
---   self.npcSection, self.npcRelLabel, self.npcRelValue
---   self.fieldListContainer, self.recommendText
+--   titleText, subtitleText, npcSection, npcRelLabel, npcRelValue,
+--   fieldListContainer, recommendText,
+--   btnOpenIrrBg, btnOpenIrr, btnOpenIrrText
 --
 -- Opened via CS_OPEN_CONSULTANT (Shift+C) or from Crop Consultant NPC
 -- (FS25_NPCFavor integration). Reads live field/stress/moisture data on open.
@@ -20,6 +24,14 @@
 
 CropConsultantDialog = {}
 local CropConsultantDialog_mt = Class(CropConsultantDialog, MessageDialog)
+
+-- Button color constants (NPCFavor pattern)
+CropConsultantDialog.COLORS = {
+    BTN_NORMAL = {0.15, 0.15, 0.18, 1},
+    BTN_HOVER  = {0.22, 0.28, 0.38, 1},
+    TXT_NORMAL = {1,    1,    1,    1},
+    TXT_HOVER  = {0.7,  0.9,  1,    1},
+}
 
 -- ============================================================
 -- CONSTRUCTOR
@@ -35,8 +47,7 @@ end
 -- ============================================================
 
 -- Called by FS25 GUI system after XML is parsed (via g_gui:loadGui).
--- ONLY calls superClass().onCreate(self) — triggers FS25 auto-wiring of
--- all XML elements with id= attributes into self.*.
+-- ONLY calls superClass().onCreate(self) — triggers FS25 auto-wiring.
 function CropConsultantDialog:onCreate()
     local ok, err = pcall(function()
         CropConsultantDialog:superClass().onCreate(self)
@@ -47,7 +58,6 @@ function CropConsultantDialog:onCreate()
 end
 
 -- Called by FS25 GUI system each time the dialog becomes visible.
--- superClass().onOpen() registers focus/input handling (Escape key, etc.).
 function CropConsultantDialog:onOpen()
     local ok, err = pcall(function()
         CropConsultantDialog:superClass().onOpen(self)
@@ -60,15 +70,35 @@ function CropConsultantDialog:onOpen()
 end
 
 -- Called by FS25 GUI system after the dialog has fully closed (cleanup only).
--- XML onClose="onClose" points here. Do NOT call self:close() from here.
 function CropConsultantDialog:onClose()
     CropConsultantDialog:superClass().onClose(self)
 end
 
--- Initiated by close button — triggers the FS25 close sequence.
+-- Initiated by close button.
 function CropConsultantDialog:onCloseClicked()
     self:close()
 end
+
+-- ============================================================
+-- HOVER EFFECTS (NPCFavor 3-layer pattern)
+-- ============================================================
+
+-- Apply hover highlight to an action button (suffix = "OpenIrr").
+function CropConsultantDialog:applyHover(suffix, isHovered)
+    local bgElem  = self["btn" .. suffix .. "Bg"]
+    local txtElem = self["btn" .. suffix .. "Text"]
+    if bgElem then
+        local c = isHovered and self.COLORS.BTN_HOVER or self.COLORS.BTN_NORMAL
+        bgElem:setImageColor(c[1], c[2], c[3], c[4])
+    end
+    if txtElem then
+        local c = isHovered and self.COLORS.TXT_HOVER or self.COLORS.TXT_NORMAL
+        txtElem:setTextColor(c[1], c[2], c[3], c[4])
+    end
+end
+
+function CropConsultantDialog:onBtnOpenIrrFocus() self:applyHover("OpenIrr", true)  end
+function CropConsultantDialog:onBtnOpenIrrLeave() self:applyHover("OpenIrr", false) end
 
 -- ============================================================
 -- REFRESH CONTENT
@@ -78,13 +108,12 @@ end
 function CropConsultantDialog:refreshContent()
     if g_cropStressManager == nil then return end
 
-    -- Title
     if self.titleText ~= nil then
         local name = (g_i18n ~= nil and g_i18n:getText("cs_consultant_name")) or "Crop Consultant"
         self.titleText:setText(name)
     end
 
-    -- NPC section (only when FS25_NPCFavor is active and NPC registered)
+    -- NPC section (only when FS25_NPCFavor active and NPC registered)
     if self.npcSection ~= nil then
         local npcActive = g_cropStressManager.npcIntegration ~= nil
             and g_cropStressManager.npcIntegration.isRegistered
@@ -108,7 +137,6 @@ end
 function CropConsultantDialog:buildFieldList()
     if self.fieldListContainer == nil then return end
 
-    -- Clear existing dynamic children
     local children = self.fieldListContainer.elements
     if children ~= nil then
         for i = #children, 1, -1 do
@@ -120,7 +148,6 @@ function CropConsultantDialog:buildFieldList()
     local stressModifier = g_cropStressManager.stressModifier
     if soilSystem == nil or soilSystem.fieldData == nil then return end
 
-    -- Build risk score list: stress * 0.6 + (1 - moisture) * 0.4
     local riskList = {}
     for fieldId, data in pairs(soilSystem.fieldData) do
         local stress   = stressModifier ~= nil and stressModifier:getStress(fieldId) or 0
@@ -152,7 +179,6 @@ function CropConsultantDialog:buildFieldList()
         local entry = riskList[i]
         local cropName    = self:getCropName(entry.fieldId)
         local yieldImpact = stressModifier ~= nil and stressModifier:getYieldImpactString(entry.fieldId) or "0%"
-
         local severityStr
         if entry.moisture < 0.25 then
             severityStr = "[CRITICAL]"
@@ -161,12 +187,9 @@ function CropConsultantDialog:buildFieldList()
         else
             severityStr = "[OK]"
         end
-
         local labelStr = string.format(
             "Field %d · %s  %d%% moisture  Yield %s  %s",
-            entry.fieldId, cropName,
-            math.floor(entry.moisture * 100),
-            yieldImpact, severityStr
+            entry.fieldId, cropName, math.floor(entry.moisture * 100), yieldImpact, severityStr
         )
         addRow(labelStr, y)
         y = y - 22
@@ -175,7 +198,6 @@ end
 
 -- ============================================================
 -- BUILD RECOMMENDATION
--- Uses weather forecast + field state to suggest actions.
 -- ============================================================
 
 function CropConsultantDialog:buildRecommendation()
@@ -191,7 +213,6 @@ function CropConsultantDialog:buildRecommendation()
         return
     end
 
-    -- Find the highest-risk (lowest moisture) field
     local worst = nil
     for fieldId, data in pairs(soilSystem.fieldData) do
         if worst == nil or data.moisture < worst.moisture then
@@ -205,7 +226,6 @@ function CropConsultantDialog:buildRecommendation()
     end
 
     local lines = {}
-
     if worst.moisture < 0.25 then
         table.insert(lines, t("cs_rec_urgent",  worst.fieldId, worst.moisture * 100))
     elseif worst.moisture < 0.40 then
@@ -214,7 +234,6 @@ function CropConsultantDialog:buildRecommendation()
         table.insert(lines, t("cs_rec_ok"))
     end
 
-    -- 3-day forecast hint for worst field
     if weatherInteg ~= nil then
         local proj = weatherInteg:getMoistureForecast(worst.fieldId, 3)
         if proj ~= nil and #proj >= 3 then
@@ -223,7 +242,6 @@ function CropConsultantDialog:buildRecommendation()
         end
     end
 
-    -- Irrigation status hint
     local irrMgr = g_cropStressManager.irrigationManager
     if irrMgr ~= nil then
         local active = 0
@@ -246,7 +264,6 @@ end
 
 function CropConsultantDialog:onOpenIrrigationDialog()
     self:close()
-    -- Delegate to CropStressManager which uses CsDialogLoader
     if g_cropStressManager ~= nil then
         g_cropStressManager:onOpenIrrigationDialog()
     end
@@ -262,7 +279,6 @@ function CropConsultantDialog:getCropName(fieldId)
     if g_currentMission.fieldManager.getFieldByIndex ~= nil then
         field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
     end
-    -- Fallback: iterate all fields (needed on maps where getFieldByIndex returns nil)
     if field == nil then
         local fields = g_currentMission.fieldManager:getFields()
         for _, f in pairs(fields) do

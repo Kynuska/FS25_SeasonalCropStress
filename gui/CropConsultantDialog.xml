@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     CropConsultantDialog.xml
-    Agronomist consultation panel.
-    onOpen="onOpen" calls CropConsultantDialog:onOpen() which calls superClass().onOpen()
-    to register FS25 focus/input handling (required for MessageDialog subclasses).
-    onClose points to cleanup-only handler — do NOT call self:close() inside it.
-    Pattern follows TakeLoanDialog.xml per CLAUDE.md.
+    Pattern: CsDialogLoader / NPCFavor 3-layer button pattern (FS25 v1.16 confirmed)
+      onCreate="onCreate"  → superClass().onCreate(self) auto-wires all id= elements
+      onOpen="onOpen"      → refreshContent() reads live field/stress/moisture data
+      onClose="onClose"    → cleanup only; do NOT call self:close() from this handler
+
+    Button pattern (3-layer):
+      Bitmap bg + invisible Button hit (onFocus/onLeave) + Text label
+      applyHover() drives color changes on focus/leave events.
 -->
 <GUI onOpen="onOpen" onCreate="onCreate" onClose="onClose">
     <GuiElement profile="newLayer" />
     <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
-    <GuiElement profile="dialogBg" id="dialogElement" size="800px 600px">
+    <GuiElement profile="dialogBg" id="dialogElement" size="800px 650px">
         <ThreePartBitmap profile="fs25_dialogBgMiddle" />
         <ThreePartBitmap profile="fs25_dialogBgTop" />
         <ThreePartBitmap profile="fs25_dialogBgBottom" />
         <GuiElement profile="fs25_dialogContentContainer" id="content">
 
-            <!-- ── Title ─────────────────────────────── -->
+            <!-- ── Title ──────────────────────────────────────────── -->
             <Text id="titleText"    profile="fs25_dialogTitle"    text="$l10n_cs_consultant_name" />
             <Text id="subtitleText" profile="fs25_dialogText" position="0px -15px"
                   text="$l10n_cs_consultant_subtitle" />
 
-            <!-- ── NPC Relationship Section (hidden by default; shown by Lua when NPCFavor active) ── -->
+            <!-- ── NPC Relationship Section (hidden; shown when NPCFavor active) ── -->
             <GuiElement id="npcSection" position="0px -50px" size="760px 30px" visible="false">
                 <Text id="npcRelLabel" profile="fs25_dialogText" position="-350px 0px"
                       text="$l10n_cs_consultant_relationship" />
@@ -29,29 +32,58 @@
                       text="—" />
             </GuiElement>
 
-            <!-- ── Field Risk List ───────────────────── -->
+            <!-- ── Field Risk List ────────────────────────────────── -->
             <Text profile="fs25_dialogText" position="-350px -90px"
                   text="$l10n_cs_consultant_field_status" />
             <GuiElement id="fieldListContainer" position="-350px -125px" size="760px 130px">
                 <!-- Items added dynamically in CropConsultantDialog.lua -->
             </GuiElement>
 
-            <!-- ── Recommendations ───────────────────── -->
+            <!-- ── Recommendations ───────────────────────────────── -->
             <Text profile="fs25_dialogText" position="-350px -270px"
                   text="$l10n_cs_consultant_recommendation" />
             <Text id="recommendText" profile="fs25_dialogText" position="-350px -305px"
                   size="760px 120px" text="—" />
 
+            <!-- ── Open Irrigation button (3-layer, centered) ─────── -->
+            <!-- Bg/hit at -445, text at -450 (NPCFavor 5px offset pattern) -->
+            <Bitmap  profile="csActionBtnBg"   id="btnOpenIrrBg"   position="0px -445px"/>
+            <Button  profile="csActionBtnHit"  id="btnOpenIrr"     position="0px -445px" onClick="onOpenIrrigationDialog" onFocus="onBtnOpenIrrFocus" onLeave="onBtnOpenIrrLeave"/>
+            <Text    profile="csActionBtnText"  id="btnOpenIrrText" position="0px -450px" text="$l10n_cs_consultant_open_irrigation"/>
+
         </GuiElement>
 
-        <!-- ── Buttons ───────────────────────────────── -->
+        <!-- Close button only — action button lives in content area -->
         <BoxLayout profile="fs25_dialogButtonBox" id="buttonBox">
-            <Button profile="buttonActivate" id="btnOpenIrr"
-                    text="$l10n_cs_consultant_open_irrigation"
-                    onClick="onOpenIrrigationDialog" />
             <Button profile="buttonOK" id="btnClose"
                     text="$l10n_cs_close"
                     onClick="onCloseClicked" />
         </BoxLayout>
     </GuiElement>
+
+    <GUIProfiles>
+        <!-- Suppress "Could not retrieve" log warnings for FS25 built-in profiles -->
+        <Profile name="fs25_guiElement" extends="baseReference"/>
+
+        <!-- ── Wide action button background ── -->
+        <Profile name="csActionBtnBg" extends="baseReference" with="anchorTopCenter">
+            <size value="300px 34px"/>
+            <imageColor value="0.15 0.15 0.18 1"/>
+        </Profile>
+
+        <!-- ── Wide action button hit target (invisible) ── -->
+        <Profile name="csActionBtnHit" extends="emptyPanel" with="anchorTopCenter">
+            <size value="300px 34px"/>
+            <isFocusable value="true"/>
+        </Profile>
+
+        <!-- ── Wide action button text label ── -->
+        <Profile name="csActionBtnText" extends="fs25_textDefault" with="anchorTopCenter">
+            <size value="300px 24px"/>
+            <textSize value="14px"/>
+            <textBold value="true"/>
+            <textColor value="1 1 1 1"/>
+            <textAlignment value="center"/>
+        </Profile>
+    </GUIProfiles>
 </GUI>

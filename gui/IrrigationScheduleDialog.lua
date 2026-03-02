@@ -2,29 +2,44 @@
 -- IrrigationScheduleDialog.lua
 -- Dialog for editing irrigation system schedule and manual control.
 --
--- Pattern: CsDialogLoader / NPCFavor confirmed pattern (FS25 v1.16)
+-- Pattern: CsDialogLoader / NPCFavor 3-layer button pattern (FS25 v1.16)
 --   • CsDialogLoader creates instance + calls g_gui:loadGui()
 --   • onCreate() ONLY calls superClass().onCreate(self) in pcall
---     → FS25 auto-wires all elements by id into self.*
---   • setSystemId(id) is called BEFORE g_gui:showDialog()
---   • onOpen() calls superClass().onOpen(self) then populates display
---     using pre-set self.systemId and auto-wired element refs
---   • onClose() calls superClass().onClose(self) for cleanup
+--     → FS25 auto-wires all id= elements into self.*
+--   • setSystemId(id) called BEFORE g_gui:showDialog() via CsDialogLoader
+--   • onOpen() calls super then populates from pre-set self.systemId
+--   • onClose() calls super for cleanup
+--
+-- Button pattern (3-layer, NPCFavor):
+--   Bitmap bg + invisible Button hit (onFocus/onLeave) + Text label
+--   applyHover() / applyDayHover() drive color changes on focus/leave.
+--   Day buttons use color-based selected state (green=active) — no setSelected().
 --
 -- Auto-wired element names (must match id= in IrrigationScheduleDialog.xml):
---   self.irrTitle, self.waterSourceValue, self.startHourText, self.endHourText
---   self.flowRate, self.efficiency, self.cost, self.wear
---   self.coveredFieldsContainer, self.btn_day_1 .. self.btn_day_7
+--   irrTitle, waterSourceValue, startHourText, endHourText
+--   flowRate, efficiency, cost, wear, coveredFieldsContainer
+--   btnDay1Bg/Hit/Text .. btnDay7Bg/Hit/Text
+--   btnIrrigateNowBg/Hit/Text, btnSaveBg/Hit/Text
 -- ============================================================
 
 IrrigationScheduleDialog = {}
 local IrrigationScheduleDialog_mt = Class(IrrigationScheduleDialog, MessageDialog)
 
+-- Button color constants (NPCFavor pattern)
+IrrigationScheduleDialog.COLORS = {
+    BTN_NORMAL    = {0.15, 0.15, 0.18, 1},   -- default dark
+    BTN_HOVER     = {0.22, 0.28, 0.38, 1},   -- blue-ish on hover
+    BTN_SELECTED  = {0.18, 0.45, 0.22, 1},   -- green = active day
+    BTN_SEL_HOVER = {0.22, 0.55, 0.27, 1},   -- brighter green on hover when selected
+    TXT_NORMAL    = {1,    1,    1,    1},
+    TXT_HOVER     = {0.7,  0.9,  1,    1},
+    TXT_SELECTED  = {0.6,  1,    0.65, 1},   -- light green text for active day
+}
+
 function IrrigationScheduleDialog.new(target, customMt)
     local self = MessageDialog.new(target, customMt or IrrigationScheduleDialog_mt)
     self.systemId    = nil
     self.daySelected = {false, false, false, false, false, false, false}
-    self.dayButtons  = {}
     return self
 end
 
@@ -33,9 +48,8 @@ end
 -- ============================================================
 
 -- Called by FS25 GUI system after XML is parsed (via g_gui:loadGui).
--- ONLY calls superClass().onCreate(self) — this triggers FS25's auto-wiring:
--- every XML element with an id attribute is set as self[id] on this instance.
--- After the super call, build the dayButtons convenience array.
+-- ONLY calls superClass().onCreate(self) — triggers FS25 auto-wiring:
+-- every XML element with an id= is set as self[id] on this instance.
 function IrrigationScheduleDialog:onCreate()
     local ok, err = pcall(function()
         IrrigationScheduleDialog:superClass().onCreate(self)
@@ -43,23 +57,14 @@ function IrrigationScheduleDialog:onCreate()
     if not ok then
         print("[CropStress] IrrigationScheduleDialog:onCreate() superClass FAILED: " .. tostring(err))
     end
-    -- Build convenience array from auto-wired day button elements.
-    -- btn_day_1 .. btn_day_7 are wired by the super call from id= in XML.
-    self.dayButtons = {
-        self.btn_day_1, self.btn_day_2, self.btn_day_3,
-        self.btn_day_4, self.btn_day_5, self.btn_day_6, self.btn_day_7,
-    }
 end
 
 -- Data setter: called by CsDialogLoader BEFORE g_gui:showDialog() fires onOpen().
--- This ensures onOpen() finds a valid systemId without needing a callback chain.
 function IrrigationScheduleDialog:setSystemId(systemId)
     self.systemId = systemId
 end
 
 -- Called by FS25 GUI system each time the dialog becomes visible.
--- superClass().onOpen() registers focus/input handling (Escape key, etc.).
--- All display population happens here using pre-set self.systemId.
 function IrrigationScheduleDialog:onOpen()
     local ok, err = pcall(function()
         IrrigationScheduleDialog:superClass().onOpen(self)
@@ -72,15 +77,74 @@ function IrrigationScheduleDialog:onOpen()
 end
 
 -- Called by FS25 GUI system after the dialog has fully closed (cleanup only).
--- XML onClose="onClose" points here. Do NOT call self:close() from here.
 function IrrigationScheduleDialog:onClose()
     IrrigationScheduleDialog:superClass().onClose(self)
 end
 
--- Initiated by the close button — triggers the FS25 close sequence.
+-- Initiated by the close button.
 function IrrigationScheduleDialog:onCloseClicked()
     self:close()
 end
+
+-- ============================================================
+-- HOVER EFFECTS (NPCFavor 3-layer pattern)
+-- ============================================================
+
+-- Apply hover highlight to a wide action button (suffix = "IrrigateNow", "Save").
+function IrrigationScheduleDialog:applyHover(suffix, isHovered)
+    local bgElem  = self["btn" .. suffix .. "Bg"]
+    local txtElem = self["btn" .. suffix .. "Text"]
+    if bgElem then
+        local c = isHovered and self.COLORS.BTN_HOVER or self.COLORS.BTN_NORMAL
+        bgElem:setImageColor(c[1], c[2], c[3], c[4])
+    end
+    if txtElem then
+        local c = isHovered and self.COLORS.TXT_HOVER or self.COLORS.TXT_NORMAL
+        txtElem:setTextColor(c[1], c[2], c[3], c[4])
+    end
+end
+
+-- Apply hover highlight to a day toggle button (dayIdx 1–7).
+-- Selected days use a distinct green color scheme.
+function IrrigationScheduleDialog:applyDayHover(dayIdx, isHovered)
+    local bgElem  = self["btnDay" .. dayIdx .. "Bg"]
+    local txtElem = self["btnDay" .. dayIdx .. "Text"]
+    local sel     = self.daySelected[dayIdx]
+    if bgElem then
+        local c
+        if sel then
+            c = isHovered and self.COLORS.BTN_SEL_HOVER or self.COLORS.BTN_SELECTED
+        else
+            c = isHovered and self.COLORS.BTN_HOVER or self.COLORS.BTN_NORMAL
+        end
+        bgElem:setImageColor(c[1], c[2], c[3], c[4])
+    end
+    if txtElem then
+        local c = sel and self.COLORS.TXT_SELECTED or self.COLORS.TXT_NORMAL
+        txtElem:setTextColor(c[1], c[2], c[3], c[4])
+    end
+end
+
+-- Per-button focus/leave handlers (called from XML onFocus/onLeave)
+function IrrigationScheduleDialog:onBtnDay1Focus()        self:applyDayHover(1, true)  end
+function IrrigationScheduleDialog:onBtnDay1Leave()        self:applyDayHover(1, false) end
+function IrrigationScheduleDialog:onBtnDay2Focus()        self:applyDayHover(2, true)  end
+function IrrigationScheduleDialog:onBtnDay2Leave()        self:applyDayHover(2, false) end
+function IrrigationScheduleDialog:onBtnDay3Focus()        self:applyDayHover(3, true)  end
+function IrrigationScheduleDialog:onBtnDay3Leave()        self:applyDayHover(3, false) end
+function IrrigationScheduleDialog:onBtnDay4Focus()        self:applyDayHover(4, true)  end
+function IrrigationScheduleDialog:onBtnDay4Leave()        self:applyDayHover(4, false) end
+function IrrigationScheduleDialog:onBtnDay5Focus()        self:applyDayHover(5, true)  end
+function IrrigationScheduleDialog:onBtnDay5Leave()        self:applyDayHover(5, false) end
+function IrrigationScheduleDialog:onBtnDay6Focus()        self:applyDayHover(6, true)  end
+function IrrigationScheduleDialog:onBtnDay6Leave()        self:applyDayHover(6, false) end
+function IrrigationScheduleDialog:onBtnDay7Focus()        self:applyDayHover(7, true)  end
+function IrrigationScheduleDialog:onBtnDay7Leave()        self:applyDayHover(7, false) end
+
+function IrrigationScheduleDialog:onBtnIrrigateNowFocus() self:applyHover("IrrigateNow", true)  end
+function IrrigationScheduleDialog:onBtnIrrigateNowLeave() self:applyHover("IrrigateNow", false) end
+function IrrigationScheduleDialog:onBtnSaveFocus()        self:applyHover("Save", true)  end
+function IrrigationScheduleDialog:onBtnSaveLeave()        self:applyHover("Save", false) end
 
 -- ============================================================
 -- DISPLAY POPULATION
@@ -89,20 +153,19 @@ end
 function IrrigationScheduleDialog:populateDisplay()
     local system = self:getCurrentSystem()
     if system == nil then
-        -- System removed between dialog open and display — close cleanly.
         self:close()
         return
     end
 
     local function t(key) return (g_i18n ~= nil and g_i18n:getText(key)) or key end
 
-    -- Title: "IRRIGATION SYSTEM — Drip" / "… — Pivot"
+    -- Title
     local typeName = system.type == "pivot" and t("cs_irr_pivot") or t("cs_irr_drip")
     if self.irrTitle ~= nil then
         self.irrTitle:setText(string.format(t("cs_irr_title"), typeName))
     end
 
-    -- Water source connection status
+    -- Water source
     if self.waterSourceValue ~= nil then
         if system.waterSourceId ~= nil then
             self.waterSourceValue:setText(t("cs_irr_connected"))
@@ -111,7 +174,6 @@ function IrrigationScheduleDialog:populateDisplay()
         end
     end
 
-    -- Day toggle buttons, time displays, performance stats, covered fields list
     self:syncDayButtons(system)
     self:updateTimeDisplays(system)
     self:updatePerformance(system)
@@ -122,17 +184,25 @@ end
 -- DAY TOGGLE
 -- ============================================================
 
--- Sync button selected state from system schedule (no polling — state-driven).
+-- Sync all day button colors from system schedule (called on dialog open).
 function IrrigationScheduleDialog:syncDayButtons(system)
     for i = 1, 7 do
         self.daySelected[i] = system.schedule.activeDays[i] == true
-        if self.dayButtons[i] ~= nil then
-            self.dayButtons[i]:setSelected(self.daySelected[i])
+        -- Color-based selected state (no setSelected — 3-layer emptyPanel hit target)
+        local bgElem  = self["btnDay" .. i .. "Bg"]
+        local txtElem = self["btnDay" .. i .. "Text"]
+        if bgElem then
+            local c = self.daySelected[i] and self.COLORS.BTN_SELECTED or self.COLORS.BTN_NORMAL
+            bgElem:setImageColor(c[1], c[2], c[3], c[4])
+        end
+        if txtElem then
+            local c = self.daySelected[i] and self.COLORS.TXT_SELECTED or self.COLORS.TXT_NORMAL
+            txtElem:setTextColor(c[1], c[2], c[3], c[4])
         end
     end
 end
 
--- FS25 XML onClick cannot pass arguments inline; each day button needs its own handler.
+-- FS25 XML onClick cannot pass arguments inline; each day button has its own handler.
 function IrrigationScheduleDialog:onDayToggle1() self:_toggleDay(1) end
 function IrrigationScheduleDialog:onDayToggle2() self:_toggleDay(2) end
 function IrrigationScheduleDialog:onDayToggle3() self:_toggleDay(3) end
@@ -145,10 +215,20 @@ function IrrigationScheduleDialog:_toggleDay(idx)
     if idx == nil or idx < 1 or idx > 7 then return end
     local system = self:getCurrentSystem()
     if system == nil then return end
+
     self.daySelected[idx] = not self.daySelected[idx]
     system.schedule.activeDays[idx] = self.daySelected[idx]
-    if self.dayButtons[idx] ~= nil then
-        self.dayButtons[idx]:setSelected(self.daySelected[idx])
+
+    -- Update colors immediately (hover state resets to non-hovered after click)
+    local bgElem  = self["btnDay" .. idx .. "Bg"]
+    local txtElem = self["btnDay" .. idx .. "Text"]
+    if bgElem then
+        local c = self.daySelected[idx] and self.COLORS.BTN_SELECTED or self.COLORS.BTN_NORMAL
+        bgElem:setImageColor(c[1], c[2], c[3], c[4])
+    end
+    if txtElem then
+        local c = self.daySelected[idx] and self.COLORS.TXT_SELECTED or self.COLORS.TXT_NORMAL
+        txtElem:setTextColor(c[1], c[2], c[3], c[4])
     end
 end
 
@@ -156,7 +236,6 @@ end
 -- TIME CONTROLS
 -- ============================================================
 
--- Update both time Text elements from schedule hours (0–23).
 function IrrigationScheduleDialog:updateTimeDisplays(system)
     if system == nil then return end
     if self.startHourText ~= nil then
@@ -178,7 +257,6 @@ function IrrigationScheduleDialog:onStartHourPlus()
     local system = self:getCurrentSystem()
     if system == nil then return end
     local next = (system.schedule.startHour + 1) % 24
-    -- Guard: prevent start == end (would silently disable the schedule)
     if next ~= system.schedule.endHour then
         system.schedule.startHour = next
     end
@@ -213,9 +291,9 @@ function IrrigationScheduleDialog:updatePerformance(system)
     local effectiveRate = system.flowRatePerHour * system.pressureMultiplier * (1.0 - system.wearLevel * 0.3)
     local efficiency    = math.floor(system.pressureMultiplier * 100)
     local function t(key, ...) return (g_i18n ~= nil and string.format(g_i18n:getText(key), ...)) or key end
-    if self.flowRate   ~= nil then self.flowRate:setText(t("cs_irr_flow_rate_value",   effectiveRate))   end
-    if self.efficiency ~= nil then self.efficiency:setText(t("cs_irr_efficiency_value", efficiency))      end
-    if self.cost       ~= nil then self.cost:setText(t("cs_irr_cost_value",   system.operationalCostPerHour)) end
+    if self.flowRate   ~= nil then self.flowRate:setText(t("cs_irr_flow_rate_value",   effectiveRate))            end
+    if self.efficiency ~= nil then self.efficiency:setText(t("cs_irr_efficiency_value", efficiency))              end
+    if self.cost       ~= nil then self.cost:setText(t("cs_irr_cost_value",   system.operationalCostPerHour))     end
     if self.wear       ~= nil then self.wear:setText(t("cs_irr_wear_value",   math.floor(system.wearLevel * 100))) end
 end
 
@@ -226,7 +304,6 @@ end
 function IrrigationScheduleDialog:updateCoveredFields(system)
     if self.coveredFieldsContainer == nil then return end
 
-    -- Remove existing dynamic children
     local children = self.coveredFieldsContainer.elements
     if children ~= nil then
         for i = #children, 1, -1 do
@@ -259,12 +336,9 @@ function IrrigationScheduleDialog:updateCoveredFields(system)
             if g_cropStressManager.soilSystem    ~= nil then moisture = g_cropStressManager.soilSystem:getMoisture(fieldId) or 0 end
             if g_cropStressManager.stressModifier ~= nil then stress  = g_cropStressManager.stressModifier:getStress(fieldId) or 0 end
         end
-
         local cropName = self:getCropName(fieldId)
         local labelStr = string.format("Field %d · %s  %d%%", fieldId, cropName, math.floor(moisture * 100))
-        if stress > 0.2 then
-            labelStr = labelStr .. " !"
-        end
+        if stress > 0.2 then labelStr = labelStr .. " !" end
         makeTextRow(labelStr, y)
         y = y - 20
     end
@@ -276,10 +350,7 @@ end
 
 function IrrigationScheduleDialog:onIrrigateNow()
     local system = self:getCurrentSystem()
-    if system == nil then
-        self:close()
-        return
-    end
+    if system == nil then self:close(); return end
 
     if system.isActive then
         if g_currentMission ~= nil then
@@ -300,7 +371,6 @@ function IrrigationScheduleDialog:onIrrigateNow()
 end
 
 function IrrigationScheduleDialog:onSaveSchedule()
-    -- Schedule is already live in IrrigationManager; persists on next save.
     if g_currentMission ~= nil then
         g_currentMission:showBlinkingWarning(
             (g_i18n ~= nil and g_i18n:getText("cs_schedule_saved")) or "Schedule saved.", 2000)
@@ -324,7 +394,6 @@ function IrrigationScheduleDialog:getCropName(fieldId)
     if g_currentMission.fieldManager.getFieldByIndex ~= nil then
         field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
     end
-    -- Fallback: iterate all fields (needed on maps where getFieldByIndex returns nil)
     if field == nil then
         local fields = g_currentMission.fieldManager:getFields()
         for _, f in pairs(fields) do
