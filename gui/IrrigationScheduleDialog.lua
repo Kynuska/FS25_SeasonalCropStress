@@ -12,13 +12,17 @@
 --
 -- Button pattern (3-layer, NPCFavor):
 --   Bitmap bg + invisible Button hit (onFocus/onLeave) + Text label
---   applyHover() / applyDayHover() drive color changes on focus/leave.
+--   applyHover() / applyDayHover() / applyTimeHover() / applyCloseHover()
+--   drive color changes on focus/leave.
 --   Day buttons use color-based selected state (green=active) — no setSelected().
 --
 -- Auto-wired element names (must match id= in IrrigationScheduleDialog.xml):
 --   irrTitle, waterSourceValue, startHourText, endHourText
 --   flowRate, efficiency, cost, wear, coveredFieldsContainer
 --   btnDay1Bg/Hit/Text .. btnDay7Bg/Hit/Text
+--   startHourMinusBg/Hit/Text, startHourPlusBg/Hit/Text
+--   endHourMinusBg/Hit/Text, endHourPlusBg/Hit/Text
+--   btnCloseBg/Hit/Text
 --   btnIrrigateNowBg/Hit/Text, btnSaveBg/Hit/Text
 -- ============================================================
 
@@ -104,6 +108,34 @@ function IrrigationScheduleDialog:applyHover(suffix, isHovered)
     end
 end
 
+-- Apply hover highlight to a time adjustment button (prefix = "startHourMinus", "startHourPlus", etc.)
+function IrrigationScheduleDialog:applyTimeHover(prefix, isHovered)
+    local bgElem  = self[prefix .. "Bg"]
+    local txtElem = self[prefix .. "Text"]
+    if bgElem then
+        local c = isHovered and self.COLORS.BTN_HOVER or self.COLORS.BTN_NORMAL
+        bgElem:setImageColor(c[1], c[2], c[3], c[4])
+    end
+    if txtElem then
+        local c = isHovered and self.COLORS.TXT_HOVER or self.COLORS.TXT_NORMAL
+        txtElem:setTextColor(c[1], c[2], c[3], c[4])
+    end
+end
+
+-- Apply hover highlight to the close button
+function IrrigationScheduleDialog:applyCloseHover(isHovered)
+    local bgElem  = self["btnCloseBg"]
+    local txtElem = self["btnCloseText"]
+    if bgElem then
+        local c = isHovered and self.COLORS.BTN_HOVER or self.COLORS.BTN_NORMAL
+        bgElem:setImageColor(c[1], c[2], c[3], c[4])
+    end
+    if txtElem then
+        local c = isHovered and self.COLORS.TXT_HOVER or self.COLORS.TXT_NORMAL
+        txtElem:setTextColor(c[1], c[2], c[3], c[4])
+    end
+end
+
 -- Apply hover highlight to a day toggle button (dayIdx 1–7).
 -- Selected days use a distinct green color scheme.
 function IrrigationScheduleDialog:applyDayHover(dayIdx, isHovered)
@@ -140,6 +172,20 @@ function IrrigationScheduleDialog:onBtnDay6Focus()        self:applyDayHover(6, 
 function IrrigationScheduleDialog:onBtnDay6Leave()        self:applyDayHover(6, false) end
 function IrrigationScheduleDialog:onBtnDay7Focus()        self:applyDayHover(7, true)  end
 function IrrigationScheduleDialog:onBtnDay7Leave()        self:applyDayHover(7, false) end
+
+-- Time button hover handlers
+function IrrigationScheduleDialog:onBtnStartHourMinusFocus() self:applyTimeHover("startHourMinus", true) end
+function IrrigationScheduleDialog:onBtnStartHourMinusLeave() self:applyTimeHover("startHourMinus", false) end
+function IrrigationScheduleDialog:onBtnStartHourPlusFocus()  self:applyTimeHover("startHourPlus", true) end
+function IrrigationScheduleDialog:onBtnStartHourPlusLeave()  self:applyTimeHover("startHourPlus", false) end
+function IrrigationScheduleDialog:onBtnEndHourMinusFocus()   self:applyTimeHover("endHourMinus", true) end
+function IrrigationScheduleDialog:onBtnEndHourMinusLeave()   self:applyTimeHover("endHourMinus", false) end
+function IrrigationScheduleDialog:onBtnEndHourPlusFocus()    self:applyTimeHover("endHourPlus", true) end
+function IrrigationScheduleDialog:onBtnEndHourPlusLeave()    self:applyTimeHover("endHourPlus", false) end
+
+-- Close button hover handlers
+function IrrigationScheduleDialog:onBtnCloseFocus() self:applyCloseHover(true) end
+function IrrigationScheduleDialog:onBtnCloseLeave() self:applyCloseHover(false) end
 
 function IrrigationScheduleDialog:onBtnIrrigateNowFocus() self:applyHover("IrrigateNow", true)  end
 function IrrigationScheduleDialog:onBtnIrrigateNowLeave() self:applyHover("IrrigateNow", false) end
