@@ -197,8 +197,8 @@ function DripIrrigationLine.onInteractPressed(self)
     if g_cropStressManager == nil then return end
 
     local dialog = g_gui:showDialog("IrrigationScheduleDialog")
-    if dialog ~= nil and dialog.target ~= nil then
-        dialog.target:onIrrigationDialogOpen(self.id)
+    if dialog ~= nil then
+        dialog:onIrrigationDialogOpen(self.id)
     end
 
     self:removeInteractionAction()

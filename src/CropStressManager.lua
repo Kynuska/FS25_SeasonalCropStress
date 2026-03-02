@@ -383,8 +383,8 @@ end
 function CropStressManager:onOpenConsultantDialog()
     if g_gui == nil then return end
     local dialog = g_gui:showDialog("CropConsultantDialog")
-    if dialog ~= nil and dialog.target ~= nil then
-        dialog.target:onConsultantDialogOpen()
+    if dialog ~= nil then
+        dialog:onConsultantDialogOpen()
     end
 end
 
@@ -414,8 +414,8 @@ function CropStressManager:onOpenIrrigationDialog()
         -- showDialog returns the dialog instance; call onDialogOpen manually
         -- because the 3-arg form of showDialog does not forward args to the callback
         local dialog = g_gui:showDialog("IrrigationScheduleDialog")
-        if dialog ~= nil and dialog.target ~= nil then
-            dialog.target:onIrrigationDialogOpen(firstId)
+        if dialog ~= nil then
+            dialog:onIrrigationDialogOpen(firstId)
         end
     else
         if g_currentMission ~= nil then
@@ -563,8 +563,8 @@ function CropStressManager:consoleConsultant()
         return
     end
     local dialog = g_gui:showDialog("CropConsultantDialog")
-    if dialog ~= nil and dialog.target ~= nil then
-        dialog.target:onConsultantDialogOpen()
+    if dialog ~= nil then
+        dialog:onConsultantDialogOpen()
         print("CropStress: CropConsultant dialog opened")
     else
         print("CropStress: CropConsultantDialog not registered — check main.lua loadGui call")
