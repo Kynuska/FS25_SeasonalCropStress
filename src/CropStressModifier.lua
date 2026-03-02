@@ -153,7 +153,7 @@ function CropStressModifier:processFieldStress(field, fieldId, moisture)
         local prev = self.fieldStress[fieldId] or 0.0
         self.fieldStress[fieldId] = math.min(1.0, prev + stressIncrease)
 
-        if self.manager.debugMode then
+        if self.manager ~= nil and self.manager.debugMode then
             csLog(string.format(
                 "Stress Field %d (%s stage %d): +%.4f → total %.3f (moisture %.1f%% < %.0f%%)",
                 fieldId, cropName, growthStage, stressIncrease,
@@ -174,10 +174,12 @@ function CropStressModifier:resetStress(fieldId)
     self.fieldStress[fieldId] = 0.0
 end
 
--- Returns estimated yield impact as a display string, e.g. "-18%"
+-- Returns estimated yield impact as a display string, e.g. "-18%".
+-- Uses the instance method (not the class constant) so the player's
+-- configured max yield loss setting is reflected in dialog display.
 function CropStressModifier:getYieldImpactString(fieldId)
     local stress = self:getStress(fieldId)
-    local loss = stress * CropStressModifier.MAX_YIELD_LOSS * 100
+    local loss = stress * self:getMaxYieldLoss() * 100
     if loss < 0.5 then return "0%" end
     return string.format("-%.0f%%", loss)
 end

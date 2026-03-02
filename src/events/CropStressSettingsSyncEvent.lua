@@ -29,9 +29,11 @@ CropStressSettingsSyncEvent.TYPE_SINGLE = 1
 CropStressSettingsSyncEvent.TYPE_BULK = 2
 
 -- Number of settings written/read in a bulk event.
--- MUST match the number of writeSetting() calls in writeStream() and the
--- count of keys in DEFAULTS (CropStressSettings.lua).  If you add or remove
--- a setting, update this constant and the read/write calls together.
+-- MUST match the number of writeSetting() calls in writeStream().
+-- Intentionally 10 (not 12) — hudPanelX and hudPanelY are client-local
+-- display preferences and must NOT be overwritten by a server-pushed sync.
+-- If you add or remove a synced setting, update this constant and the
+-- writeSetting() calls in writeStream() together.
 CropStressSettingsSyncEvent.BULK_COUNT = 10
 
 -- Value type constants for serialization

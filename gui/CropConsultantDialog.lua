@@ -63,13 +63,10 @@ function CropConsultantDialog:onCreate()
     -- Field list container (dynamic rows added in Lua)
     self.fieldContainer    = self:getDescendantByName("fieldListContainer")
 
-    -- Forecast / recommendation section
-    self.recommendTitle    = self:getDescendantByName("recommendTitle")
+    -- Recommendation text (populated by buildRecommendation)
     self.recommendText     = self:getDescendantByName("recommendText")
 
-    -- Buttons
-    self.btnClose          = self:getDescendantByName("btnClose")
-    self.btnOpenIrr        = self:getDescendantByName("btnOpenIrr")
+    -- Note: btnClose and btnOpenIrr are handled via XML onClick — no Lua ref needed
 
     -- Hide NPC section by default (shown only if NPCFavor active)
     if self.npcSection ~= nil then

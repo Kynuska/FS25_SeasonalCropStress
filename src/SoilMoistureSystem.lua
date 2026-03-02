@@ -196,7 +196,7 @@ function SoilMoistureSystem:hourlyUpdate(weather)
             end
         end
 
-        if self.manager.debugMode then
+        if self.manager ~= nil and self.manager.debugMode then
             csLog(string.format(
                 "Field %d: %.1f%% → %.1f%% (evap=%.4f rain=%.4f irr=%.4f)",
                 fieldId, prevMoisture * 100, data.moisture * 100,

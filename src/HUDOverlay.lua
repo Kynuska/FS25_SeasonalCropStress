@@ -302,8 +302,11 @@ function HUDOverlay:rebuildForecast()
     end
     if self.manager == nil or self.manager.weatherIntegration == nil then return end
 
+    -- Request FORECAST_COLS-1 projected days: the first display column is "Now"
+    -- (current moisture from soilSystem), so we only need 4 future projections
+    -- to fill the remaining 4 columns.
     local projections = self.manager.weatherIntegration:getMoistureForecast(
-        self.selectedFieldId, HUDOverlay.FORECAST_COLS)
+        self.selectedFieldId, HUDOverlay.FORECAST_COLS - 1)
 
     self.forecastCache = {
         fieldId     = self.selectedFieldId,
@@ -641,20 +644,31 @@ function HUDOverlay:toggle()
     self.autoShowActive = false
     self.autoHideTimer  = 0
 
-    if self.isVisible and not self.firstRunShown then
-        self.firstRunShown = true
-    end
-
-    -- Rebuild display rows immediately on open so auto-select below has data.
-    -- (update() normally rebuilds rows, but it runs next frame — after toggle() returns.)
     if self.isVisible then
-        self:rebuildDisplayRows()
-    end
+        if not self.firstRunShown then
+            self.firstRunShown = true
+        end
 
-    -- Auto-select driest field when opening
-    if self.isVisible and self.selectedFieldId == nil and #self.displayRows > 0 then
-        self.selectedFieldId = self.displayRows[1].fieldId
-        self.forecastDirty   = true
+        -- Rebuild display rows immediately so auto-select below has data.
+        -- (update() normally rebuilds rows, but it runs next frame — after toggle() returns.)
+        self:rebuildDisplayRows()
+
+        -- Auto-select driest field when opening
+        if self.selectedFieldId == nil and #self.displayRows > 0 then
+            self.selectedFieldId = self.displayRows[1].fieldId
+            self.forecastDirty   = true
+        end
+    else
+        -- Exit edit mode when hiding — orange border should not persist invisibly
+        if self.editMode then
+            self.editMode = false
+            self.dragging = false
+            -- Persist position so the drag position is saved even if they hid mid-edit
+            if self.manager ~= nil and self.manager.settings ~= nil then
+                self.manager.settings.hudPanelX = self.panelX
+                self.manager.settings.hudPanelY = self.panelY
+            end
+        end
     end
 
     csLog("HUD toggled: " .. tostring(self.isVisible))

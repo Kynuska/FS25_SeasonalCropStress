@@ -305,8 +305,10 @@ addModEventListener({
     mouseEvent = function(self, posX, posY, isDown, isUp, button)
         if g_csManager == nil then return end
         if g_csManager.hudOverlay == nil then return end
-        -- Guard: don't intercept while a GUI/dialog is open
-        if g_gui ~= nil and (g_gui:getIsGuiVisible() or g_gui:getIsDialogVisible()) then return end
+        -- Guard: don't intercept while a GUI/dialog is open.
+        -- getIsGuiVisible() returns true for both menus and dialogs in FS25 —
+        -- getIsDialogVisible() does not exist in all builds, so we don't call it.
+        if g_gui ~= nil and g_gui:getIsGuiVisible() then return end
         g_csManager.hudOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
     end
 })

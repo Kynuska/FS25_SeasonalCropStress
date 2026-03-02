@@ -39,9 +39,7 @@ function IrrigationScheduleDialog:onCreate()
     self.costText               = self:getDescendantByName("cost")
     self.wearText               = self:getDescendantByName("wear")
     self.coveredFieldsContainer = self:getDescendantByName("coveredFieldsContainer")
-    self.btnIrrigateNow         = self:getDescendantByName("btnIrrigateNow")
-    self.btnSave                = self:getDescendantByName("btnSave")
-    self.btnClose               = self:getDescendantByName("btnClose")
+    -- Note: btnIrrigateNow, btnSave, btnClose are handled via XML onClick — no Lua ref needed
 
     -- Day toggle buttons looked up by name (declared in XML as btn_day_1 .. btn_day_7)
     self.dayButtons = {}
@@ -171,7 +169,11 @@ end
 function IrrigationScheduleDialog:onEndHourPlus()
     local system = self:getCurrentSystem()
     if system == nil then return end
-    system.schedule.endHour = (system.schedule.endHour + 1) % 24
+    local next = (system.schedule.endHour + 1) % 24
+    -- Prevent end from equaling start (would silently disable the schedule)
+    if next ~= system.schedule.startHour then
+        system.schedule.endHour = next
+    end
     self:updateTimeDisplays(system)
 end
 
@@ -186,17 +188,15 @@ function IrrigationScheduleDialog:updatePerformance(system)
 end
 
 function IrrigationScheduleDialog:updateCoveredFields(system)
+    if self.coveredFieldsContainer == nil then return end
+
     -- Remove existing dynamic children
-    if self.coveredFieldsContainer ~= nil then
-        local children = self.coveredFieldsContainer.elements
-        if children ~= nil then
-            for i = #children, 1, -1 do
-                self.coveredFieldsContainer:removeElement(children[i])
-            end
+    local children = self.coveredFieldsContainer.elements
+    if children ~= nil then
+        for i = #children, 1, -1 do
+            self.coveredFieldsContainer:removeElement(children[i])
         end
     end
-
-    if self.coveredFieldsContainer == nil then return end
 
     -- Helper: create a TextElement row for the covered fields list
     local function makeTextRow(text, yPos)
