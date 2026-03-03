@@ -593,85 +593,66 @@ function HUDOverlay:rebuildDisplayRows()
     local sortedFields = self.manager.soilSystem:getFieldsSortedByMoisture()
     if sortedFields == nil then return end
 
-    -- Pre-fetch field list once for fallback lookup (avoids calling getFields() per row)
-    local allFields = nil
-    if g_currentMission ~= nil and g_currentMission.fieldManager ~= nil
-    and type(g_currentMission.fieldManager.getFields) == "function" then
-        local ok, result = pcall(function()
-            return g_currentMission.fieldManager:getFields()
-        end)
-        if ok then allFields = result end
-    end
+    -- Use the manager's pre-built fieldId→field map (O(1) per lookup, correct on all maps).
+    -- getFieldByIndex(n) returns fields[n] by array position, NOT the field with fieldId==n
+    -- — silently wrong on custom maps, renumbered fields, or non-sequential farmlands.
+    local fieldById = (self.manager ~= nil) and self.manager.fieldById or {}
 
     for _, entry in ipairs(sortedFields) do
         if #self.displayRows >= HUDOverlay.MAX_FIELDS then break end
 
         local stress      = 0
-        local cropName    = nil   -- nil = not yet resolved; will become a display string below
+        local cropName    = nil
         local growthStage = nil
 
         if self.manager.stressModifier ~= nil then
             stress = self.manager.stressModifier:getStress(entry.fieldId)
         end
 
-        if g_currentMission ~= nil and g_currentMission.fieldManager ~= nil then
-            -- Primary lookup: getFieldByIndex looks up by ARRAY INDEX, not fieldId.
-            -- Many FS25 maps have fieldId != array index, so this often returns nil.
-            -- Always fall back to iterating all fields when it does.
-            local field = nil
-            if g_currentMission.fieldManager.getFieldByIndex ~= nil then
-                local ok, result = pcall(function()
-                    return g_currentMission.fieldManager:getFieldByIndex(entry.fieldId)
-                end)
-                if ok and result ~= nil and result.fieldId == entry.fieldId then
-                    field = result  -- only accept if fieldId actually matches
-                end
-            end
-
-            -- Fallback: iterate all fields (safe, slightly slower)
-            if field == nil and allFields ~= nil then
-                for _, f in pairs(allFields) do
-                    if f.fieldId == entry.fieldId then
-                        field = f
-                        break
+        local field = fieldById[entry.fieldId]
+        if field ~= nil then
+            -- FS25-native crop resolution: getFieldState() → fruitTypeIndex
+            local ft = nil
+            if type(field.getFieldState) == "function" then
+                local ok, state = pcall(function() return field:getFieldState() end)
+                if ok and state ~= nil and state.fruitTypeIndex ~= nil and state.fruitTypeIndex > 0 then
+                    if g_fruitTypeManager ~= nil then
+                        ft = g_fruitTypeManager:getFruitTypeByIndex(state.fruitTypeIndex)
                     end
                 end
             end
 
-            if field ~= nil then
-                -- Resolve fruit type
-                local ft = nil
+            -- Legacy fallback: getFruitType() (FS19/22 API still present in many FS25 maps)
+            if ft == nil then
                 if type(field.getFruitType) == "function" then
-                    local ok2, result = pcall(function() return field:getFruitType() end)
-                    if ok2 then ft = result end
+                    local ok, result = pcall(function() return field:getFruitType() end)
+                    if ok then ft = result end
                 end
                 if ft == nil then ft = field.fruitType end
+            end
 
-                if ft ~= nil and ft.name ~= nil then
-                    local name = ft.name:lower()
-                    -- Treat FS25 internal weed/grass types as "bare soil" for display
-                    if name == "grass" or name == "drygrass" or name == "weed"
-                    or name == "stone" or name == "meadow" then
-                        cropName = "Fallow"
-                    else
-                        cropName = ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
-                    end
-                else
-                    -- Field object found but no crop planted
+            if ft ~= nil and ft.name ~= nil then
+                local name = ft.name:lower()
+                if name == "grass" or name == "drygrass" or name == "weed"
+                or name == "stone" or name == "meadow" then
                     cropName = "Fallow"
+                else
+                    cropName = ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
                 end
+            else
+                cropName = "Fallow"
+            end
 
-                -- Growth stage
-                if type(field.getGrowthState) == "function" then
-                    local ok2, result = pcall(function() return field:getGrowthState() end)
-                    if ok2 then growthStage = result end
-                elseif field.growthState ~= nil then
-                    growthStage = field.growthState
-                end
+            -- Growth stage
+            if type(field.getGrowthState) == "function" then
+                local ok2, result = pcall(function() return field:getGrowthState() end)
+                if ok2 then growthStage = result end
+            elseif field.growthState ~= nil then
+                growthStage = field.growthState
             end
         end
 
-        -- Final fallback: field object not found at all (field enumeration race)
+        -- Final fallback: field not in map yet (enumeration race on slow-loading map)
         if cropName == nil then cropName = "?" end
 
         table.insert(self.displayRows, {

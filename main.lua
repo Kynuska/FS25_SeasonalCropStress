@@ -17,37 +17,6 @@
 
 local modDir = g_currentModDirectory
 
--- ============================================================
--- FOCUSMANAGER NIL-NODE GUARD — patch the specific method that crashes.
---
--- Root cause (FS25 v1.16 regression):
---   When any mod calls g_gui:loadGui() the GUI system calls
---   loadSharedI3DFile for the button focus-ring indicator i3d.
---   In v1.16 that callback fires with nil as i3dNode when the
---   file is already cached as a shared i3d.
---   FocusManager.lua:94 then does elementsByNodeId[nil] = element
---   → "table index is nil" crash, which leaves currentFocusElement
---   in a corrupt state → FocusManager.lua:126 cascade every frame.
---
--- Why method-level guard: The crash happens in the specific callback
--- method, so we guard that method directly rather than the entire class.
--- ============================================================
-do
-    if type(FocusManager) == "table" and type(FocusManager.loadSharedI3DFileFinished) == "function" then
-        local origFn = FocusManager.loadSharedI3DFileFinished
-        FocusManager.loadSharedI3DFileFinished = function(self, i3dNode, failedReason, args)
-            if i3dNode == nil then
-                print("[CropStress] FocusManager nil-node guard triggered — suppressed")
-                return
-            end
-            return origFn(self, i3dNode, failedReason, args)
-        end
-        print("[CropStress] FocusManager nil-node guard applied to loadSharedI3DFileFinished method")
-    else
-        print("[CropStress] WARNING: FocusManager guard skipped — FocusManager not available at load time")
-    end
-end
-
 -- Weather bridge
 source(modDir .. "src/WeatherIntegration.lua")
 
@@ -89,15 +58,6 @@ source(modDir .. "gui/CropConsultantDialog.lua")
 
 -- Central coordinator (must load last — depends on all modules above)
 source(modDir .. "src/CropStressManager.lua")
-
--- ============================================================
--- Install harvest yield hook.
--- Attempt 1: at source() load time. HarvestingMachine is a base-game
--- global that SHOULD be available here, but log evidence shows it can
--- be nil on some FS25 builds/load orders. The flag prevents double-install.
--- Attempt 2 (retry) happens inside loadMission00Finished below.
--- ============================================================
-CropStressModifier.installHarvestHook()
 
 -- ============================================================
 -- INPUT BINDING (NPCFavor pattern — confirmed working)
@@ -172,13 +132,42 @@ end)
 Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00Finished, function(self, ...)
     if g_csManager == nil then return end
 
-    -- Retry harvest hook if it was skipped at load time (HarvestingMachine was nil).
-    -- By loadMission00Finished all base-game classes are guaranteed in scope.
-    if not CropStressModifier.harvestHookInstalled then
-        CropStressModifier.installHarvestHook()
+    -- ============================================================
+    -- FOCUSMANAGER NIL-NODE GUARD
+    -- Installed here (not at source() load time) because FocusManager
+    -- is a GUI class that isn't available until after mission load.
+    --
+    -- Root cause (FS25 v1.16 regression):
+    --   g_gui:loadGui() calls loadSharedI3DFile for the focus-ring i3d.
+    --   When the file is already cached, the callback fires with i3dNode=nil.
+    --   FocusManager.lua:94 then does elementsByNodeId[nil] = element
+    --   → "table index is nil" crash + corrupt currentFocusElement every frame.
+    -- ============================================================
+    do
+        if type(FocusManager) == "table" and type(FocusManager.loadSharedI3DFileFinished) == "function" then
+            if not FocusManager._csNilNodeGuardInstalled then
+                local origFn = FocusManager.loadSharedI3DFileFinished
+                FocusManager.loadSharedI3DFileFinished = function(fm, i3dNode, failedReason, args)
+                    if i3dNode == nil then
+                        print("[CropStress] FocusManager nil-node guard triggered — suppressed")
+                        return
+                    end
+                    return origFn(fm, i3dNode, failedReason, args)
+                end
+                FocusManager._csNilNodeGuardInstalled = true
+                print("[CropStress] FocusManager nil-node guard applied")
+            end
+        else
+            print("[CropStress] WARNING: FocusManager not available at loadMission00Finished — guard skipped")
+        end
     end
 
     g_csManager:initialize()
+
+    -- Install field-ready updater immediately after initialize (NPCFavor pattern).
+    -- The updater polls g_currentMission.isMissionStarted + g_fieldManager.fields
+    -- each frame and self-removes once enumeration succeeds.
+    g_csManager:installFieldReadyUpdater()
 
     -- Register dialogs with CsDialogLoader (NPCFavor confirmed pattern).
     -- Dialogs are lazily loaded on first CsDialogLoader.show() call:
@@ -246,21 +235,40 @@ FSCareerMissionInfo.saveToXMLFile = Utils.appendedFunction(FSCareerMissionInfo.s
     end
 end)
 
--- 7. Load saved state (fires after fields are populated)
+-- 7. Mission start: load settings, install field-ready updater (NPCFavor pattern),
+--    load saved field data. Field enumeration itself happens inside the updater
+--    once g_currentMission.isMissionStarted + g_fieldManager.fields are ready.
 Mission00.onStartMission = Utils.appendedFunction(Mission00.onStartMission, function(self, ...)
-    if g_csManager ~= nil then
-        -- Load settings from savegame first
-        if self.missionInfo ~= nil then
-            g_csManager.settings:load(self.missionInfo)
-            g_csManager:applySettings()
-        end
-        
-        -- Enumerate fields first (fieldManager is guaranteed ready at this lifecycle stage).
-        -- lateInitialize() also retries the harvest hook (last safe point for all base classes).
-        g_csManager:lateInitialize()
-        g_csManager:loadFromXMLFile()
+    if g_csManager == nil then return end
+
+    -- Load settings first so subsystems get correct thresholds before fields init
+    if self.missionInfo ~= nil then
+        g_csManager.settings:load(self.missionInfo)
+        g_csManager:applySettings()
     end
+
+    -- Install the self-removing frame updater that waits for g_fieldManager.fields
+    -- to be populated, then enumerates fields and builds the fieldId map exactly once.
+    g_csManager:installFieldReadyUpdater()
+
+    -- Load saved moisture/stress/irrigation state (fresh game = no-op)
+    g_csManager:loadFromXMLFile()
 end)
+
+-- 8a. Vehicles loaded: install harvest hook.
+-- HarvestingMachine is a vehicle specialization class. It is NOT available at
+-- source() load time, loadMission00Finished, or onStartMission — all of those
+-- fire before vehicle XML files are parsed and specializations registered.
+-- FSBaseMission.onAllVehiclesLoaded is the first guaranteed-safe hook point.
+-- (Confirmed by FS25_NPCFavor and CoursePlay: they hook vehicle specs here too.)
+FSBaseMission.onAllVehiclesLoaded = Utils.appendedFunction(
+    FSBaseMission.onAllVehiclesLoaded,
+    function(self)
+        if not CropStressModifier.harvestHookInstalled then
+            CropStressModifier.installHarvestHook()
+        end
+    end
+)
 
 -- 8. Multiplayer: send initial state to new client
 FSBaseMission.sendInitialClientState = Utils.appendedFunction(

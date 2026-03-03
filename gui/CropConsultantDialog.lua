@@ -273,27 +273,44 @@ end
 -- HELPERS
 -- ============================================================
 
-function CropConsultantDialog:getCropName(fieldId)
-    if g_currentMission == nil or g_currentMission.fieldManager == nil then return "?" end
-    local field = nil
-    -- getFieldByIndex() uses array index, NOT fieldId — validate the result matches
-    if g_currentMission.fieldManager.getFieldByIndex ~= nil then
-        local ok, result = pcall(function()
-            return g_currentMission.fieldManager:getFieldByIndex(fieldId)
-        end)
-        if ok and result ~= nil and result.fieldId == fieldId then
-            field = result
+-- Returns the field object for a fieldId using the manager's map (fast path)
+-- or a linear scan of getFields() as fallback.
+function CropConsultantDialog:getFieldObject(fieldId)
+    local mgr = g_cropStressManager
+    if mgr ~= nil and mgr.fieldById ~= nil then
+        local f = mgr.fieldById[fieldId]
+        if f ~= nil then return f end
+    end
+    if g_currentMission == nil or g_currentMission.fieldManager == nil then return nil end
+    local ok, fields = pcall(function()
+        return g_currentMission.fieldManager:getFields()
+    end)
+    if ok and fields ~= nil then
+        for _, f in pairs(fields) do
+            if f ~= nil and f.fieldId == fieldId then return f end
         end
     end
-    if field == nil then
-        local ok, fields = pcall(function() return g_currentMission.fieldManager:getFields() end)
-        if ok and fields ~= nil then
-            for _, f in pairs(fields) do
-                if f.fieldId == fieldId then field = f; break end
+    return nil
+end
+
+function CropConsultantDialog:getCropName(fieldId)
+    local field = self:getFieldObject(fieldId)
+    if field == nil then return "?" end
+
+    -- FS25-native: getFieldState() returns fruitTypeIndex
+    if type(field.getFieldState) == "function" then
+        local ok, state = pcall(function() return field:getFieldState() end)
+        if ok and state ~= nil and state.fruitTypeIndex ~= nil and state.fruitTypeIndex > 0 then
+            if g_fruitTypeManager ~= nil then
+                local ft = g_fruitTypeManager:getFruitTypeByIndex(state.fruitTypeIndex)
+                if ft ~= nil and ft.name ~= nil then
+                    return self:formatCropName(ft.name)
+                end
             end
         end
     end
-    if field == nil then return "?" end
+
+    -- Fallback: legacy getFruitType()
     local ft = nil
     if type(field.getFruitType) == "function" then
         local ok, result = pcall(function() return field:getFruitType() end)
@@ -301,14 +318,17 @@ function CropConsultantDialog:getCropName(fieldId)
     end
     if ft == nil then ft = field.fruitType end
     if ft ~= nil and ft.name ~= nil then
-        local name = ft.name:lower()
-        -- Map FS25 internal weed/grass fruit types to "Fallow" for display
-        if name == "grass" or name == "drygrass" or name == "weed"
-        or name == "stone" or name == "meadow" then
-            return "Fallow"
-        end
-        return ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
+        return self:formatCropName(ft.name)
     end
-    -- Field found but no crop planted
     return "Fallow"
+end
+
+function CropConsultantDialog:formatCropName(rawName)
+    if rawName == nil then return "Fallow" end
+    local name = rawName:lower()
+    if name == "grass" or name == "drygrass" or name == "weed"
+    or name == "stone" or name == "meadow" then
+        return "Fallow"
+    end
+    return rawName:sub(1,1):upper() .. rawName:sub(2):lower()
 end

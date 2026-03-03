@@ -77,42 +77,50 @@ function CropStressModifier:hourlyUpdate()
     local soilSystem = self.manager.soilSystem
     if soilSystem == nil then return end
 
-    -- Build a fieldId→field lookup table ONCE per tick (not inside the loop).
-    -- Calling getFields() inside the loop was O(n²): one full table scan per tracked field.
-    -- getFieldByIndex() looks up by array index, NOT by fieldId — so it can silently return
-    -- the wrong field. Building a map from getFields() is O(n) and always correct.
-    local fieldById = {}
-    local ok, allFields = pcall(function()
-        return g_currentMission.fieldManager:getFields()
-    end)
-    if ok and allFields ~= nil then
-        for _, f in pairs(allFields) do
-            if f.fieldId ~= nil then
-                fieldById[f.fieldId] = f
-            end
-        end
-    end
+    -- Use the manager's pre-built fieldId→field map (built in lateInitialize).
+    -- Avoids rebuilding it every hour and eliminates the getFieldByIndex trap:
+    -- getFieldByIndex(n) returns fields[n] (array index), NOT the field with fieldId==n.
+    local fieldById = (self.manager ~= nil) and self.manager.fieldById or {}
 
     for fieldId, data in pairs(soilSystem.fieldData) do
         local field = fieldById[fieldId]
         if field ~= nil then
             self:processFieldStress(field, fieldId, data.moisture)
         end
-        -- If field not found this tick, skip silently — will retry next hour
+        -- If field not in map this tick, skip silently — map will be rebuilt on next lateInitialize
     end
 end
 
 function CropStressModifier:processFieldStress(field, fieldId, moisture)
-    -- Get fruit type name
-    local fruitType = nil
-    if type(field.getFruitType) == "function" then
-        fruitType = field:getFruitType()
-    elseif field.fruitType ~= nil then
-        fruitType = field.fruitType
-    end
-    if fruitType == nil then return end
+    -- Get fruit type name — FS25-native API first, legacy fallback second
+    local cropName = nil
 
-    local cropName = fruitType.name and fruitType.name:lower() or nil
+    -- FS25 primary: getFieldState() → fruitTypeIndex → g_fruitTypeManager lookup
+    if type(field.getFieldState) == "function" then
+        local ok, state = pcall(function() return field:getFieldState() end)
+        if ok and state ~= nil and state.fruitTypeIndex ~= nil and state.fruitTypeIndex > 0 then
+            if g_fruitTypeManager ~= nil then
+                local ft = g_fruitTypeManager:getFruitTypeByIndex(state.fruitTypeIndex)
+                if ft ~= nil and ft.name ~= nil then
+                    cropName = ft.name:lower()
+                end
+            end
+        end
+    end
+
+    -- Fallback: legacy getFruitType() (FS19/22 API present in many FS25 maps)
+    if cropName == nil then
+        local fruitType = nil
+        if type(field.getFruitType) == "function" then
+            fruitType = field:getFruitType()
+        elseif field.fruitType ~= nil then
+            fruitType = field.fruitType
+        end
+        if fruitType ~= nil and fruitType.name ~= nil then
+            cropName = fruitType.name:lower()
+        end
+    end
+
     if cropName == nil then return end
 
     local window = CropStressModifier.CROP_WINDOWS[cropName]
@@ -188,7 +196,10 @@ end
 function CropStressModifier.getFieldIdAtPosition(x, z)
     if g_currentMission == nil or g_currentMission.fieldManager == nil then return nil end
 
-    local fields = g_currentMission.fieldManager:getFields()
+    local ok, fields = pcall(function()
+        return g_currentMission.fieldManager:getFields()
+    end)
+    if not ok or fields == nil then return nil end
     for _, field in pairs(fields) do
         -- Preferred: native containment check
         -- LUADOC: look for fieldManager:getFieldAtWorldPos(x, z) or field:containsPoint(x, z)

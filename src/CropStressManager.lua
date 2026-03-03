@@ -71,6 +71,10 @@ function CropStressManager.new()
     self.isInitialized = false
     self.debugMode     = false
 
+    -- fieldId → field object lookup. Built by buildFieldMap() in installFieldReadyUpdater().
+    -- All subsystems use this instead of getFieldByIndex() or linear scans.
+    self.fieldById = {}
+
     -- Hourly tick tracking (monotonic day * 24 + hour)
     self.lastHourKey   = -1
 
@@ -203,26 +207,93 @@ function CropStressManager:initialize()
     ))
 end
 
--- Called from onStartMission (after fields and save data are available).
--- Re-runs field enumeration if the initial attempt during loadMission00Finished
--- found zero fields (fieldManager was nil too early in the lifecycle).
--- Also retries the harvest hook here — by onStartMission all base-game classes
--- including HarvestingMachine are guaranteed to be in scope.
-function CropStressManager:lateInitialize()
+-- Called from loadMission00Finished. Installs a self-removing frame updater
+-- (NPCFavor pattern) that polls g_currentMission.isMissionStarted and
+-- g_fieldManager.fields each frame. When both are ready it enumerates fields,
+-- builds the fieldId lookup map, and removes itself — no lifecycle hooks needed.
+function CropStressManager:installFieldReadyUpdater()
     if not self.isInitialized then return end
+    if self._fieldReadyUpdaterInstalled then return end
+    self._fieldReadyUpdaterInstalled = true
 
-    -- Retry harvest hook — loadMission00Finished retry may still be too early
-    -- on some FS25 builds. onStartMission is the last guaranteed safe point.
-    if not CropStressModifier.harvestHookInstalled then
-        CropStressModifier.installHarvestHook()
+    local manager = self
+    local updater = {
+        _done = false,
+        update = function(u, dt)
+            if u._done then return true end
+
+            -- Wait for mission started AND g_fieldManager with at least one field
+            if not g_currentMission or not g_currentMission.isMissionStarted then
+                return false
+            end
+            if not g_fieldManager or not g_fieldManager.fields then
+                return false
+            end
+            if next(g_fieldManager.fields) == nil then
+                return false  -- fields table exists but is empty — keep waiting
+            end
+
+            -- Ready — enumerate and map fields exactly once
+            u._done = true
+
+            local found = manager.soilSystem:enumerateFields()
+            csLog(string.format("CropStressManager fieldReady: enumerateFields found %d fields", found))
+
+            local mapped = manager:buildFieldMap()
+            csLog(string.format("CropStressManager fieldReady: buildFieldMap mapped %d fields", mapped))
+
+            if found == 0 then
+                csLog("CropStressManager fieldReady: WARNING — enumerateFields returned 0. Check g_fieldManager.fields.")
+            end
+
+            return true  -- remove updater
+        end
+    }
+
+    if g_currentMission and g_currentMission.addUpdateable then
+        g_currentMission:addUpdateable(updater)
+        csLog("CropStressManager: field-ready updater installed")
+    else
+        csLog("CropStressManager: WARNING — addUpdateable not available, attempting immediate enumeration")
+        manager.soilSystem:enumerateFields()
+        manager:buildFieldMap()
+    end
+end
+
+-- ============================================================
+-- FIELD ID MAP
+-- Builds a fieldId → field object lookup table.
+-- Must be called AFTER g_fieldManager.fields is populated
+-- (installFieldReadyUpdater handles the correct timing).
+--
+-- Why: getFieldByIndex(n) returns fields[n] — the nth element
+-- of an internal array — NOT the field whose field.fieldId == n.
+-- On custom maps, deleted/renumbered fields, or any map that
+-- loads fields in a different order, getFieldByIndex(fieldId)
+-- silently returns the WRONG field. The only correct approach
+-- is to iterate getFields() once, build a hash map keyed by
+-- field.fieldId, and do all subsequent lookups in O(1).
+--
+-- Pattern confirmed by every production FS22/FS25 mod (AdditionalFieldInfo,
+-- CropRotation, CoursePlay) and explicitly documented on GDN forums.
+-- ============================================================
+function CropStressManager:buildFieldMap()
+    self.fieldById = {}
+    if g_fieldManager == nil or g_fieldManager.fields == nil then
+        csLog("buildFieldMap: g_fieldManager unavailable — map will be empty")
+        return 0
     end
 
-    if self.soilSystem:getFieldCount() == 0 then
-        local found = self.soilSystem:enumerateFields()
-        csLog(string.format(
-            "CropStressManager lateInit: %d fields now tracked", found
-        ))
+    local count = 0
+    for _, field in pairs(g_fieldManager.fields) do
+        if field ~= nil and field.fieldId ~= nil then
+            self.fieldById[field.fieldId] = field
+            count = count + 1
+        end
     end
+
+    csLog(string.format("buildFieldMap: %d fields mapped by fieldId", count))
+    return count
 end
 
 -- Apply current settings to all subsystems.
@@ -256,11 +327,6 @@ end
 function CropStressManager:update(dt)
     if not self.isInitialized then return end
     if g_currentMission == nil then return end
-
-    -- Retry field enumeration if it hasn't succeeded yet
-    if self.soilSystem ~= nil and self.soilSystem.enumerationAttempts ~= nil then
-        self.soilSystem:retryEnumeration()
-    end
 
     local env = g_currentMission.environment
     if env == nil then return end
