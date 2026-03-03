@@ -300,6 +300,11 @@ function CropConsultant:getCropName(fieldId)
     -- Field found but no crop planted
     return "Fallow"
 end
+
+-- ============================================================
+-- CLEANUP
+-- ============================================================
+function CropConsultant:delete()
     if self.manager ~= nil and self.manager.eventBus ~= nil then
         self.manager.eventBus.unsubscribeAll(self)
     end
