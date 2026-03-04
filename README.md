@@ -11,7 +11,6 @@
 <br>
 
 > *"I planted wheat in June and had a perfect field by August — until I didn't. Three days without rain during heading and I lost 40% of my yield. Never ignored the moisture gauge again."*
-> — Beta tester, Season 2 playthrough
 
 <br>
 
