@@ -207,6 +207,8 @@
     <text name="helpLine_cs_p4_title"          text="HUD &amp; sterowanie"/>
     <text name="helpLine_cs_p4_hud_title"      text="Nakładka HUD wilgotności"/>
     <text name="helpLine_cs_p4_hud_text"       text="Naciśnij Shift+M, aby włączyć lub wyłączyć HUD wilgotności. Wyświetla on każde pole z jego poziomem wilgotności, typem uprawy i statusem stresu. 5-dniowa prognoza pokazuje, czy wilgotność rośnie, czy spada, abyś mógł planować z wyprzedzeniem. Panel można też przeciągnąć w dowolne miejsce na ekranie, klikając i zwalniając."/>
+    <text name="helpLine_cs_p4_reading_title"  text="Odczytywanie wiersza pola"/>
+    <text name="helpLine_cs_p4_reading_text"   text="Każdy wiersz pokazuje: numer pola (F1), nazwę uprawy (Pszenica), aktualną fazę wzrostu (Faza 3), kolorowy pasek wilgotności i procent wilgotności. Jeśli wiersz kończy się wykrzyknikiem (!), to pole już gromadzi stres suszy i straty plonów się rozpoczęły — nawadniaj je teraz. Na liście pojawiają się tylko uprawy, które mogą cierpieć z powodu stresu suszy."/>
     <text name="helpLine_cs_p4_status_title"   text="Kolory statusu"/>
     <text name="helpLine_cs_p4_status_text"    text="Zielony oznacza zdrowe pole, nie wymaga działania. Żółty to ostrzeżenie: wilgotność spada, zalecane wkrótce nawadnianie. Czerwony jest krytyczny: uprawa cierpi na stres suszy i straty w plonach już narastają — nawadniaj natychmiast."/>
     <text name="helpLine_cs_p4_keys_title"     text="Skróty klawiszowe"/>

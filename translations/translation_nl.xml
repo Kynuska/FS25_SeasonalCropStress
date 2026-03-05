@@ -207,6 +207,8 @@
     <text name="helpLine_cs_p4_title"          text="HUD &amp; bediening"/>
     <text name="helpLine_cs_p4_hud_title"      text="Vochtigheids-HUD-overlay"/>
     <text name="helpLine_cs_p4_hud_text"       text="Druk op Shift+M om de vochtigheids-HUD aan of uit te zetten. Hij toont elk veld met zijn vochtigheidsniveau, gewastype en stressstatus. Een 5-dagenprognose laat zien of de vochtigheid stijgt of daalt zodat je vooruit kunt plannen. Je kunt het paneel ook naar een andere positie op het scherm slepen door te klikken en los te laten."/>
+    <text name="helpLine_cs_p4_reading_title"  text="Een veldrij lezen"/>
+    <text name="helpLine_cs_p4_reading_text"   text="Elke rij toont: veldnummer (F1), gewasnaam (Tarwe), huidige groeifase (Fase 3), een kleurgecodeerde vochtigheidsbalk en het vochtigheidpercentage. Als de rij eindigt met een uitroepteken (!), bouwt dat veld al droogtestress op en is oogstverlies begonnen — bewater het nu. Alleen gewassen die droogtestress kunnen lijden, verschijnen in de lijst."/>
     <text name="helpLine_cs_p4_status_title"   text="Statuskleuren"/>
     <text name="helpLine_cs_p4_status_text"    text="Groen betekent dat het veld gezond is en geen actie nodig heeft. Geel is een waarschuwing: de vochtigheid daalt en irrigatie is binnenkort aan te raden. Rood is kritiek: het gewas lijdt aan droogtestress en oogstverlies neemt toe — direct irrigeren."/>
     <text name="helpLine_cs_p4_keys_title"     text="Sneltoetsen"/>

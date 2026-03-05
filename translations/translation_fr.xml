@@ -207,6 +207,8 @@
     <text name="helpLine_cs_p4_title"          text="HUD &amp; commandes"/>
     <text name="helpLine_cs_p4_hud_title"      text="Superposition HUD d'humidité"/>
     <text name="helpLine_cs_p4_hud_text"       text="Appuyez sur Maj+M pour afficher ou masquer le HUD d'humidité. Il liste chaque parcelle avec son niveau d'humidité, son type de culture et son état de stress. Une prévision sur 5 jours indique si l'humidité monte ou baisse. Vous pouvez aussi faire glisser le panneau n'importe où à l'écran en cliquant et relâchant."/>
+    <text name="helpLine_cs_p4_reading_title"  text="Lire une ligne de parcelle"/>
+    <text name="helpLine_cs_p4_reading_text"   text="Chaque ligne indique : numéro de parcelle (F1), nom de la culture (Blé), stade de croissance actuel (Stade 3), une barre d'humidité colorée et le pourcentage d'humidité. Si la ligne se termine par un point d'exclamation (!), cette parcelle accumule déjà du stress hydrique et la perte de rendement a commencé — irriguez-la maintenant. Seules les cultures susceptibles de souffrir du stress hydrique apparaissent dans la liste."/>
     <text name="helpLine_cs_p4_status_title"   text="Couleurs de statut"/>
     <text name="helpLine_cs_p4_status_text"    text="Vert signifie que la parcelle est saine et qu'aucune action n'est nécessaire. Jaune est un avertissement : l'humidité baisse et l'irrigation est bientôt conseillée. Rouge est critique : la culture subit un stress hydrique et la perte de rendement augmente — irriguer immédiatement."/>
     <text name="helpLine_cs_p4_keys_title"     text="Raccourcis clavier"/>

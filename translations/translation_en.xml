@@ -207,6 +207,8 @@
     <text name="helpLine_cs_p4_title"          text="HUD &amp; Controls"/>
     <text name="helpLine_cs_p4_hud_title"      text="Moisture HUD Overlay"/>
     <text name="helpLine_cs_p4_hud_text"       text="Press Shift+M to toggle the moisture HUD. It lists every field with its moisture level, crop type, and stress status. A 5-day forecast shows whether moisture is rising or falling so you can plan ahead. You can also drag the panel to any position on screen by clicking and releasing."/>
+    <text name="helpLine_cs_p4_reading_title"  text="Reading a Field Row"/>
+    <text name="helpLine_cs_p4_reading_text"   text="Each row shows: field number (F1), crop name (Wheat), current growth stage (Stage 3), a colour-coded moisture bar, and the moisture percentage. If the row ends with an exclamation mark (!), that field is already building drought stress and yield loss has begun — irrigate it now. Only crops that can suffer drought stress appear in the list."/>
     <text name="helpLine_cs_p4_status_title"   text="Status Colours"/>
     <text name="helpLine_cs_p4_status_text"    text="Green means your field is healthy and no action is needed. Yellow is a warning: moisture is dropping and irrigation is advisable soon. Red is critical: the crop is under drought stress and yield loss is already building — irrigate immediately."/>
     <text name="helpLine_cs_p4_keys_title"     text="Keyboard Shortcuts"/>

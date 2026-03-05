@@ -207,6 +207,8 @@
     <text name="helpLine_cs_p4_title"          text="HUD &amp; controlli"/>
     <text name="helpLine_cs_p4_hud_title"      text="Sovrapposizione HUD umidità"/>
     <text name="helpLine_cs_p4_hud_text"       text="Premi Maiusc+M per attivare o disattivare l'HUD dell'umidità. Elenca ogni campo con il suo livello di umidità, tipo di coltura e stato di stress. Una previsione a 5 giorni mostra se l'umidità è in aumento o in diminuzione in modo che tu possa pianificare in anticipo. Puoi anche trascinare il pannello in qualsiasi posizione sullo schermo facendo clic e rilasciando."/>
+    <text name="helpLine_cs_p4_reading_title"  text="Leggere una riga campo"/>
+    <text name="helpLine_cs_p4_reading_text"   text="Ogni riga mostra: numero campo (F1), nome coltura (Grano), fase di crescita attuale (Fase 3), una barra dell'umidità colorata e la percentuale di umidità. Se la riga termina con un punto esclamativo (!), quel campo sta già accumulando stress da siccità e la perdita di resa è iniziata — irrigalo subito. Nell'elenco compaiono solo le colture che possono soffrire di stress idrico."/>
     <text name="helpLine_cs_p4_status_title"   text="Colori di stato"/>
     <text name="helpLine_cs_p4_status_text"    text="Verde significa che il campo è sano e non è necessaria alcuna azione. Giallo è un avviso: l'umidità sta diminuendo e l'irrigazione è consigliabile a breve. Rosso è critico: la coltura è sotto stress da siccità e la perdita di resa è già in atto — irrigare immediatamente."/>
     <text name="helpLine_cs_p4_keys_title"     text="Scorciatoie da tastiera"/>
