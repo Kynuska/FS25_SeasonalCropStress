@@ -352,6 +352,14 @@ function CropStressManager:onHourlyTick()
     -- Respect the player's master on/off toggle
     if not self.settings.enabled then return end
 
+    -- Rebuild field map once per in-game day so newly bought/sold fields are tracked
+    local env = g_currentMission and g_currentMission.environment
+    local today = env and env.currentDay or 0
+    if today ~= (self.lastFieldMapDay or -1) then
+        self.lastFieldMapDay = today
+        self:buildFieldMap()
+    end
+
     -- 1. Poll current weather state
     self.weatherIntegration:update()
 

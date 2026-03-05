@@ -581,9 +581,10 @@ end
 -- MOISTURE COLOR
 -- ============================================================
 function HUDOverlay:getMoistureColor(moisture)
-    if moisture >= 0.60 then return HUDOverlay.COLOR_HEALTHY
-    elseif moisture >= 0.30 then return HUDOverlay.COLOR_WARNING
-    else return HUDOverlay.COLOR_CRITICAL end
+    -- Thresholds match CropConsultant severity bands exactly so color = alert level
+    if moisture >= CropConsultant.SEVERITY_WARNING_MAX then return HUDOverlay.COLOR_HEALTHY   -- >= 0.40 green
+    elseif moisture >= CropConsultant.SEVERITY_CRITICAL_MAX then return HUDOverlay.COLOR_WARNING  -- >= 0.25 yellow
+    else return HUDOverlay.COLOR_CRITICAL end  -- < 0.25 red
 end
 
 function HUDOverlay:resolveCropName(field)
@@ -692,8 +693,6 @@ function HUDOverlay:toggle()
 
         -- Rebuild display rows immediately so auto-select below has data.
         -- (update() normally rebuilds rows, but it runs next frame — after toggle() returns.)
-        self:rebuildDisplayRows()
-
         self:rebuildDisplayRows()
 
         -- FIX: soilSystem may not have its moisture table yet on first open.
