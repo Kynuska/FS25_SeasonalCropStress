@@ -422,10 +422,11 @@ end
 -- OPTIONAL MOD DETECTION
 -- ============================================================
 function CropStressManager:detectOptionalMods()
-    -- Use plain global access (not getfenv) — FS25 mod sandboxing means getfenv(0)
-    -- reads from our mod's own environment, not the shared game global table where
-    -- other mods export their globals via getfenv(0)["x"] = val.
-    if g_NPCSystem ~= nil then
+    -- Cross-mod globals MUST be read via getfenv(0)["name"]. FS25 mod sandboxing
+    -- means plain global access (e.g. g_NPCSystem) only sees our own mod environment.
+    -- Other mods export globals via getfenv(0)["x"] = val (game shared env), so we
+    -- must read them the same way. Confirmed: NPCFavor/NPCAI.lua uses getfenv(0)["g_NPCSystem"].
+    if getfenv(0)["g_NPCSystem"] ~= nil then
         csLog("FS25_NPCFavor detected — enabling NPC integration")
         self.npcIntegration.npcFavorActive = true
         -- Also enable NPCFavor mode on the consultant so alerts route through Alex Chen

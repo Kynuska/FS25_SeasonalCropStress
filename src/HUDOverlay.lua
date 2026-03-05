@@ -586,6 +586,37 @@ function HUDOverlay:getMoistureColor(moisture)
     else return HUDOverlay.COLOR_CRITICAL end
 end
 
+function HUDOverlay:resolveCropName(field)
+    if field == nil then return "?" end
+
+    local ft = nil
+
+    -- FS25 primary: field.currentFruitTypeIndex (engine-written property)
+    local fti = field.currentFruitTypeIndex
+    if fti ~= nil and fti > 0 and g_fruitTypeManager ~= nil then
+        ft = g_fruitTypeManager:getFruitTypeByIndex(fti)
+    end
+
+    -- Legacy fallback: getFruitType() / fruitType (FS22-era field API)
+    if ft == nil then
+        if type(field.getFruitType) == "function" then
+            local ok, result = pcall(function() return field:getFruitType() end)
+            if ok then ft = result end
+        end
+        if ft == nil then ft = field.fruitType end
+    end
+
+    if ft ~= nil and ft.name ~= nil then
+        local name = ft.name:lower()
+        if name == "grass" or name == "drygrass" or name == "weed"
+        or name == "stone" or name == "meadow" then
+            return "Fallow"
+        end
+        return ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
+    end
+    return "Fallow"
+end
+
 function HUDOverlay:rebuildDisplayRows()
     self.displayRows = {}
     if self.manager == nil or self.manager.soilSystem == nil then return end
@@ -612,36 +643,7 @@ function HUDOverlay:rebuildDisplayRows()
         local field = fieldById[entry.fieldId]
         if field ~= nil then
             -- FS25-native crop resolution: getFieldState() → fruitTypeIndex
-            local ft = nil
-            if type(field.getFieldState) == "function" then
-                local ok, state = pcall(function() return field:getFieldState() end)
-                if ok and state ~= nil and state.fruitTypeIndex ~= nil and state.fruitTypeIndex > 0 then
-                    if g_fruitTypeManager ~= nil then
-                        ft = g_fruitTypeManager:getFruitTypeByIndex(state.fruitTypeIndex)
-                    end
-                end
-            end
-
-            -- Legacy fallback: getFruitType() (FS19/22 API still present in many FS25 maps)
-            if ft == nil then
-                if type(field.getFruitType) == "function" then
-                    local ok, result = pcall(function() return field:getFruitType() end)
-                    if ok then ft = result end
-                end
-                if ft == nil then ft = field.fruitType end
-            end
-
-            if ft ~= nil and ft.name ~= nil then
-                local name = ft.name:lower()
-                if name == "grass" or name == "drygrass" or name == "weed"
-                or name == "stone" or name == "meadow" then
-                    cropName = "Fallow"
-                else
-                    cropName = ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
-                end
-            else
-                cropName = "Fallow"
-            end
+            cropName = self:resolveCropName(field)
 
             -- Growth stage
             if type(field.getGrowthState) == "function" then
@@ -703,6 +705,37 @@ function HUDOverlay:toggle()
         -- (update() normally rebuilds rows, but it runs next frame — after toggle() returns.)
         self:rebuildDisplayRows()
 
+        self:rebuildDisplayRows()
+
+        -- FIX: soilSystem may not have its moisture table yet on first open.
+        -- Build stub rows from fieldById so the panel is never blank.
+        if #self.displayRows == 0 then
+            local fieldById = (self.manager ~= nil) and self.manager.fieldById or {}
+            local count = 0
+            for fid, field in pairs(fieldById) do
+                if count >= HUDOverlay.MAX_FIELDS then break end
+                local stress = 0
+                if self.manager ~= nil and self.manager.stressModifier ~= nil then
+                    stress = self.manager.stressModifier:getStress(fid) or 0
+                end
+                local growthStage = nil
+                if type(field.getGrowthState) == "function" then
+                    local ok, result = pcall(function() return field:getGrowthState() end)
+                    if ok then growthStage = result end
+                elseif field.growthState ~= nil then
+                    growthStage = field.growthState
+                end
+                table.insert(self.displayRows, {
+                    fieldId     = fid,
+                    moisture    = 0,
+                    stress      = stress,
+                    cropName    = self:resolveCropName(field),
+                    growthStage = growthStage,
+                })
+                count = count + 1
+            end
+        end
+        
         -- Auto-select driest field when opening
         if self.selectedFieldId == nil and #self.displayRows > 0 then
             self.selectedFieldId = self.displayRows[1].fieldId
