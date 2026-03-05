@@ -286,8 +286,10 @@ function CropStressManager:buildFieldMap()
 
     local count = 0
     for _, field in pairs(g_fieldManager.fields) do
-        if field ~= nil and field.fieldId ~= nil then
-            self.fieldById[field.fieldId] = field
+        -- FS25: fields are keyed by farmland ID. field.fieldId does not exist.
+        local fid = field ~= nil and field.farmland and field.farmland.id
+        if fid ~= nil then
+            self.fieldById[fid] = field
             count = count + 1
         end
     end
@@ -349,6 +351,14 @@ end
 function CropStressManager:onHourlyTick()
     -- Respect the player's master on/off toggle
     if not self.settings.enabled then return end
+
+    -- Rebuild field map once per in-game day so newly bought/sold fields are tracked
+    local env = g_currentMission and g_currentMission.environment
+    local today = env and env.currentDay or 0
+    if today ~= (self.lastFieldMapDay or -1) then
+        self.lastFieldMapDay = today
+        self:buildFieldMap()
+    end
 
     -- 1. Poll current weather state
     self.weatherIntegration:update()

@@ -146,7 +146,8 @@ function IrrigationManager:detectCoveredFields(placeable, cx, cz)
         local fields = g_currentMission.fieldManager:getFields()
         for _, field in pairs(fields) do
             if self:fieldIntersectsCircle(field, cx, cz, radius) then
-                table.insert(covered, field.fieldId)
+                local fid = field.farmland and field.farmland.id
+                if fid ~= nil then table.insert(covered, fid) end
             end
         end
     elseif placeable.irrigationType == "drip" then
@@ -160,7 +161,8 @@ function IrrigationManager:detectCoveredFields(placeable, cx, cz)
         local fields = g_currentMission.fieldManager:getFields()
         for _, field in pairs(fields) do
             if self:fieldIntersectsDripLine(field, startX, startZ, endX, endZ, spacing) then
-                table.insert(covered, field.fieldId)
+                local fid = field.farmland and field.farmland.id
+                if fid ~= nil then table.insert(covered, fid) end
             end
         end
     end
@@ -278,9 +280,14 @@ function IrrigationManager:hourlyScheduleCheck()
         local shouldBeActive = false
         if system.waterSourceId ~= nil and system.pressureMultiplier > 0 then
             local sched = system.schedule
-            shouldBeActive = sched.activeDays[dayOfWeek] == true
-                and hour >= sched.startHour
-                and hour <  sched.endHour
+            if sched.activeDays[dayOfWeek] == true then
+                -- Support wrap-around schedules (e.g. startHour=23, endHour=2)
+                if sched.startHour <= sched.endHour then
+                    shouldBeActive = hour >= sched.startHour and hour < sched.endHour
+                else
+                    shouldBeActive = hour >= sched.startHour or hour < sched.endHour
+                end
+            end
         end
 
         if shouldBeActive and not system.isActive then

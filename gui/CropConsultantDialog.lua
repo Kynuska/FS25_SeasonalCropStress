@@ -287,7 +287,7 @@ function CropConsultantDialog:getFieldObject(fieldId)
     end)
     if ok and fields ~= nil then
         for _, f in pairs(fields) do
-            if f ~= nil and f.fieldId == fieldId then return f end
+            if f ~= nil and f.farmland ~= nil and f.farmland.id == fieldId then return f end
         end
     end
     return nil
@@ -297,28 +297,13 @@ function CropConsultantDialog:getCropName(fieldId)
     local field = self:getFieldObject(fieldId)
     if field == nil then return "?" end
 
-    -- FS25-native: getFieldState() returns fruitTypeIndex
-    if type(field.getFieldState) == "function" then
-        local ok, state = pcall(function() return field:getFieldState() end)
-        if ok and state ~= nil and state.fruitTypeIndex ~= nil and state.fruitTypeIndex > 0 then
-            if g_fruitTypeManager ~= nil then
-                local ft = g_fruitTypeManager:getFruitTypeByIndex(state.fruitTypeIndex)
-                if ft ~= nil and ft.name ~= nil then
-                    return self:formatCropName(ft.name)
-                end
-            end
+    -- FS25 confirmed API: field.fieldState.fruitTypeIndex (no getter method exists)
+    local fti = field.fieldState and field.fieldState.fruitTypeIndex
+    if fti ~= nil and fti > 0 and g_fruitTypeManager ~= nil then
+        local ft = g_fruitTypeManager:getFruitTypeByIndex(fti)
+        if ft ~= nil and ft.name ~= nil then
+            return self:formatCropName(ft.name)
         end
-    end
-
-    -- Fallback: legacy getFruitType()
-    local ft = nil
-    if type(field.getFruitType) == "function" then
-        local ok, result = pcall(function() return field:getFruitType() end)
-        if ok then ft = result end
-    end
-    if ft == nil then ft = field.fruitType end
-    if ft ~= nil and ft.name ~= nil then
-        return self:formatCropName(ft.name)
     end
     return "Fallow"
 end

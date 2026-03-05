@@ -465,7 +465,7 @@ function HUDOverlay:drawFieldRow(row, px, rowY)
     local stress   = row.stress   or 0
 
     local cropLabel   = row.cropName or "?"
-    local stageStr    = row.growthStage and (" S" .. tostring(row.growthStage)) or ""
+    local stageStr    = row.growthStage and (" Stage " .. tostring(row.growthStage)) or ""
     local label       = string.format("F%d · %s%s", row.fieldId, cropLabel, stageStr)
     local stressStr   = stress > 0.15 and " !" or ""
 
@@ -581,9 +581,10 @@ end
 -- MOISTURE COLOR
 -- ============================================================
 function HUDOverlay:getMoistureColor(moisture)
-    if moisture >= 0.60 then return HUDOverlay.COLOR_HEALTHY
-    elseif moisture >= 0.30 then return HUDOverlay.COLOR_WARNING
-    else return HUDOverlay.COLOR_CRITICAL end
+    -- Thresholds match CropConsultant severity bands exactly so color = alert level
+    if moisture >= CropConsultant.SEVERITY_WARNING_MAX then return HUDOverlay.COLOR_HEALTHY   -- >= 0.40 green
+    elseif moisture >= CropConsultant.SEVERITY_CRITICAL_MAX then return HUDOverlay.COLOR_WARNING  -- >= 0.25 yellow
+    else return HUDOverlay.COLOR_CRITICAL end  -- < 0.25 red
 end
 
 function HUDOverlay:resolveCropName(field)
@@ -591,19 +592,12 @@ function HUDOverlay:resolveCropName(field)
 
     local ft = nil
 
-    -- FS25 primary: field.currentFruitTypeIndex (engine-written property)
-    local fti = field.currentFruitTypeIndex
+    -- FS25 confirmed API: field.fieldState.fruitTypeIndex
+    -- (field.currentFruitTypeIndex, field:getFruitType(), field.fruitType do NOT exist in FS25)
+    local fieldState = field.fieldState
+    local fti = fieldState and fieldState.fruitTypeIndex
     if fti ~= nil and fti > 0 and g_fruitTypeManager ~= nil then
         ft = g_fruitTypeManager:getFruitTypeByIndex(fti)
-    end
-
-    -- Legacy fallback: getFruitType() / fruitType (FS22-era field API)
-    if ft == nil then
-        if type(field.getFruitType) == "function" then
-            local ok, result = pcall(function() return field:getFruitType() end)
-            if ok then ft = result end
-        end
-        if ft == nil then ft = field.fruitType end
     end
 
     if ft ~= nil and ft.name ~= nil then
@@ -645,25 +639,21 @@ function HUDOverlay:rebuildDisplayRows()
             -- FS25-native crop resolution: getFieldState() → fruitTypeIndex
             cropName = self:resolveCropName(field)
 
-            -- Growth stage
-            if type(field.getGrowthState) == "function" then
-                local ok2, result = pcall(function() return field:getGrowthState() end)
-                if ok2 then growthStage = result end
-            elseif field.growthState ~= nil then
-                growthStage = field.growthState
-            end
+            -- Growth stage (FS25: field.fieldState.growthState — confirmed from rtmnet/sdk)
+            growthStage = field.fieldState and field.fieldState.growthState
         end
 
-        -- Final fallback: field not in map yet (enumeration race on slow-loading map)
-        if cropName == nil then cropName = "?" end
-
-        table.insert(self.displayRows, {
-            fieldId     = entry.fieldId,
-            moisture    = entry.moisture,
-            stress      = stress,
-            cropName    = cropName,
-            growthStage = growthStage,
-        })
+        -- Only show crops tracked for stress (fallow, greenhouse, carrots etc. = irrelevant noise)
+        -- cropName is title-cased for display ("Wheat"); CROP_WINDOWS keys are lowercase
+        if cropName ~= nil and CropStressModifier.CROP_WINDOWS[cropName:lower()] ~= nil then
+            table.insert(self.displayRows, {
+                fieldId     = entry.fieldId,
+                moisture    = entry.moisture,
+                stress      = stress,
+                cropName    = cropName,
+                growthStage = growthStage,
+            })
+        end
     end
 
     -- If selected field is no longer in the display list, mark forecast dirty
@@ -705,8 +695,6 @@ function HUDOverlay:toggle()
         -- (update() normally rebuilds rows, but it runs next frame — after toggle() returns.)
         self:rebuildDisplayRows()
 
-        self:rebuildDisplayRows()
-
         -- FIX: soilSystem may not have its moisture table yet on first open.
         -- Build stub rows from fieldById so the panel is never blank.
         if #self.displayRows == 0 then
@@ -714,25 +702,21 @@ function HUDOverlay:toggle()
             local count = 0
             for fid, field in pairs(fieldById) do
                 if count >= HUDOverlay.MAX_FIELDS then break end
-                local stress = 0
-                if self.manager ~= nil and self.manager.stressModifier ~= nil then
-                    stress = self.manager.stressModifier:getStress(fid) or 0
+                local cn = self:resolveCropName(field)
+                if cn ~= nil and CropStressModifier.CROP_WINDOWS[cn:lower()] ~= nil then
+                    local stress = 0
+                    if self.manager ~= nil and self.manager.stressModifier ~= nil then
+                        stress = self.manager.stressModifier:getStress(fid) or 0
+                    end
+                    table.insert(self.displayRows, {
+                        fieldId     = fid,
+                        moisture    = 0,
+                        stress      = stress,
+                        cropName    = cn,
+                        growthStage = field.fieldState and field.fieldState.growthState,
+                    })
+                    count = count + 1
                 end
-                local growthStage = nil
-                if type(field.getGrowthState) == "function" then
-                    local ok, result = pcall(function() return field:getGrowthState() end)
-                    if ok then growthStage = result end
-                elseif field.growthState ~= nil then
-                    growthStage = field.growthState
-                end
-                table.insert(self.displayRows, {
-                    fieldId     = fid,
-                    moisture    = 0,
-                    stress      = stress,
-                    cropName    = self:resolveCropName(field),
-                    growthStage = growthStage,
-                })
-                count = count + 1
             end
         end
         

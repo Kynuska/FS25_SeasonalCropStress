@@ -59,8 +59,8 @@ function CropStressModifier.new(manager)
     self.fieldStress = {}
 
     -- When FS25_RealisticWeather is present, its getHarvestScaleMultiplier hook
-    -- handles the yield penalty. We skip our doGroundWorkArea reduction to avoid
-    -- stacking, but still accumulate stress for HUD display.
+    -- handles the yield penalty. We skip our Cutter.processCutterArea reduction
+    -- to avoid stacking. Stress still accumulates for HUD display.
     self.rwModeActive = false
 
     self.isInitialized = false
@@ -97,55 +97,38 @@ function CropStressModifier:hourlyUpdate()
 end
 
 function CropStressModifier:processFieldStress(field, fieldId, moisture)
-    -- Get fruit type name — FS25-native API first, legacy fallback second
-    local cropName = nil
+    -- FS25 confirmed API: field.fieldState.fruitTypeIndex / field.fieldState.growthState
+    -- (field:getFieldState(), field:getGrowthState(), field.fruitType do NOT exist in FS25)
+    local fieldState = field.fieldState
+    if fieldState == nil then return end
 
-    -- FS25 primary: getFieldState() → fruitTypeIndex → g_fruitTypeManager lookup
-    if type(field.getFieldState) == "function" then
-        local ok, state = pcall(function() return field:getFieldState() end)
-        if ok and state ~= nil and state.fruitTypeIndex ~= nil and state.fruitTypeIndex > 0 then
-            if g_fruitTypeManager ~= nil then
-                local ft = g_fruitTypeManager:getFruitTypeByIndex(state.fruitTypeIndex)
-                if ft ~= nil and ft.name ~= nil then
-                    cropName = ft.name:lower()
-                end
+    local fruitTypeIndex = fieldState.fruitTypeIndex
+    if fruitTypeIndex == nil or fruitTypeIndex == 0 then
+        -- No crop on this field — reset any accumulated stress so next season starts clean
+        if (self.fieldStress[fieldId] or 0) > 0 then
+            self.fieldStress[fieldId] = 0
+            if self.manager ~= nil and self.manager.debugMode then
+                csLog(string.format("Field %d: no crop — stress reset to 0", fieldId))
             end
         end
+        return
     end
 
-    -- Fallback: legacy getFruitType() (FS19/22 API present in many FS25 maps)
-    if cropName == nil then
-        local fruitType = nil
-        if type(field.getFruitType) == "function" then
-            fruitType = field:getFruitType()
-        elseif field.fruitType ~= nil then
-            fruitType = field.fruitType
-        end
-        if fruitType ~= nil and fruitType.name ~= nil then
-            cropName = fruitType.name:lower()
-        end
-    end
+    local fruitType = g_fruitTypeManager ~= nil and g_fruitTypeManager:getFruitTypeByIndex(fruitTypeIndex)
+    if fruitType == nil then return end
 
-    if cropName == nil then return end
-
+    -- FS25 fruit names are uppercase ("WHEAT", "BARLEY"). CROP_WINDOWS keys are lowercase.
+    local cropName = fruitType.name:lower()
     local window = CropStressModifier.CROP_WINDOWS[cropName]
-    if window == nil then return end  -- Crop not in our config — no stress
+    if window == nil then return end
 
-    -- Get growth stage
-    -- FS25: field:getGrowthState() or field.growthState or similar
-    -- LUADOC NOTE: verify exact method name
-    local growthStage = nil
-    if type(field.getGrowthState) == "function" then
-        growthStage = field:getGrowthState()
-    elseif field.growthState ~= nil then
-        growthStage = field.growthState
-    end
-    if growthStage == nil then return end
+    local growthState = fieldState.growthState or 0
+    if growthState == 0 then return end
 
     -- Check if in a critical growth window
     local inCriticalWindow = false
     for _, s in ipairs(window.stages) do
-        if growthStage == s then
+        if growthState == s then
             inCriticalWindow = true
             break
         end
@@ -154,9 +137,8 @@ function CropStressModifier:processFieldStress(field, fieldId, moisture)
 
     -- Below critical moisture threshold → accumulate stress
     if moisture < window.criticalMoisture then
-        local deficit = window.criticalMoisture - moisture
-        local deficitRatio = deficit / window.criticalMoisture  -- 0.0-1.0
-        -- Apply the player-configured difficulty rate multiplier (1.0 = normal, 1.5 = hard, 0.5 = easy)
+        local deficit      = window.criticalMoisture - moisture
+        local deficitRatio = deficit / window.criticalMoisture
         local rateMultiplier = self.rateMultiplier or 1.0
         local stressIncrease = window.stressRatePerHour * deficitRatio * rateMultiplier
 
@@ -166,7 +148,7 @@ function CropStressModifier:processFieldStress(field, fieldId, moisture)
         if self.manager ~= nil and self.manager.debugMode then
             csLog(string.format(
                 "Stress Field %d (%s stage %d): +%.4f → total %.3f (moisture %.1f%% < %.0f%%)",
-                fieldId, cropName, growthStage, stressIncrease,
+                fieldId, cropName, growthState, stressIncrease,
                 self.fieldStress[fieldId], moisture * 100, window.criticalMoisture * 100
             ))
         end
@@ -196,134 +178,96 @@ end
 
 -- ============================================================
 -- POSITION → FIELD ID HELPER
--- Used by the harvest hook to find which field is being harvested.
+-- FS25 confirmed pattern: g_farmlandManager:getFarmlandAtWorldPosition(x, z)
+-- returns the farmland object; farmland.id is the field identifier.
+-- (field:containsPoint() does not exist in FS25.)
 -- ============================================================
 function CropStressModifier.getFieldIdAtPosition(x, z)
-    if g_currentMission == nil or g_currentMission.fieldManager == nil then return nil end
-
-    local ok, fields = pcall(function()
-        return g_currentMission.fieldManager:getFields()
-    end)
-    if not ok or fields == nil then return nil end
-    for _, field in pairs(fields) do
-        -- Preferred: native containment check
-        -- LUADOC: look for fieldManager:getFieldAtWorldPos(x, z) or field:containsPoint(x, z)
-        if type(field.containsPoint) == "function" then
-            if field:containsPoint(x, z) then
-                return field.fieldId
-            end
-        else
-            -- Fallback: bounding-circle estimate using field center + dimensions
-            -- This is imprecise — upgrade when exact API is confirmed
-            local cx = field.posX or (field.startX and (field.startX + (field.widthX or 0) * 0.5))
-            local cz = field.posZ or (field.startZ and (field.startZ + (field.heightZ or 0) * 0.5))
-            local r  = field.fieldRadius or 80  -- conservative radius estimate
-
-            if cx ~= nil and cz ~= nil then
-                local dx = x - cx
-                local dz = z - cz
-                if (dx * dx + dz * dz) <= (r * r) then
-                    return field.fieldId
-                end
-            end
-        end
-    end
-    return nil
+    if g_farmlandManager == nil then return nil end
+    local farmland = g_farmlandManager:getFarmlandAtWorldPosition(x, z)
+    return farmland and farmland.id or nil
 end
 
 -- ============================================================
 -- HARVEST HOOK INSTALLATION
 -- Called from main.lua at module-load time (before vehicles exist).
+--
+-- FS25 harvest flow (confirmed from SDK):
+--   Cutter:processCutterArea(workArea, dt)
+--     → calls FSDensityMapUtil.cutFruitArea  (removes crop from density map)
+--     → calls g_currentMission:getHarvestScaleMultiplier(...)
+--     → stores: spec.workAreaParameters.lastMultiplierArea += area * multiplier
+--   Combine reads lastMultiplierArea each update and calls addFillUnitFillLevel
+--
+-- We hook processCutterArea and scale lastMultiplierArea by our stress keep-factor.
+-- This is equivalent to reducing yield — the combine receives less grain per pass.
+--
+-- HarvestingMachine does NOT exist in FS25. setFillUnitFillLevel does NOT exist.
 -- ============================================================
 function CropStressModifier.installHarvestHook()
     if CropStressModifier.harvestHookInstalled then return end
-    if HarvestingMachine == nil then
-        csLog("HarvestingMachine not found — harvest hook skipped")
+    if Cutter == nil then
+        csLog("Cutter specialization not found — harvest hook skipped")
         return
     end
-    if HarvestingMachine.doGroundWorkArea == nil then
-        csLog("HarvestingMachine.doGroundWorkArea not found — hook skipped")
+    if Cutter.processCutterArea == nil then
+        csLog("Cutter.processCutterArea not found — harvest hook skipped")
         return
     end
 
-    -- Using overwrittenFunction for before+after fill level tracking.
-    -- This gives us a superFunc trampoline, letting us measure the fill delta.
-    -- COMPATIBILITY NOTE: If another mod also uses overwrittenFunction on this
-    -- same function, load order in modDesc.xml determines precedence.
-    HarvestingMachine.doGroundWorkArea = Utils.overwrittenFunction(
-        HarvestingMachine.doGroundWorkArea,
-        function(vehicle, superFunc, workArea, dt)
-            -- Record fill levels BEFORE harvest
-            local fillBefore = {}
-            if vehicle.spec_fillUnit ~= nil and vehicle.spec_fillUnit.fillUnits ~= nil then
-                for i, fu in ipairs(vehicle.spec_fillUnit.fillUnits) do
-                    fillBefore[i] = fu.fillLevel or 0
-                end
+    Cutter.processCutterArea = Utils.overwrittenFunction(
+        Cutter.processCutterArea,
+        function(self, superFunc, workArea, dt)
+            -- Capture accumulated multiplier area before this cut pass
+            local spec = self.spec_cutter
+            local multAreaBefore = spec ~= nil and spec.workAreaParameters ~= nil
+                and spec.workAreaParameters.lastMultiplierArea or 0
+
+            local lastArea, totalArea = superFunc(self, workArea, dt)
+
+            -- No area cut this pass, or manager not ready — nothing to do
+            if lastArea == nil or lastArea <= 0 then return lastArea, totalArea end
+            if g_cropStressManager == nil or not g_cropStressManager.isInitialized then
+                return lastArea, totalArea
             end
-
-            -- Run original harvest logic
-            superFunc(vehicle, workArea, dt)
-
-            -- Apply stress reduction if manager is active
-            if g_cropStressManager == nil or not g_cropStressManager.isInitialized then return end
-            if vehicle.spec_fillUnit == nil or vehicle.spec_fillUnit.fillUnits == nil then return end
-
-            -- Find which field this is (using work area start position)
-            local wx, _, wz = getWorldTranslation(workArea.start)
-            local fieldId = CropStressModifier.getFieldIdAtPosition(wx, wz)
-            if fieldId == nil then return end
 
             local stressModifier = g_cropStressManager.stressModifier
-            local stress = stressModifier:getStress(fieldId)
 
-            -- When RW is active its getHarvestScaleMultiplier hook handles yield.
-            -- We reset our accumulated stress (clears HUD) but skip fill-level changes.
-            if stressModifier.rwModeActive then
-                if stress > 0.01 and g_cropStressManager.debugMode then
+            -- RW mode: RW's getHarvestScaleMultiplier handles yield; we step aside
+            if stressModifier.rwModeActive then return lastArea, totalArea end
+
+            -- Identify field from the cut position
+            local xs, _, zs = getWorldTranslation(workArea.start)
+            local fieldId = CropStressModifier.getFieldIdAtPosition(xs, zs)
+            if fieldId == nil then return lastArea, totalArea end
+
+            local stress = stressModifier:getStress(fieldId)
+            if stress <= 0.01 then return lastArea, totalArea end
+
+            -- Scale the grain added during this pass.
+            -- lastMultiplierArea was incremented by superFunc; we reduce that delta.
+            if spec ~= nil and spec.workAreaParameters ~= nil then
+                local maxLoss    = stressModifier:getMaxYieldLoss()
+                local keepFactor = 1.0 - (stress * maxLoss)
+                local added = spec.workAreaParameters.lastMultiplierArea - multAreaBefore
+                if added > 0 then
+                    spec.workAreaParameters.lastMultiplierArea = multAreaBefore + added * keepFactor
+                end
+
+                if g_cropStressManager.debugMode then
                     csLog(string.format(
-                        "Harvest field %d: stress=%.2f display-only (RW handles yield)",
-                        fieldId, stress
+                        "Harvest field %d: stress=%.2f → yield reduced by %.0f%%",
+                        fieldId, stress, (1.0 - keepFactor) * 100
                     ))
                 end
-                stressModifier:resetStress(fieldId)
-                return
             end
 
-            if stress <= 0.01 then return end
-
-            -- Calculate yield reduction factor using the player-configured max yield loss.
-            -- Uses the instance method (which reads settings-adjusted value) rather than
-            -- the class constant so difficulty/settings changes take effect at harvest.
-            local maxLoss = stressModifier:getMaxYieldLoss()
-            local reduction = stress * maxLoss
-            local keepFactor = 1.0 - reduction
-
-            -- Apply reduction to each fill unit that received grain this pass
-            local farmId = vehicle:getOwnerFarmId()
-            for i, fu in ipairs(vehicle.spec_fillUnit.fillUnits) do
-                local prev = fillBefore[i] or 0
-                local gained = (fu.fillLevel or 0) - prev
-                if gained > 0 then
-                    local targetLevel = prev + (gained * keepFactor)
-                    -- setFillUnitFillLevel(farmId, fillUnitIndex, value, fillType, toolType, fillPositionData)
-                    -- LUADOC NOTE: verify exact signature — second arg may be 1-based index
-                    vehicle:setFillUnitFillLevel(farmId, i, targetLevel, fu.fillType, nil, nil)
-                end
-            end
-
-            -- Log and reset stress for this field
-            if g_cropStressManager.debugMode then
-                csLog(string.format(
-                    "Harvest field %d: stress=%.2f → yield reduced by %.0f%%",
-                    fieldId, stress, reduction * 100
-                ))
-            end
-            stressModifier:resetStress(fieldId)
+            return lastArea, totalArea
         end
     )
 
     CropStressModifier.harvestHookInstalled = true
-    csLog("Harvest yield hook installed on HarvestingMachine.doGroundWorkArea")
+    csLog("Harvest yield hook installed on Cutter.processCutterArea")
 end
 
 function CropStressModifier:delete()

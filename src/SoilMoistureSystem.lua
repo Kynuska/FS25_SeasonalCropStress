@@ -108,15 +108,13 @@ function SoilMoistureSystem:enumerateFields()
 
     local count = 0
     for _, field in pairs(g_fieldManager.fields) do
-        local fid = field.fieldId
+        -- FS25: fields are identified by farmland ID. field.fieldId does not exist.
+        local fid = field.farmland and field.farmland.id
         if fid ~= nil and self.fieldData[fid] == nil then
-            -- World-space centre used for FS25_RealisticWeather cell sampling.
-            local cx = field.posX
-                or (field.startX and (field.startX + (field.widthX or 0) * 0.5))
-                or 0
-            local cz = field.posZ
-                or (field.startZ and (field.startZ + (field.heightZ or 0) * 0.5))
-                or 0
+            -- field.posX/posZ are confirmed FS25 properties (set from polygon centroid in Field:load).
+            -- field:getCenterOfFieldWorldPosition() returns the same values and is also valid.
+            local cx = field.posX or 0
+            local cz = field.posZ or 0
             self.fieldData[fid] = {
                 fieldId        = fid,
                 moisture       = startMoisture,
