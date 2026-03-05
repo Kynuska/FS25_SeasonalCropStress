@@ -21,6 +21,9 @@ Real soil moisture physics. Heat evaporates. Rain replenishes. Sandy soil drains
 
 </div>
 
+> [!TIP]
+> Want to be part of our community? Share tips, report issues, and chat with other farmers on the **[FS25 Modding Community Discord](https://discord.gg/Th2pnq36)**!
+
 ---
 
 ## ✨ Features
