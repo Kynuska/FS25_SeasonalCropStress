@@ -119,7 +119,7 @@ function PrecisionFarmingOverlay:getFieldIdAtPosition(x, z)
     local fields = g_currentMission.fieldManager:getFields()
     for _, field in pairs(fields) do
         if self:positionInField(field, x, z) then
-            return field.fieldId
+            return field.farmland and field.farmland.id
         end
     end
     return nil

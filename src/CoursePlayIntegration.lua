@@ -142,7 +142,7 @@ function CoursePlayIntegration:getFieldForVehicle(vehicle, fields)
 
     for _, field in pairs(fields) do
         if self:positionInField(field, vx, vz) then
-            return field.fieldId
+            return field.farmland and field.farmland.id
         end
     end
     return nil
