@@ -1,72 +1,333 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     IrrigationScheduleDialog.xml
-    NOTE: onOpen="onOpen" is present and calls IrrigationScheduleDialog:onOpen(), which
-    calls superClass().onOpen() to initialise the FS25 focus/input system. The actual
-    content population (system data, schedule) is NOT done in onOpen — it requires the
-    systemId argument, which XML cannot pass. Content is populated by calling
-    dialog.target:onIrrigationDialogOpen(systemId) from CropStressManager after showDialog().
-    NOTE: MultiTextOption is intentionally avoided — fs25_multiTextOption triggers an
-    async i3d load in FocusManager that returns a nil nodeId in FS25 v1.16, causing
-    FocusManager.lua:94: table index is nil. Use +/- button pairs instead.
+    Pattern: CsDialogLoader / NPCFavor 3-layer button (FS25 v1.16 confirmed)
+
+    KEY FIX: Row GuiElement containers must declare profile="csRowContainer"
+    (which extends baseReference with anchorTopCenter) so that the FS25 GUI
+    system positions them relative to the content container, not the screen.
+    Without an explicit anchorTopCenter profile on the GuiElement itself,
+    inline position attributes are ignored and the element falls through to
+    screen-space coordinates.
+
+    Convention inside fs25_dialogContentContainer (anchorTopCenter):
+      X=0       = horizontal centre of content area
+      Y negative = downward from top of content area
+    Inside a csRowContainer (also anchorTopCenter, sized 760px wide):
+      children use anchorTopLeft, X positive = rightward from row left edge
 -->
-<GUI onOpen="onOpen" onCreate="onCreate" onClose="onIrrigationDialogClose">
+<GUI onOpen="onOpen" onCreate="onCreate" onClose="onClose">
     <GuiElement profile="newLayer" />
     <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
-    <GuiElement profile="dialogBg" id="dialogElement" size="780px 580px">
+
+    <GuiElement profile="dialogBg" id="dialogElement" size="820px 540px">
         <ThreePartBitmap profile="fs25_dialogBgMiddle" />
         <ThreePartBitmap profile="fs25_dialogBgTop" />
         <ThreePartBitmap profile="fs25_dialogBgBottom" />
+
         <GuiElement profile="fs25_dialogContentContainer" id="content">
-            <Text id="title" profile="fs25_dialogTitle" text="$l10n_cs_irr_title" />
 
-            <!-- Water source status -->
-            <Text profile="fs25_dialogText" position="-350px 0px" text="$l10n_cs_irr_water_source" />
-            <Text id="waterSourceValue" profile="fs25_dialogText" position="-100px 0px" text="$l10n_cs_irr_connected" />
+            <!-- ── Title ─────────────────────────────────────────── -->
+            <Text id="irrTitle"
+                  profile="fs25_dialogTitle"
+                  position="0px 0px"
+                  text="$l10n_cs_irr_title" />
 
-            <!-- Schedule section -->
-            <Text profile="fs25_dialogText" position="-350px -40px" text="$l10n_cs_irr_schedule" />
-
-            <!-- Day toggle buttons (btn_day_1 .. btn_day_7 looked up by name in Lua) -->
-            <Button id="btn_day_1" profile="buttonActivate" position="-350px -75px" size="35px 30px" text="$l10n_cs_day_mon" onClick="onDayToggle1" onClickSoundDisabled="true" />
-            <Button id="btn_day_2" profile="buttonActivate" position="-310px -75px" size="35px 30px" text="$l10n_cs_day_tue" onClick="onDayToggle2" onClickSoundDisabled="true" />
-            <Button id="btn_day_3" profile="buttonActivate" position="-270px -75px" size="35px 30px" text="$l10n_cs_day_wed" onClick="onDayToggle3" onClickSoundDisabled="true" />
-            <Button id="btn_day_4" profile="buttonActivate" position="-230px -75px" size="35px 30px" text="$l10n_cs_day_thu" onClick="onDayToggle4" onClickSoundDisabled="true" />
-            <Button id="btn_day_5" profile="buttonActivate" position="-190px -75px" size="35px 30px" text="$l10n_cs_day_fri" onClick="onDayToggle5" onClickSoundDisabled="true" />
-            <Button id="btn_day_6" profile="buttonActivate" position="-150px -75px" size="35px 30px" text="$l10n_cs_day_sat" onClick="onDayToggle6" onClickSoundDisabled="true" />
-            <Button id="btn_day_7" profile="buttonActivate" position="-110px -75px" size="35px 30px" text="$l10n_cs_day_sun" onClick="onDayToggle7" onClickSoundDisabled="true" />
-
-            <!-- Start time: - button / display text / + button -->
-            <Text profile="fs25_dialogText" position="-350px -120px" text="$l10n_cs_irr_start_time" />
-            <Button profile="buttonActivate" id="startHourMinus" position="-210px -120px" size="30px 28px" text="-" onClick="onStartHourMinus" />
-            <Text   profile="fs25_dialogText" id="startHourText" position="-155px -120px" size="60px 28px" text="00:00" />
-            <Button profile="buttonActivate" id="startHourPlus"  position="-90px  -120px" size="30px 28px" text="+" onClick="onStartHourPlus" />
-
-            <!-- End time: - button / display text / + button -->
-            <Text profile="fs25_dialogText" position="-350px -160px" text="$l10n_cs_irr_end_time" />
-            <Button profile="buttonActivate" id="endHourMinus" position="-210px -160px" size="30px 28px" text="-" onClick="onEndHourMinus" />
-            <Text   profile="fs25_dialogText" id="endHourText"   position="-155px -160px" size="60px 28px" text="00:00" />
-            <Button profile="buttonActivate" id="endHourPlus"  position="-90px  -160px" size="30px 28px" text="+" onClick="onEndHourPlus" />
-
-            <!-- Performance section -->
-            <Text profile="fs25_dialogText" position="-350px -220px" text="$l10n_cs_irr_performance" />
-            <Text id="flowRate"   profile="fs25_dialogText" position="-350px -255px" text="$l10n_cs_irr_flow_rate" />
-            <Text id="efficiency" profile="fs25_dialogText" position="-350px -285px" text="$l10n_cs_irr_efficiency" />
-            <Text id="cost"       profile="fs25_dialogText" position="-350px -315px" text="$l10n_cs_irr_cost" />
-            <Text id="wear"       profile="fs25_dialogText" position="-350px -345px" text="$l10n_cs_irr_wear" />
-
-            <!-- Covered fields list -->
-            <Text profile="fs25_dialogText" position="-350px -385px" text="$l10n_cs_irr_covered_fields" />
-            <GuiElement id="coveredFieldsContainer" position="-350px -415px" size="300px 120px">
-                <!-- Items added dynamically in Lua -->
+            <!-- ── Water source row ──────────────────────────────── -->
+            <GuiElement profile="csRowContainer" position="0px -38px">
+                <Text profile="csRowLabel" position="0px 0px"   text="$l10n_cs_irr_water_source" />
+                <Text profile="csRowValue" position="200px 0px" id="waterSourceValue" text="---" />
             </GuiElement>
+
+            <!-- ── Divider ───────────────────────────────────────── -->
+            <Bitmap profile="csDivider" position="0px -64px" />
+
+            <!-- ── Schedule section header ──────────────────────── -->
+            <Text profile="csSectionHeader" position="0px -76px"
+                  text="$l10n_cs_irr_schedule" />
+
+            <!-- ── Day toggle buttons ────────────────────────────── -->
+            <GuiElement profile="csRowContainer" position="0px -98px">
+                <Bitmap  profile="csDayBtnBg"   id="btnDay1Bg"   position="0px 0px" />
+                <Button  profile="csDayBtnHit"  id="btnDay1"     position="0px 0px"
+                         onClick="onDayToggle1"
+                         onFocus="onBtnDay1Focus" onLeave="onBtnDay1Leave" />
+                <Text    profile="csDayBtnText" id="btnDay1Text" position="0px 0px"
+                         text="$l10n_cs_day_mon" />
+
+                <Bitmap  profile="csDayBtnBg"   id="btnDay2Bg"   position="99px 0px" />
+                <Button  profile="csDayBtnHit"  id="btnDay2"     position="99px 0px"
+                         onClick="onDayToggle2"
+                         onFocus="onBtnDay2Focus" onLeave="onBtnDay2Leave" />
+                <Text    profile="csDayBtnText" id="btnDay2Text" position="99px 0px"
+                         text="$l10n_cs_day_tue" />
+
+                <Bitmap  profile="csDayBtnBg"   id="btnDay3Bg"   position="198px 0px" />
+                <Button  profile="csDayBtnHit"  id="btnDay3"     position="198px 0px"
+                         onClick="onDayToggle3"
+                         onFocus="onBtnDay3Focus" onLeave="onBtnDay3Leave" />
+                <Text    profile="csDayBtnText" id="btnDay3Text" position="198px 0px"
+                         text="$l10n_cs_day_wed" />
+
+                <Bitmap  profile="csDayBtnBg"   id="btnDay4Bg"   position="297px 0px" />
+                <Button  profile="csDayBtnHit"  id="btnDay4"     position="297px 0px"
+                         onClick="onDayToggle4"
+                         onFocus="onBtnDay4Focus" onLeave="onBtnDay4Leave" />
+                <Text    profile="csDayBtnText" id="btnDay4Text" position="297px 0px"
+                         text="$l10n_cs_day_thu" />
+
+                <Bitmap  profile="csDayBtnBg"   id="btnDay5Bg"   position="396px 0px" />
+                <Button  profile="csDayBtnHit"  id="btnDay5"     position="396px 0px"
+                         onClick="onDayToggle5"
+                         onFocus="onBtnDay5Focus" onLeave="onBtnDay5Leave" />
+                <Text    profile="csDayBtnText" id="btnDay5Text" position="396px 0px"
+                         text="$l10n_cs_day_fri" />
+
+                <Bitmap  profile="csDayBtnBg"   id="btnDay6Bg"   position="495px 0px" />
+                <Button  profile="csDayBtnHit"  id="btnDay6"     position="495px 0px"
+                         onClick="onDayToggle6"
+                         onFocus="onBtnDay6Focus" onLeave="onBtnDay6Leave" />
+                <Text    profile="csDayBtnText" id="btnDay6Text" position="495px 0px"
+                         text="$l10n_cs_day_sat" />
+
+                <Bitmap  profile="csDayBtnBg"   id="btnDay7Bg"   position="594px 0px" />
+                <Button  profile="csDayBtnHit"  id="btnDay7"     position="594px 0px"
+                         onClick="onDayToggle7"
+                         onFocus="onBtnDay7Focus" onLeave="onBtnDay7Leave" />
+                <Text    profile="csDayBtnText" id="btnDay7Text" position="594px 0px"
+                         text="$l10n_cs_day_sun" />
+            </GuiElement>
+
+            <!-- ── Time controls ─────────────────────────────────── -->
+            <GuiElement profile="csRowContainerTall" position="0px -144px">
+                <Text    profile="csRowLabel"    position="0px 0px"
+                         text="$l10n_cs_irr_start_time" />
+                <Bitmap  profile="csTimeBtnBg"   id="startHourMinusBg"   position="150px 0px" />
+                <Button  profile="csTimeBtnHit"  id="startHourMinus"     position="150px 0px"
+                         onClick="onStartHourMinus"
+                         onFocus="onBtnStartHourMinusFocus"
+                         onLeave="onBtnStartHourMinusLeave" />
+                <Text    profile="csTimeBtnText" id="startHourMinusText" position="150px 0px"
+                         text="−" />
+                <Text    profile="csTimeValue"   id="startHourText"      position="188px 0px"
+                         text="06:00" />
+                <Bitmap  profile="csTimeBtnBg"   id="startHourPlusBg"    position="252px 0px" />
+                <Button  profile="csTimeBtnHit"  id="startHourPlus"      position="252px 0px"
+                         onClick="onStartHourPlus"
+                         onFocus="onBtnStartHourPlusFocus"
+                         onLeave="onBtnStartHourPlusLeave" />
+                <Text    profile="csTimeBtnText" id="startHourPlusText"  position="252px 0px"
+                         text="+" />
+
+                <Text    profile="csRowLabel"    position="310px 0px"
+                         text="$l10n_cs_irr_end_time" />
+                <Bitmap  profile="csTimeBtnBg"   id="endHourMinusBg"     position="460px 0px" />
+                <Button  profile="csTimeBtnHit"  id="endHourMinus"       position="460px 0px"
+                         onClick="onEndHourMinus"
+                         onFocus="onBtnEndHourMinusFocus"
+                         onLeave="onBtnEndHourMinusLeave" />
+                <Text    profile="csTimeBtnText" id="endHourMinusText"   position="460px 0px"
+                         text="−" />
+                <Text    profile="csTimeValue"   id="endHourText"        position="498px 0px"
+                         text="10:00" />
+                <Bitmap  profile="csTimeBtnBg"   id="endHourPlusBg"      position="562px 0px" />
+                <Button  profile="csTimeBtnHit"  id="endHourPlus"        position="562px 0px"
+                         onClick="onEndHourPlus"
+                         onFocus="onBtnEndHourPlusFocus"
+                         onLeave="onBtnEndHourPlusLeave" />
+                <Text    profile="csTimeBtnText" id="endHourPlusText"    position="562px 0px"
+                         text="+" />
+            </GuiElement>
+
+            <!-- ── Divider ───────────────────────────────────────── -->
+            <Bitmap profile="csDivider" position="0px -184px" />
+
+            <!-- ── Performance section header ───────────────────── -->
+            <Text profile="csSectionHeader" position="0px -196px"
+                  text="$l10n_cs_irr_performance" />
+
+            <!-- Row 1: Flow Rate | Efficiency -->
+            <GuiElement profile="csRowContainer" position="0px -218px">
+                <Text profile="csRowLabel"              position="0px 0px"   text="$l10n_cs_irr_flow_rate" />
+                <Text profile="csRowValue" id="flowRate"    position="190px 0px" text="---" />
+                <Text profile="csRowLabel"              position="390px 0px" text="$l10n_cs_irr_efficiency" />
+                <Text profile="csRowValue" id="efficiency"  position="580px 0px" text="---" />
+            </GuiElement>
+
+            <!-- Row 2: Cost | Wear -->
+            <GuiElement profile="csRowContainer" position="0px -242px">
+                <Text profile="csRowLabel"          position="0px 0px"   text="$l10n_cs_irr_cost" />
+                <Text profile="csRowValue" id="cost"    position="190px 0px" text="---" />
+                <Text profile="csRowLabel"          position="390px 0px" text="$l10n_cs_irr_wear" />
+                <Text profile="csRowValue" id="wear"    position="580px 0px" text="---" />
+            </GuiElement>
+
+            <!-- ── Divider ───────────────────────────────────────── -->
+            <Bitmap profile="csDivider" position="0px -268px" />
+
+            <!-- ── Covered fields section ────────────────────────── -->
+            <Text profile="csSectionHeader" position="0px -280px"
+                  text="$l10n_cs_irr_covered_fields" />
+
+            <GuiElement profile="csCoveredFieldsContainer" id="coveredFieldsContainer"
+                        position="0px -302px" />
+
+            <!-- ── Action buttons ─────────────────────────────────── -->
+            <Bitmap  profile="csActionBtnBg"   id="btnIrrigateNowBg"   position="-155px -380px" />
+            <Button  profile="csActionBtnHit"  id="btnIrrigateNow"     position="-155px -380px"
+                     onClick="onIrrigateNow"
+                     onFocus="onBtnIrrigateNowFocus"
+                     onLeave="onBtnIrrigateNowLeave" />
+            <Text    profile="csActionBtnText" id="btnIrrigateNowText" position="-155px -380px"
+                     text="$l10n_cs_irr_irrigate_now" />
+
+            <Bitmap  profile="csActionBtnBg"   id="btnSaveBg"   position="155px -380px" />
+            <Button  profile="csActionBtnHit"  id="btnSave"     position="155px -380px"
+                     onClick="onSaveSchedule"
+                     onFocus="onBtnSaveFocus"
+                     onLeave="onBtnSaveLeave" />
+            <Text    profile="csActionBtnText" id="btnSaveText" position="155px -380px"
+                     text="$l10n_cs_irr_save_schedule" />
+
         </GuiElement>
 
-        <!-- Button box at bottom -->
-        <BoxLayout profile="fs25_dialogButtonBox" id="buttonBox">
-            <Button profile="buttonActivate" id="btnIrrigateNow" text="$l10n_cs_irr_irrigate_now"  onClick="onIrrigateNow" />
-            <Button profile="buttonActivate" id="btnSave"        text="$l10n_cs_irr_save_schedule" onClick="onSaveSchedule" />
-            <Button profile="buttonOK"       id="btnClose"       text="$l10n_cs_close"             onClick="onCloseClicked" />
-        </BoxLayout>
+        <!-- ── Close button bar ──────────────────────────────────── -->
+        <GuiElement profile="fs25_dialogButtonBox" id="buttonBox">
+            <Bitmap  profile="csCloseBtnBg"   id="btnCloseBg"   position="0px 0px" />
+            <Button  profile="csCloseBtnHit"  id="btnClose"     position="0px 0px"
+                     onClick="onCloseClicked"
+                     onFocus="onBtnCloseFocus"
+                     onLeave="onBtnCloseLeave" />
+            <Text    profile="csCloseBtnText" id="btnCloseText" position="0px 0px"
+                     text="$l10n_cs_close" />
+        </GuiElement>
+
     </GuiElement>
+
+    <GUIProfiles>
+        <Profile name="fs25_guiElement" extends="baseReference" />
+
+        <!-- Row container: anchorTopCenter so position= is relative to content container -->
+        <Profile name="csRowContainer" extends="baseReference" with="anchorTopCenter">
+            <size value="760px 22px" />
+        </Profile>
+
+        <!-- Taller row for time controls (buttons are 28px) -->
+        <Profile name="csRowContainerTall" extends="baseReference" with="anchorTopCenter">
+            <size value="760px 32px" />
+        </Profile>
+
+        <!-- Covered fields container: 3 rows × 22px -->
+        <Profile name="csCoveredFieldsContainer" extends="baseReference" with="anchorTopCenter">
+            <size value="760px 66px" />
+        </Profile>
+
+        <Profile name="csDivider" extends="baseReference" with="anchorTopCenter">
+            <size value="760px 1px" />
+            <imageColor value="0.28 0.35 0.5 0.9" />
+        </Profile>
+
+        <Profile name="csSectionHeader" extends="fs25_textDefault" with="anchorTopCenter">
+            <size value="760px 20px" />
+            <textSize value="12px" />
+            <textBold value="true" />
+            <textColor value="0.5 0.75 1 1" />
+            <textAlignment value="left" />
+            <textVerticalAlignment value="middle" />
+        </Profile>
+
+        <Profile name="csRowLabel" extends="fs25_textDefault" with="anchorTopLeft">
+            <size value="185px 22px" />
+            <textSize value="13px" />
+            <textColor value="0.78 0.78 0.78 1" />
+            <textAlignment value="left" />
+            <textVerticalAlignment value="middle" />
+        </Profile>
+
+        <Profile name="csRowValue" extends="fs25_textDefault" with="anchorTopLeft">
+            <size value="190px 22px" />
+            <textSize value="13px" />
+            <textBold value="true" />
+            <textColor value="1 1 1 1" />
+            <textAlignment value="left" />
+            <textVerticalAlignment value="middle" />
+        </Profile>
+
+        <Profile name="csDayBtnBg" extends="baseReference" with="anchorTopLeft">
+            <size value="96px 34px" />
+            <imageColor value="0.15 0.15 0.18 1" />
+        </Profile>
+        <Profile name="csDayBtnHit" extends="emptyPanel" with="anchorTopLeft">
+            <size value="96px 34px" />
+            <isFocusable value="true" />
+        </Profile>
+        <Profile name="csDayBtnText" extends="fs25_textDefault" with="anchorTopLeft">
+            <size value="96px 34px" />
+            <textSize value="13px" />
+            <textBold value="true" />
+            <textColor value="1 1 1 1" />
+            <textAlignment value="center" />
+            <textVerticalAlignment value="middle" />
+        </Profile>
+
+        <Profile name="csTimeBtnBg" extends="baseReference" with="anchorTopLeft">
+            <size value="34px 28px" />
+            <imageColor value="0.15 0.15 0.18 1" />
+        </Profile>
+        <Profile name="csTimeBtnHit" extends="emptyPanel" with="anchorTopLeft">
+            <size value="34px 28px" />
+            <isFocusable value="true" />
+        </Profile>
+        <Profile name="csTimeBtnText" extends="fs25_textDefault" with="anchorTopLeft">
+            <size value="34px 28px" />
+            <textSize value="16px" />
+            <textBold value="true" />
+            <textColor value="1 1 1 1" />
+            <textAlignment value="center" />
+            <textVerticalAlignment value="middle" />
+        </Profile>
+
+        <Profile name="csTimeValue" extends="fs25_textDefault" with="anchorTopLeft">
+            <size value="60px 28px" />
+            <textSize value="14px" />
+            <textBold value="true" />
+            <textColor value="1 1 1 1" />
+            <textAlignment value="center" />
+            <textVerticalAlignment value="middle" />
+        </Profile>
+
+        <Profile name="csActionBtnBg" extends="baseReference" with="anchorTopCenter">
+            <size value="300px 36px" />
+            <imageColor value="0.15 0.15 0.18 1" />
+        </Profile>
+        <Profile name="csActionBtnHit" extends="emptyPanel" with="anchorTopCenter">
+            <size value="300px 36px" />
+            <isFocusable value="true" />
+        </Profile>
+        <Profile name="csActionBtnText" extends="fs25_textDefault" with="anchorTopCenter">
+            <size value="300px 36px" />
+            <textSize value="14px" />
+            <textBold value="true" />
+            <textColor value="1 1 1 1" />
+            <textAlignment value="center" />
+            <textVerticalAlignment value="middle" />
+        </Profile>
+
+        <Profile name="csCloseBtnBg" extends="baseReference" with="anchorTopCenter">
+            <size value="140px 36px" />
+            <imageColor value="0.15 0.15 0.18 1" />
+        </Profile>
+        <Profile name="csCloseBtnHit" extends="emptyPanel" with="anchorTopCenter">
+            <size value="140px 36px" />
+            <isFocusable value="true" />
+        </Profile>
+        <Profile name="csCloseBtnText" extends="fs25_textDefault" with="anchorTopCenter">
+            <size value="140px 36px" />
+            <textSize value="14px" />
+            <textBold value="true" />
+            <textColor value="1 1 1 1" />
+            <textAlignment value="center" />
+            <textVerticalAlignment value="middle" />
+        </Profile>
+    </GUIProfiles>
 </GUI>

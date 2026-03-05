@@ -76,9 +76,12 @@ function WeatherIntegration:initialize()
     -- Do an immediate poll to populate cached values
     self:update()
     self.isInitialized = true
+
+    -- SEASON_NAMES is 0-indexed. currentSeason is normalised in update() so the
+    -- lookup is always valid here (no more "Season=?" in the log).
     csLog(string.format(
         "WeatherIntegration initialized. Season=%s Temp=%.1f°C Rain=%s%s",
-        WeatherIntegration.SEASON_NAMES[self.currentSeason] or "?",
+        WeatherIntegration.SEASON_NAMES[self.currentSeason] or tostring(self.currentSeason),
         self.currentTemp,
         tostring(self.isRaining),
         self.realisticWeatherActive and " (RealisticWeather)" or ""
@@ -110,8 +113,15 @@ function WeatherIntegration:update()
     local env = g_currentMission.environment
     if env == nil then return end
 
-    -- Season: direct property access, not a method call
-    self.currentSeason = env.currentSeason or WeatherIntegration.SEASON_SPRING
+    -- Season: direct property access, not a method call.
+    -- FS25 uses 0–3 (spring/summer/autumn/winter) in most builds but some
+    -- return 1–4.  Normalise to 0-based so SEASON_NAMES / SEASON_START_MOISTURE
+    -- always index correctly.
+    local rawSeason = env.currentSeason or 0
+    if rawSeason >= 1 and rawSeason <= 4 then
+        rawSeason = rawSeason - 1   -- convert 1-based → 0-based
+    end
+    self.currentSeason = rawSeason
 
     -- Temperature - check RealisticWeather first, then fall back to vanilla
     self.currentTemp = self:getTemperatureFromWeather()

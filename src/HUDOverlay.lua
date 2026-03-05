@@ -98,6 +98,7 @@ function HUDOverlay.new(manager)
     -- Auto-show / auto-hide state
     self.autoShowActive = false
     self.autoHideTimer  = 0   -- real-time seconds; 0 = no auto-hide
+    self.rebuildTimer   = 0   -- throttles row rebuilds
 
     -- Click detection: track previous left-mouse button state for row selection.
     -- (FS25 Lua: getMouseButtonState(1) = LMB poll)
@@ -107,6 +108,7 @@ function HUDOverlay.new(manager)
     -- Panel position — initialized from class constants, overridable via drag in edit mode
     self.panelX         = HUDOverlay.PANEL_X
     self.panelY         = HUDOverlay.PANEL_Y
+    self.lastResolution = {g_screenWidth or 1920, g_screenHeight or 1080}
 
     -- Edit mode / drag state (mirrors NPCFavorHUD pattern)
     self.editMode       = false
@@ -147,31 +149,51 @@ end
 -- ============================================================
 function HUDOverlay:update(dt)
     if not self.isInitialized then return end
+    if not self.isVisible then return end
 
-    -- Auto-hide countdown
-    if self.autoHideTimer > 0 then
+    -- Detect resolution changes and recalculate coordinates
+    local currentResolution = { g_screenWidth, g_screenHeight }
+    if self.lastResolution[1] ~= currentResolution[1] or self.lastResolution[2] ~= currentResolution[2] then
+        self.lastResolution = currentResolution
+        self:recalculateCoordinates()
+    end
+
+    -- LMB row click detection (rising-edge poll — must run every frame)
+    self:detectRowClick()
+
+    -- Throttle row rebuilds to once per second to avoid per-frame cost
+    self.rebuildTimer = self.rebuildTimer + dt
+    if self.rebuildTimer >= 1.0 then
+        self.rebuildTimer = 0
+        self:rebuildDisplayRows()
+    end
+
+    -- Rebuild forecast when selection changes or moisture is updated.
+    -- Runs after rebuildDisplayRows so selectedFieldId is always up-to-date.
+    if self.forecastDirty then
+        self.forecastDirty = false
+        self:rebuildForecast()
+    end
+
+    -- Auto-hide countdown: tick down and hide when the timer expires.
+    -- Set by onCriticalThreshold() to auto-dismiss after a critical alert.
+    if self.autoShowActive and self.autoHideTimer > 0 then
         self.autoHideTimer = self.autoHideTimer - dt
         if self.autoHideTimer <= 0 then
-            self.autoHideTimer = 0
-            if self.autoShowActive then
-                self.autoShowActive = false
-                self.isVisible      = false
-            end
+            self.autoHideTimer  = 0
+            self.autoShowActive = false
+            self.isVisible      = false
         end
     end
+end
 
-    -- Rebuild display rows only while visible — no need to pay the field lookup
-    -- cost every frame when the HUD is hidden.
-    if self.isVisible then
-        self:rebuildDisplayRows()
-        self:detectRowClick()
-    end
-
-    -- Rebuild forecast when selected field changes or data is dirty
-    if self.forecastDirty and self.selectedFieldId ~= nil then
-        self:rebuildForecast()
-        self.forecastDirty = false
-    end
+-- Recalculate panel position from saved relative coordinates when resolution changes.
+-- Position is stored as normalized fractions in settings so it survives resolution changes.
+function HUDOverlay:recalculateCoordinates()
+    local settings = self.manager and self.manager.settings
+    if settings == nil then return end
+    self.panelX = settings.hudPanelX or HUDOverlay.PANEL_X
+    self.panelY = settings.hudPanelY or HUDOverlay.PANEL_Y
 end
 
 -- ============================================================
@@ -302,8 +324,11 @@ function HUDOverlay:rebuildForecast()
     end
     if self.manager == nil or self.manager.weatherIntegration == nil then return end
 
+    -- Request FORECAST_COLS-1 projected days: the first display column is "Now"
+    -- (current moisture from soilSystem), so we only need 4 future projections
+    -- to fill the remaining 4 columns.
     local projections = self.manager.weatherIntegration:getMoistureForecast(
-        self.selectedFieldId, HUDOverlay.FORECAST_COLS)
+        self.selectedFieldId, HUDOverlay.FORECAST_COLS - 1)
 
     self.forecastCache = {
         fieldId     = self.selectedFieldId,
@@ -561,9 +586,37 @@ function HUDOverlay:getMoistureColor(moisture)
     else return HUDOverlay.COLOR_CRITICAL end
 end
 
--- ============================================================
--- REBUILD DISPLAY ROWS
--- ============================================================
+function HUDOverlay:resolveCropName(field)
+    if field == nil then return "?" end
+
+    local ft = nil
+
+    -- FS25 primary: field.currentFruitTypeIndex (engine-written property)
+    local fti = field.currentFruitTypeIndex
+    if fti ~= nil and fti > 0 and g_fruitTypeManager ~= nil then
+        ft = g_fruitTypeManager:getFruitTypeByIndex(fti)
+    end
+
+    -- Legacy fallback: getFruitType() / fruitType (FS22-era field API)
+    if ft == nil then
+        if type(field.getFruitType) == "function" then
+            local ok, result = pcall(function() return field:getFruitType() end)
+            if ok then ft = result end
+        end
+        if ft == nil then ft = field.fruitType end
+    end
+
+    if ft ~= nil and ft.name ~= nil then
+        local name = ft.name:lower()
+        if name == "grass" or name == "drygrass" or name == "weed"
+        or name == "stone" or name == "meadow" then
+            return "Fallow"
+        end
+        return ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
+    end
+    return "Fallow"
+end
+
 function HUDOverlay:rebuildDisplayRows()
     self.displayRows = {}
     if self.manager == nil or self.manager.soilSystem == nil then return end
@@ -571,36 +624,38 @@ function HUDOverlay:rebuildDisplayRows()
     local sortedFields = self.manager.soilSystem:getFieldsSortedByMoisture()
     if sortedFields == nil then return end
 
+    -- Use the manager's pre-built fieldId→field map (O(1) per lookup, correct on all maps).
+    -- getFieldByIndex(n) returns fields[n] by array position, NOT the field with fieldId==n
+    -- — silently wrong on custom maps, renumbered fields, or non-sequential farmlands.
+    local fieldById = (self.manager ~= nil) and self.manager.fieldById or {}
+
     for _, entry in ipairs(sortedFields) do
         if #self.displayRows >= HUDOverlay.MAX_FIELDS then break end
 
         local stress      = 0
-        local cropName    = "?"
+        local cropName    = nil
         local growthStage = nil
 
         if self.manager.stressModifier ~= nil then
             stress = self.manager.stressModifier:getStress(entry.fieldId)
         end
 
-        if g_currentMission ~= nil and g_currentMission.fieldManager ~= nil then
-            local field = nil
-            if g_currentMission.fieldManager.getFieldByIndex ~= nil then
-                field = g_currentMission.fieldManager:getFieldByIndex(entry.fieldId)
-            end
-            if field ~= nil then
-                local ft = type(field.getFruitType) == "function"
-                    and field:getFruitType()
-                    or field.fruitType
-                if ft ~= nil and ft.name ~= nil then
-                    cropName = ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
-                end
-                if type(field.getGrowthState) == "function" then
-                    growthStage = field:getGrowthState()
-                elseif field.growthState ~= nil then
-                    growthStage = field.growthState
-                end
+        local field = fieldById[entry.fieldId]
+        if field ~= nil then
+            -- FS25-native crop resolution: getFieldState() → fruitTypeIndex
+            cropName = self:resolveCropName(field)
+
+            -- Growth stage
+            if type(field.getGrowthState) == "function" then
+                local ok2, result = pcall(function() return field:getGrowthState() end)
+                if ok2 then growthStage = result end
+            elseif field.growthState ~= nil then
+                growthStage = field.growthState
             end
         end
+
+        -- Final fallback: field not in map yet (enumeration race on slow-loading map)
+        if cropName == nil then cropName = "?" end
 
         table.insert(self.displayRows, {
             fieldId     = entry.fieldId,
@@ -641,20 +696,62 @@ function HUDOverlay:toggle()
     self.autoShowActive = false
     self.autoHideTimer  = 0
 
-    if self.isVisible and not self.firstRunShown then
-        self.firstRunShown = true
-    end
-
-    -- Rebuild display rows immediately on open so auto-select below has data.
-    -- (update() normally rebuilds rows, but it runs next frame — after toggle() returns.)
     if self.isVisible then
-        self:rebuildDisplayRows()
-    end
+        if not self.firstRunShown then
+            self.firstRunShown = true
+        end
 
-    -- Auto-select driest field when opening
-    if self.isVisible and self.selectedFieldId == nil and #self.displayRows > 0 then
-        self.selectedFieldId = self.displayRows[1].fieldId
-        self.forecastDirty   = true
+        -- Rebuild display rows immediately so auto-select below has data.
+        -- (update() normally rebuilds rows, but it runs next frame — after toggle() returns.)
+        self:rebuildDisplayRows()
+
+        self:rebuildDisplayRows()
+
+        -- FIX: soilSystem may not have its moisture table yet on first open.
+        -- Build stub rows from fieldById so the panel is never blank.
+        if #self.displayRows == 0 then
+            local fieldById = (self.manager ~= nil) and self.manager.fieldById or {}
+            local count = 0
+            for fid, field in pairs(fieldById) do
+                if count >= HUDOverlay.MAX_FIELDS then break end
+                local stress = 0
+                if self.manager ~= nil and self.manager.stressModifier ~= nil then
+                    stress = self.manager.stressModifier:getStress(fid) or 0
+                end
+                local growthStage = nil
+                if type(field.getGrowthState) == "function" then
+                    local ok, result = pcall(function() return field:getGrowthState() end)
+                    if ok then growthStage = result end
+                elseif field.growthState ~= nil then
+                    growthStage = field.growthState
+                end
+                table.insert(self.displayRows, {
+                    fieldId     = fid,
+                    moisture    = 0,
+                    stress      = stress,
+                    cropName    = self:resolveCropName(field),
+                    growthStage = growthStage,
+                })
+                count = count + 1
+            end
+        end
+        
+        -- Auto-select driest field when opening
+        if self.selectedFieldId == nil and #self.displayRows > 0 then
+            self.selectedFieldId = self.displayRows[1].fieldId
+            self.forecastDirty   = true
+        end
+    else
+        -- Exit edit mode when hiding — orange border should not persist invisibly
+        if self.editMode then
+            self.editMode = false
+            self.dragging = false
+            -- Persist position so the drag position is saved even if they hid mid-edit
+            if self.manager ~= nil and self.manager.settings ~= nil then
+                self.manager.settings.hudPanelX = self.panelX
+                self.manager.settings.hudPanelY = self.panelY
+            end
+        end
     end
 
     csLog("HUD toggled: " .. tostring(self.isVisible))

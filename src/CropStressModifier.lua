@@ -58,6 +58,11 @@ function CropStressModifier.new(manager)
     -- Per-field accumulated stress: fieldId → float (0.0–1.0)
     self.fieldStress = {}
 
+    -- When FS25_RealisticWeather is present, its getHarvestScaleMultiplier hook
+    -- handles the yield penalty. We skip our doGroundWorkArea reduction to avoid
+    -- stacking, but still accumulate stress for HUD display.
+    self.rwModeActive = false
+
     self.isInitialized = false
     return self
 end
@@ -77,45 +82,50 @@ function CropStressModifier:hourlyUpdate()
     local soilSystem = self.manager.soilSystem
     if soilSystem == nil then return end
 
-    for fieldId, data in pairs(soilSystem.fieldData) do
-        local moisture = data.moisture
+    -- Use the manager's pre-built fieldId→field map (built in lateInitialize).
+    -- Avoids rebuilding it every hour and eliminates the getFieldByIndex trap:
+    -- getFieldByIndex(n) returns fields[n] (array index), NOT the field with fieldId==n.
+    local fieldById = (self.manager ~= nil) and self.manager.fieldById or {}
 
-        -- Get the field object to read crop type and growth stage
-        -- NOTE: getFieldByIndex vs getFields() — verify the correct lookup in LUADOC.
-        -- Some FS25 versions use fieldManager:getFieldByIndex(id), others differ.
-        local field = nil
-        if g_currentMission.fieldManager.getFieldByIndex ~= nil then
-            field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
+    for fieldId, data in pairs(soilSystem.fieldData) do
+        local field = fieldById[fieldId]
+        if field ~= nil then
+            self:processFieldStress(field, fieldId, data.moisture)
         end
-        if field == nil then
-            -- Fallback: iterate all fields (slower but safe)
-            local fields = g_currentMission.fieldManager:getFields()
-            for _, f in pairs(fields) do
-                if f.fieldId == fieldId then
-                    field = f
-                    break
-                end
-            end
-        end
-        if field == nil then
-            -- Not found this tick — skip silently
-        else
-            self:processFieldStress(field, fieldId, moisture)
-        end
+        -- If field not in map this tick, skip silently — map will be rebuilt on next lateInitialize
     end
 end
 
 function CropStressModifier:processFieldStress(field, fieldId, moisture)
-    -- Get fruit type name
-    local fruitType = nil
-    if type(field.getFruitType) == "function" then
-        fruitType = field:getFruitType()
-    elseif field.fruitType ~= nil then
-        fruitType = field.fruitType
-    end
-    if fruitType == nil then return end
+    -- Get fruit type name — FS25-native API first, legacy fallback second
+    local cropName = nil
 
-    local cropName = fruitType.name and fruitType.name:lower() or nil
+    -- FS25 primary: getFieldState() → fruitTypeIndex → g_fruitTypeManager lookup
+    if type(field.getFieldState) == "function" then
+        local ok, state = pcall(function() return field:getFieldState() end)
+        if ok and state ~= nil and state.fruitTypeIndex ~= nil and state.fruitTypeIndex > 0 then
+            if g_fruitTypeManager ~= nil then
+                local ft = g_fruitTypeManager:getFruitTypeByIndex(state.fruitTypeIndex)
+                if ft ~= nil and ft.name ~= nil then
+                    cropName = ft.name:lower()
+                end
+            end
+        end
+    end
+
+    -- Fallback: legacy getFruitType() (FS19/22 API present in many FS25 maps)
+    if cropName == nil then
+        local fruitType = nil
+        if type(field.getFruitType) == "function" then
+            fruitType = field:getFruitType()
+        elseif field.fruitType ~= nil then
+            fruitType = field.fruitType
+        end
+        if fruitType ~= nil and fruitType.name ~= nil then
+            cropName = fruitType.name:lower()
+        end
+    end
+
     if cropName == nil then return end
 
     local window = CropStressModifier.CROP_WINDOWS[cropName]
@@ -153,7 +163,7 @@ function CropStressModifier:processFieldStress(field, fieldId, moisture)
         local prev = self.fieldStress[fieldId] or 0.0
         self.fieldStress[fieldId] = math.min(1.0, prev + stressIncrease)
 
-        if self.manager.debugMode then
+        if self.manager ~= nil and self.manager.debugMode then
             csLog(string.format(
                 "Stress Field %d (%s stage %d): +%.4f → total %.3f (moisture %.1f%% < %.0f%%)",
                 fieldId, cropName, growthStage, stressIncrease,
@@ -174,10 +184,12 @@ function CropStressModifier:resetStress(fieldId)
     self.fieldStress[fieldId] = 0.0
 end
 
--- Returns estimated yield impact as a display string, e.g. "-18%"
+-- Returns estimated yield impact as a display string, e.g. "-18%".
+-- Uses the instance method (not the class constant) so the player's
+-- configured max yield loss setting is reflected in dialog display.
 function CropStressModifier:getYieldImpactString(fieldId)
     local stress = self:getStress(fieldId)
-    local loss = stress * CropStressModifier.MAX_YIELD_LOSS * 100
+    local loss = stress * self:getMaxYieldLoss() * 100
     if loss < 0.5 then return "0%" end
     return string.format("-%.0f%%", loss)
 end
@@ -189,7 +201,10 @@ end
 function CropStressModifier.getFieldIdAtPosition(x, z)
     if g_currentMission == nil or g_currentMission.fieldManager == nil then return nil end
 
-    local fields = g_currentMission.fieldManager:getFields()
+    local ok, fields = pcall(function()
+        return g_currentMission.fieldManager:getFields()
+    end)
+    if not ok or fields == nil then return nil end
     for _, field in pairs(fields) do
         -- Preferred: native containment check
         -- LUADOC: look for fieldManager:getFieldAtWorldPos(x, z) or field:containsPoint(x, z)
@@ -258,13 +273,28 @@ function CropStressModifier.installHarvestHook()
             local fieldId = CropStressModifier.getFieldIdAtPosition(wx, wz)
             if fieldId == nil then return end
 
-            local stress = g_cropStressManager.stressModifier:getStress(fieldId)
+            local stressModifier = g_cropStressManager.stressModifier
+            local stress = stressModifier:getStress(fieldId)
+
+            -- When RW is active its getHarvestScaleMultiplier hook handles yield.
+            -- We reset our accumulated stress (clears HUD) but skip fill-level changes.
+            if stressModifier.rwModeActive then
+                if stress > 0.01 and g_cropStressManager.debugMode then
+                    csLog(string.format(
+                        "Harvest field %d: stress=%.2f display-only (RW handles yield)",
+                        fieldId, stress
+                    ))
+                end
+                stressModifier:resetStress(fieldId)
+                return
+            end
+
             if stress <= 0.01 then return end
 
             -- Calculate yield reduction factor using the player-configured max yield loss.
             -- Uses the instance method (which reads settings-adjusted value) rather than
             -- the class constant so difficulty/settings changes take effect at harvest.
-            local maxLoss = g_cropStressManager.stressModifier:getMaxYieldLoss()
+            local maxLoss = stressModifier:getMaxYieldLoss()
             local reduction = stress * maxLoss
             local keepFactor = 1.0 - reduction
 
@@ -288,7 +318,7 @@ function CropStressModifier.installHarvestHook()
                     fieldId, stress, reduction * 100
                 ))
             end
-            g_cropStressManager.stressModifier:resetStress(fieldId)
+            stressModifier:resetStress(fieldId)
         end
     )
 
@@ -300,6 +330,14 @@ function CropStressModifier:delete()
     self.isInitialized = false
     -- Note: the harvest hook patch cannot be uninstalled without storing the original.
     -- On mod reload, the whole game restarts so this is not a concern.
+end
+
+-- Enable/disable RW integration mode (called by CropStressManager:detectOptionalMods)
+function CropStressModifier:setRWMode(active)
+    self.rwModeActive = active == true
+    if self.rwModeActive then
+        csLog("CropStressModifier: RW mode active — harvest yield penalty deferred to RW")
+    end
 end
 
 -- Set stress rate multiplier from settings

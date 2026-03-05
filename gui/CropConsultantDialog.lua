@@ -1,103 +1,119 @@
 -- ============================================================
 -- CropConsultantDialog.lua
--- Phase 3 implementation.
+-- Agronomist consultation panel.
 --
--- Opened via CS_OPEN_CONSULTANT (Shift+C) or from the Crop Consultant
--- NPC if FS25_NPCFavor is active.
+-- Pattern: CsDialogLoader / NPCFavor 3-layer button pattern (FS25 v1.16)
+--   • CsDialogLoader creates instance + calls g_gui:loadGui()
+--   • onCreate() ONLY calls superClass().onCreate(self) in pcall
+--     → FS25 auto-wires all id= elements into self.*
+--   • onOpen() calls super then calls refreshContent() (reads live data)
+--   • onClose() calls super for cleanup
 --
--- Standalone mode:
---   Shows agronomist report: top 5 fields by risk, current alerts,
---   recommended irrigation schedule for the next 3 days.
+-- Button pattern (3-layer, NPCFavor):
+--   Bitmap bg + invisible Button hit (onFocus/onLeave) + Text label
+--   applyHover() drives color changes on focus/leave events.
 --
--- NPCFavor mode:
---   Also shows relationship level with Alex Chen and available favors.
+-- Auto-wired element names (must match id= in CropConsultantDialog.xml):
+--   titleText, subtitleText, npcSection, npcRelLabel, npcRelValue,
+--   fieldListContainer, recommendText,
+--   btnOpenIrrBg, btnOpenIrr, btnOpenIrrText
 --
--- Extends MessageDialog (NOT the deprecated DialogElement — see CLAUDE.md).
--- onOpen IS used as the FS25 lifecycle hook (calls superClass().onOpen for focus/input init).
--- Close buttons call self:close() to initiate the close sequence; the XML onClose attribute
--- points to onConsultantDialogClose() which is cleanup-only (do NOT call close() inside it).
+-- Opened via CS_OPEN_CONSULTANT (Shift+C) or from Crop Consultant NPC
+-- (FS25_NPCFavor integration). Reads live field/stress/moisture data on open.
 -- ============================================================
 
 CropConsultantDialog = {}
 local CropConsultantDialog_mt = Class(CropConsultantDialog, MessageDialog)
 
+-- Button color constants (NPCFavor pattern)
+CropConsultantDialog.COLORS = {
+    BTN_NORMAL = {0.15, 0.15, 0.18, 1},
+    BTN_HOVER  = {0.22, 0.28, 0.38, 1},
+    TXT_NORMAL = {1,    1,    1,    1},
+    TXT_HOVER  = {0.7,  0.9,  1,    1},
+}
+
 -- ============================================================
 -- CONSTRUCTOR
 -- ============================================================
+
 function CropConsultantDialog.new(target, customMt)
-    -- Called by g_gui:loadGui() with no arguments — target and customMt will both be nil.
-    -- Base class MUST be MessageDialog (not the deprecated DialogElement) so that
-    -- focusElement is properly initialised during XML wiring and FocusManager:update()
-    -- does not crash with "attempt to index nil with 'focusElement'" on the first frame.
     local self = MessageDialog.new(target, customMt or CropConsultantDialog_mt)
     return self
 end
 
 -- ============================================================
--- onOpen — called by FS25 GUI system when dialog becomes visible.
--- MUST call superClass().onOpen() to register focus/input handling.
+-- LIFECYCLE
 -- ============================================================
-function CropConsultantDialog:onOpen()
-    CropConsultantDialog:superClass().onOpen(self)
+
+-- Called by FS25 GUI system after XML is parsed (via g_gui:loadGui).
+-- ONLY calls superClass().onCreate(self) — triggers FS25 auto-wiring.
+function CropConsultantDialog:onCreate()
+    local ok, err = pcall(function()
+        CropConsultantDialog:superClass().onCreate(self)
+    end)
+    if not ok then
+        print("[CropStress] CropConsultantDialog:onCreate() superClass FAILED: " .. tostring(err))
+    end
 end
 
--- Initiated by close buttons — triggers the close sequence.
+-- Called by FS25 GUI system each time the dialog becomes visible.
+function CropConsultantDialog:onOpen()
+    local ok, err = pcall(function()
+        CropConsultantDialog:superClass().onOpen(self)
+    end)
+    if not ok then
+        print("[CropStress] CropConsultantDialog:onOpen() superClass FAILED: " .. tostring(err))
+        return
+    end
+    self:refreshContent()
+end
+
+-- Called by FS25 GUI system after the dialog has fully closed (cleanup only).
+function CropConsultantDialog:onClose()
+    CropConsultantDialog:superClass().onClose(self)
+end
+
+-- Initiated by close button.
 function CropConsultantDialog:onCloseClicked()
     self:close()
 end
 
 -- ============================================================
--- onCreate — wire up elements by ID
--- Called by FS25 GUI system after XML is parsed.
+-- HOVER EFFECTS (NPCFavor 3-layer pattern)
 -- ============================================================
-function CropConsultantDialog:onCreate()
-    -- Header
-    self.titleElement      = self:getDescendantByName("titleText")
-    self.subtitleElement   = self:getDescendantByName("subtitleText")
 
-    -- NPC relationship bar (hidden when NPCFavor not active)
-    self.npcSection        = self:getDescendantByName("npcSection")
-    self.npcRelLabel       = self:getDescendantByName("npcRelLabel")
-    self.npcRelValue       = self:getDescendantByName("npcRelValue")
-
-    -- Field list container (dynamic rows added in Lua)
-    self.fieldContainer    = self:getDescendantByName("fieldListContainer")
-
-    -- Forecast / recommendation section
-    self.recommendTitle    = self:getDescendantByName("recommendTitle")
-    self.recommendText     = self:getDescendantByName("recommendText")
-
-    -- Buttons
-    self.btnClose          = self:getDescendantByName("btnClose")
-    self.btnOpenIrr        = self:getDescendantByName("btnOpenIrr")
-
-    -- Hide NPC section by default (shown only if NPCFavor active)
-    if self.npcSection ~= nil then
-        self.npcSection:setVisible(false)
+-- Apply hover highlight to an action button (suffix = "OpenIrr").
+function CropConsultantDialog:applyHover(suffix, isHovered)
+    local bgElem  = self["btn" .. suffix .. "Bg"]
+    local txtElem = self["btn" .. suffix .. "Text"]
+    if bgElem then
+        local c = isHovered and self.COLORS.BTN_HOVER or self.COLORS.BTN_NORMAL
+        bgElem:setImageColor(c[1], c[2], c[3], c[4])
+    end
+    if txtElem then
+        local c = isHovered and self.COLORS.TXT_HOVER or self.COLORS.TXT_NORMAL
+        txtElem:setTextColor(c[1], c[2], c[3], c[4])
     end
 end
 
--- ============================================================
--- onConsultantDialogOpen — called from main.lua action handler
--- ============================================================
-function CropConsultantDialog:onConsultantDialogOpen()
-    self:refreshContent()
-end
+function CropConsultantDialog:onBtnOpenIrrFocus() self:applyHover("OpenIrr", true)  end
+function CropConsultantDialog:onBtnOpenIrrLeave() self:applyHover("OpenIrr", false) end
 
 -- ============================================================
 -- REFRESH CONTENT
--- Rebuilds the field list, recommendations, and optional NPC panel.
+-- Rebuilds the field risk list, recommendations, and optional NPC panel.
 -- ============================================================
+
 function CropConsultantDialog:refreshContent()
     if g_cropStressManager == nil then return end
 
-    -- Update title
-    if self.titleElement ~= nil then
+    if self.titleText ~= nil then
         local name = (g_i18n ~= nil and g_i18n:getText("cs_consultant_name")) or "Crop Consultant"
-        self.titleElement:setText(name)
+        self.titleText:setText(name)
     end
 
-    -- NPC section (only when NPCFavor active and NPC registered)
+    -- NPC section (only when FS25_NPCFavor active and NPC registered)
     if self.npcSection ~= nil then
         local npcActive = g_cropStressManager.npcIntegration ~= nil
             and g_cropStressManager.npcIntegration.isRegistered
@@ -109,25 +125,22 @@ function CropConsultantDialog:refreshContent()
         end
     end
 
-    -- Build field list
     self:buildFieldList()
-
-    -- Build recommendation text
     self:buildRecommendation()
 end
 
 -- ============================================================
 -- BUILD FIELD LIST
--- Populates fieldContainer with up to 5 fields sorted by risk.
+-- Populates fieldListContainer with up to 5 fields sorted by risk.
 -- ============================================================
-function CropConsultantDialog:buildFieldList()
-    if self.fieldContainer == nil then return end
 
-    -- Clear existing dynamic children
-    local children = self.fieldContainer.elements
+function CropConsultantDialog:buildFieldList()
+    if self.fieldListContainer == nil then return end
+
+    local children = self.fieldListContainer.elements
     if children ~= nil then
         for i = #children, 1, -1 do
-            self.fieldContainer:removeElement(children[i])
+            self.fieldListContainer:removeElement(children[i])
         end
     end
 
@@ -135,7 +148,6 @@ function CropConsultantDialog:buildFieldList()
     local stressModifier = g_cropStressManager.stressModifier
     if soilSystem == nil or soilSystem.fieldData == nil then return end
 
-    -- Build risk score list: stress * 0.6 + (1-moisture) * 0.4
     local riskList = {}
     for fieldId, data in pairs(soilSystem.fieldData) do
         local stress   = stressModifier ~= nil and stressModifier:getStress(fieldId) or 0
@@ -145,16 +157,28 @@ function CropConsultantDialog:buildFieldList()
     end
     table.sort(riskList, function(a, b) return a.risk > b.risk end)
 
+    local function addRow(text, yPos)
+        local label = TextElement.new()
+        if g_gui ~= nil then
+            local prof = g_gui:getProfile("fs25_dialogText")
+            if prof ~= nil then label:loadProfile(prof, true) end
+        end
+        label:setPosition(5, yPos)
+        label:setText(text)
+        self.fieldListContainer:addElement(label)
+        label:onGuiSetupFinished()
+    end
+
+    if #riskList == 0 then
+        addRow((g_i18n ~= nil and g_i18n:getText("cs_consultant_no_data")) or "No field data available.", 0)
+        return
+    end
+
     local y = 0
     for i = 1, math.min(5, #riskList) do
         local entry = riskList[i]
-
-        local cropName = self:getCropName(entry.fieldId)
-        local yieldImpact = stressModifier ~= nil
-            and stressModifier:getYieldImpactString(entry.fieldId)
-            or "0%"
-
-        -- Severity label
+        local cropName    = self:getCropName(entry.fieldId)
+        local yieldImpact = stressModifier ~= nil and stressModifier:getYieldImpactString(entry.fieldId) or "0%"
         local severityStr
         if entry.moisture < 0.25 then
             severityStr = "[CRITICAL]"
@@ -163,51 +187,19 @@ function CropConsultantDialog:buildFieldList()
         else
             severityStr = "[OK]"
         end
-
         local labelStr = string.format(
             "Field %d · %s  %d%% moisture  Yield %s  %s",
-            entry.fieldId,
-            cropName,
-            math.floor(entry.moisture * 100),
-            yieldImpact,
-            severityStr
+            entry.fieldId, cropName, math.floor(entry.moisture * 100), yieldImpact, severityStr
         )
-
-        -- TextElement is the correct FS25 class for dynamic text inside a dialog.
-        -- GuiElement.new() does not expose setText() and setProfile() is not standard.
-        local label = TextElement.new()
-        if g_gui ~= nil then
-            local prof = g_gui:getProfile("fs25_dialogText")
-            if prof ~= nil then
-                label:loadProfile(prof, true)
-            end
-        end
-        label:setPosition(5, y)
-        label:setText(labelStr)
-        self.fieldContainer:addElement(label)
-        label:onGuiSetupFinished()
+        addRow(labelStr, y)
         y = y - 22
-    end
-
-    if #riskList == 0 then
-        local noData = TextElement.new()
-        if g_gui ~= nil then
-            local prof = g_gui:getProfile("fs25_dialogText")
-            if prof ~= nil then
-                noData:loadProfile(prof, true)
-            end
-        end
-        noData:setPosition(5, 0)
-        noData:setText((g_i18n ~= nil and g_i18n:getText("cs_consultant_no_data")) or "No field data available.")
-        self.fieldContainer:addElement(noData)
-        noData:onGuiSetupFinished()
     end
 end
 
 -- ============================================================
 -- BUILD RECOMMENDATION
--- Uses weather forecast + field state to suggest actions.
 -- ============================================================
+
 function CropConsultantDialog:buildRecommendation()
     if self.recommendText == nil then return end
 
@@ -221,7 +213,6 @@ function CropConsultantDialog:buildRecommendation()
         return
     end
 
-    -- Find the highest-risk field
     local worst = nil
     for fieldId, data in pairs(soilSystem.fieldData) do
         if worst == nil or data.moisture < worst.moisture then
@@ -234,9 +225,7 @@ function CropConsultantDialog:buildRecommendation()
         return
     end
 
-    -- Generate a localized recommendation string
     local lines = {}
-
     if worst.moisture < 0.25 then
         table.insert(lines, t("cs_rec_urgent",  worst.fieldId, worst.moisture * 100))
     elseif worst.moisture < 0.40 then
@@ -245,18 +234,14 @@ function CropConsultantDialog:buildRecommendation()
         table.insert(lines, t("cs_rec_ok"))
     end
 
-    -- 3-day forecast hint for worst field
     if weatherInteg ~= nil then
         local proj = weatherInteg:getMoistureForecast(worst.fieldId, 3)
         if proj ~= nil and #proj >= 3 then
             table.insert(lines, t("cs_rec_forecast",
-                (proj[1] or 0) * 100,
-                (proj[2] or 0) * 100,
-                (proj[3] or 0) * 100))
+                (proj[1] or 0) * 100, (proj[2] or 0) * 100, (proj[3] or 0) * 100))
         end
     end
 
-    -- Irrigation status hint
     local irrMgr = g_cropStressManager.irrigationManager
     if irrMgr ~= nil then
         local active = 0
@@ -276,9 +261,9 @@ end
 -- ============================================================
 -- BUTTON HANDLERS
 -- ============================================================
+
 function CropConsultantDialog:onOpenIrrigationDialog()
     self:close()
-    -- Let CropStressManager open the irrigation dialog
     if g_cropStressManager ~= nil then
         g_cropStressManager:onOpenIrrigationDialog()
     end
@@ -287,36 +272,63 @@ end
 -- ============================================================
 -- HELPERS
 -- ============================================================
-function CropConsultantDialog:getCropName(fieldId)
-    if g_currentMission == nil or g_currentMission.fieldManager == nil then return "?" end
 
-    local field = nil
-    if g_currentMission.fieldManager.getFieldByIndex ~= nil then
-        field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
+-- Returns the field object for a fieldId using the manager's map (fast path)
+-- or a linear scan of getFields() as fallback.
+function CropConsultantDialog:getFieldObject(fieldId)
+    local mgr = g_cropStressManager
+    if mgr ~= nil and mgr.fieldById ~= nil then
+        local f = mgr.fieldById[fieldId]
+        if f ~= nil then return f end
     end
-    -- Fallback: iterate all fields (needed on maps where getFieldByIndex returns nil)
-    if field == nil then
-        local fields = g_currentMission.fieldManager:getFields()
+    if g_currentMission == nil or g_currentMission.fieldManager == nil then return nil end
+    local ok, fields = pcall(function()
+        return g_currentMission.fieldManager:getFields()
+    end)
+    if ok and fields ~= nil then
         for _, f in pairs(fields) do
-            if f.fieldId == fieldId then field = f; break end
+            if f ~= nil and f.fieldId == fieldId then return f end
         end
     end
-    if field == nil then return "?" end
-
-    local ft = type(field.getFruitType) == "function"
-        and field:getFruitType()
-        or field.fruitType
-    if ft ~= nil and ft.name ~= nil then
-        return ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
-    end
-    return "?"
+    return nil
 end
 
--- ============================================================
--- CLOSE
--- Called by FS25 GUI system AFTER the dialog has been closed (cleanup only).
--- Do NOT call self:close() or g_gui:closeDialog() here.
--- ============================================================
-function CropConsultantDialog:onConsultantDialogClose()
-    CropConsultantDialog:superClass().onClose(self)
+function CropConsultantDialog:getCropName(fieldId)
+    local field = self:getFieldObject(fieldId)
+    if field == nil then return "?" end
+
+    -- FS25-native: getFieldState() returns fruitTypeIndex
+    if type(field.getFieldState) == "function" then
+        local ok, state = pcall(function() return field:getFieldState() end)
+        if ok and state ~= nil and state.fruitTypeIndex ~= nil and state.fruitTypeIndex > 0 then
+            if g_fruitTypeManager ~= nil then
+                local ft = g_fruitTypeManager:getFruitTypeByIndex(state.fruitTypeIndex)
+                if ft ~= nil and ft.name ~= nil then
+                    return self:formatCropName(ft.name)
+                end
+            end
+        end
+    end
+
+    -- Fallback: legacy getFruitType()
+    local ft = nil
+    if type(field.getFruitType) == "function" then
+        local ok, result = pcall(function() return field:getFruitType() end)
+        if ok then ft = result end
+    end
+    if ft == nil then ft = field.fruitType end
+    if ft ~= nil and ft.name ~= nil then
+        return self:formatCropName(ft.name)
+    end
+    return "Fallow"
+end
+
+function CropConsultantDialog:formatCropName(rawName)
+    if rawName == nil then return "Fallow" end
+    local name = rawName:lower()
+    if name == "grass" or name == "drygrass" or name == "weed"
+    or name == "stone" or name == "meadow" then
+        return "Fallow"
+    end
+    return rawName:sub(1,1):upper() .. rawName:sub(2):lower()
 end

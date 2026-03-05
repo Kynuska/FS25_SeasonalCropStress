@@ -1,55 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     CropConsultantDialog.xml
-    Agronomist consultation panel.
-    NEVER use onOpen/onClose as callback names — system lifecycle conflict.
-    Pattern follows TakeLoanDialog.xml per CLAUDE.md.
+    Pattern: CsDialogLoader / NPCFavor 3-layer button pattern (FS25 v1.16 confirmed)
+
+    Layout notes:
+      - Dialog panel: 780px wide × 620px tall, centered on screen.
+      - Content container (fs25_dialogContentContainer) is anchored top-center
+        and provides the inner layout origin.
+      - ALL positions are relative to that container's top-center origin.
+        Y values are negative (downward). X=0 centres an element.
+      - Left-aligned text blocks use textAlignment="left" within a full-width
+        element so they read from the left edge consistently.
+      - Buttons sit at the bottom of the content area, centered on X=0.
+      - The close button lives inside fs25_dialogButtonBox which the base
+        profile positions at the dialog bottom automatically.
 -->
-<GUI onOpen="onOpen" onCreate="onCreate" onClose="onConsultantDialogClose">
+<GUI onOpen="onOpen" onCreate="onCreate" onClose="onClose">
     <GuiElement profile="newLayer" />
     <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
-    <GuiElement profile="dialogBg" id="dialogElement" size="800px 600px">
+
+    <GuiElement profile="dialogBg" id="dialogElement" size="780px 620px">
         <ThreePartBitmap profile="fs25_dialogBgMiddle" />
         <ThreePartBitmap profile="fs25_dialogBgTop" />
         <ThreePartBitmap profile="fs25_dialogBgBottom" />
+
         <GuiElement profile="fs25_dialogContentContainer" id="content">
 
-            <!-- ── Title ─────────────────────────────── -->
-            <Text id="titleText"    profile="fs25_dialogTitle"    text="$l10n_cs_consultant_name" />
-            <Text id="subtitleText" profile="fs25_dialogText" position="0px -15px"
+            <!-- ══ Title block ══════════════════════════════════════ -->
+            <Text id="titleText"
+                  profile="fs25_dialogTitle"
+                  position="0px 0px"
+                  text="$l10n_cs_consultant_name" />
+
+            <Text id="subtitleText"
+                  profile="csSubtitleText"
+                  position="0px -38px"
                   text="$l10n_cs_consultant_subtitle" />
 
-            <!-- ── NPC Relationship Section (hidden when NPCFavor not active) ── -->
-            <GuiElement id="npcSection" position="0px -50px" size="760px 30px">
-                <Text id="npcRelLabel" profile="fs25_dialogText" position="-350px 0px"
+            <Bitmap profile="csDivider" position="0px -64px" />
+
+            <!-- ══ NPC Relationship row (hidden until NPCFavor active) ══ -->
+            <GuiElement id="npcSection" position="0px -78px" size="740px 24px" visible="false">
+                <Text id="npcRelLabel"
+                      profile="csLabelText"
+                      position="0px 0px"
                       text="$l10n_cs_consultant_relationship" />
-                <Text id="npcRelValue" profile="fs25_dialogText" position="-180px 0px"
+                <Text id="npcRelValue"
+                      profile="csValueText"
+                      position="240px 0px"
                       text="—" />
             </GuiElement>
 
-            <!-- ── Field Risk List ───────────────────── -->
-            <Text profile="fs25_dialogText" position="-350px -90px"
+            <!-- ══ Field Status section ══════════════════════════════ -->
+            <Text profile="csSectionHeader"
+                  position="0px -84px"
                   text="$l10n_cs_consultant_field_status" />
-            <GuiElement id="fieldListContainer" position="-350px -125px" size="760px 130px">
-                <!-- Items added dynamically in CropConsultantDialog.lua -->
-            </GuiElement>
 
-            <!-- ── Recommendations ───────────────────── -->
-            <Text profile="fs25_dialogText" position="-350px -270px"
+            <!-- Up to 5 rows @ 22px each = 110px; container is 115px -->
+            <GuiElement id="fieldListContainer"
+                        position="0px -108px"
+                        size="740px 115px" />
+
+            <!-- ══ Recommendation section ════════════════════════════ -->
+            <Text profile="csSectionHeader"
+                  position="0px -238px"
                   text="$l10n_cs_consultant_recommendation" />
-            <Text id="recommendText" profile="fs25_dialogText" position="-350px -305px"
-                  size="760px 120px" text="—" />
+
+            <Text id="recommendText"
+                  profile="csBodyText"
+                  position="0px -262px"
+                  size="740px 96px"
+                  text="—" />
+
+            <!-- ══ Action button — Open Irrigation Manager ═══════════ -->
+            <!-- All three layers at identical position so they stack   -->
+            <Bitmap profile="csActionBtnBg"   id="btnOpenIrrBg"   position="0px -380px" />
+            <Button profile="csActionBtnHit"  id="btnOpenIrr"     position="0px -380px"
+                    onClick="onOpenIrrigationDialog"
+                    onFocus="onBtnOpenIrrFocus"
+                    onLeave="onBtnOpenIrrLeave" />
+            <Text   profile="csActionBtnText" id="btnOpenIrrText" position="0px -380px"
+                    text="$l10n_cs_consultant_open_irrigation" />
 
         </GuiElement>
 
-        <!-- ── Buttons ───────────────────────────────── -->
-        <BoxLayout profile="fs25_dialogButtonBox" id="buttonBox">
-            <Button profile="buttonActivate" id="btnOpenIrr"
-                    text="$l10n_cs_consultant_open_irrigation"
-                    onClick="onOpenIrrigationDialog" />
-            <Button profile="buttonOK" id="btnClose"
-                    text="$l10n_cs_close"
-                    onClick="onCloseClicked" />
-        </BoxLayout>
+        <!-- ══ Close button bar ══════════════════════════════════════ -->
+        <GuiElement profile="fs25_dialogButtonBox" id="buttonBox">
+            <Bitmap profile="csCloseBtnBg"   id="btnCloseBg"   position="0px 0px" />
+            <Button profile="csCloseBtnHit"  id="btnClose"     position="0px 0px"
+                    onClick="onCloseClicked"
+                    onFocus="onBtnCloseFocus"
+                    onLeave="onBtnCloseLeave" />
+            <Text   profile="csCloseBtnText" id="btnCloseText" position="0px 0px"
+                    text="$l10n_cs_close" />
+        </GuiElement>
     </GuiElement>
+
+    <GUIProfiles>
+        <Profile name="fs25_guiElement" extends="baseReference" />
+
+        <!-- Subtitle: centered, blue-tinted, smaller than title -->
+        <Profile name="csSubtitleText" extends="fs25_textDefault" with="anchorTopCenter">
+            <size value="740px 24px" />
+            <textSize value="13px" />
+            <textColor value="0.7 0.85 1 1" />
+            <textAlignment value="center" />
+        </Profile>
+
+        <!-- Thin horizontal rule -->
+        <Profile name="csDivider" extends="baseReference" with="anchorTopCenter">
+            <size value="740px 1px" />
+            <imageColor value="0.28 0.35 0.5 0.9" />
+        </Profile>
+
+        <!-- Section header label (blue accent, left-aligned) -->
+        <Profile name="csSectionHeader" extends="fs25_textDefault" with="anchorTopCenter">
+            <size value="740px 20px" />
+            <textSize value="12px" />
+            <textBold value="true" />
+            <textColor value="0.5 0.75 1 1" />
+            <textAlignment value="left" />
+        </Profile>
+
+        <!-- NPC row: label column (left-anchored inside npcSection) -->
+        <Profile name="csLabelText" extends="fs25_textDefault" with="anchorTopLeft">
+            <size value="230px 24px" />
+            <textSize value="13px" />
+            <textColor value="0.78 0.78 0.78 1" />
+            <textAlignment value="left" />
+        </Profile>
+
+        <!-- NPC row: value column -->
+        <Profile name="csValueText" extends="fs25_textDefault" with="anchorTopLeft">
+            <size value="120px 24px" />
+            <textSize value="13px" />
+            <textBold value="true" />
+            <textColor value="1 1 1 1" />
+            <textAlignment value="left" />
+        </Profile>
+
+        <!-- Multi-line body / recommendation text -->
+        <Profile name="csBodyText" extends="fs25_textDefault" with="anchorTopCenter">
+            <size value="740px 96px" />
+            <textSize value="13px" />
+            <textColor value="0.9 0.9 0.9 1" />
+            <textAlignment value="left" />
+            <textWordWrap value="true" />
+        </Profile>
+
+        <!-- Action button: bg, hit, text all share the same 320×36 footprint -->
+        <Profile name="csActionBtnBg" extends="baseReference" with="anchorTopCenter">
+            <size value="320px 36px" />
+            <imageColor value="0.15 0.15 0.18 1" />
+        </Profile>
+        <Profile name="csActionBtnHit" extends="emptyPanel" with="anchorTopCenter">
+            <size value="320px 36px" />
+            <isFocusable value="true" />
+        </Profile>
+        <Profile name="csActionBtnText" extends="fs25_textDefault" with="anchorTopCenter">
+            <size value="320px 36px" />
+            <textSize value="14px" />
+            <textBold value="true" />
+            <textColor value="1 1 1 1" />
+            <textAlignment value="center" />
+            <textVerticalAlignment value="middle" />
+        </Profile>
+
+        <!-- Close button -->
+        <Profile name="csCloseBtnBg" extends="baseReference" with="anchorTopCenter">
+            <size value="140px 36px" />
+            <imageColor value="0.15 0.15 0.18 1" />
+        </Profile>
+        <Profile name="csCloseBtnHit" extends="emptyPanel" with="anchorTopCenter">
+            <size value="140px 36px" />
+            <isFocusable value="true" />
+        </Profile>
+        <Profile name="csCloseBtnText" extends="fs25_textDefault" with="anchorTopCenter">
+            <size value="140px 36px" />
+            <textSize value="14px" />
+            <textBold value="true" />
+            <textColor value="1 1 1 1" />
+            <textAlignment value="center" />
+            <textVerticalAlignment value="middle" />
+        </Profile>
+    </GUIProfiles>
 </GUI>

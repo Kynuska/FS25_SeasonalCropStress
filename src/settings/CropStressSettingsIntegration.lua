@@ -411,7 +411,11 @@ function CropStressSettingsIntegration:onAlertCooldownChanged(state)
 end
 
 -- ============================================================
--- HOOK INSTALLATION (runs at file load time)
+-- HOOK INSTALLATION
+-- Deferred via Mission00.loadMission00Finished to guarantee
+-- InGameMenuSettingsFrame is fully initialised before we patch it.
+-- Installing at source() time risks a nil-class error on some
+-- FS25 build orders where the GUI classes load after mod scripts.
 -- ============================================================
 local function initHooks()
     if not InGameMenuSettingsFrame then
@@ -436,4 +440,11 @@ local function initHooks()
     csLog("ESC menu hook installed")
 end
 
-initHooks()
+-- Register hook installation for when the mission is fully loaded
+-- (safe to call multiple times — Mission00.loadMission00Finished appended fn guards against double-init).
+Mission00.loadMission00Finished = Utils.appendedFunction(
+    Mission00.loadMission00Finished,
+    function(self, ...)
+        initHooks()
+    end
+)

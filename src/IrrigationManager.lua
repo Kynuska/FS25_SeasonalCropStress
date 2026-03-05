@@ -254,8 +254,18 @@ function IrrigationManager:hourlyScheduleCheck()
 
     -- env.currentHour and env.currentDayInPeriod are direct properties in FS25.
     -- currentDayInPeriod is 1–7 within the current growth period (matches schedule activeDays).
+    -- IMPORTANT: currentDayInPeriod may be nil on some FS25 builds/map combinations.
+    -- Fallback: derive a 1-7 day index from currentDay (monotonic) so scheduling
+    -- never silently defaults to day 1 and makes schedules appear broken.
     local hour      = env.currentHour         or 0
-    local dayOfWeek = env.currentDayInPeriod   or 1
+    local dayOfWeek = env.currentDayInPeriod
+    if dayOfWeek == nil then
+        -- env.currentDay is 1-based within the current period; use modulo as fallback
+        local currentDay = env.currentDay or env.currentMonotonicDay or 0
+        dayOfWeek = (currentDay % 7) + 1   -- maps any integer → 1..7
+    end
+    -- Clamp to valid range in case the API returns an unexpected value
+    if dayOfWeek < 1 or dayOfWeek > 7 then dayOfWeek = 1 end
 
     for id, system in pairs(self.systems) do
         -- Check if water source is still valid

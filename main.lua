@@ -17,39 +17,6 @@
 
 local modDir = g_currentModDirectory
 
--- ============================================================
--- FOCUSMANAGER NIL-NODE GUARD — patch the CLASS, not the instance.
---
--- Root cause (FS25 v1.16 regression):
---   When any mod calls g_gui:loadGui() the GUI system calls
---   loadSharedI3DFile for the button focus-ring indicator i3d.
---   In v1.16 that callback fires with nil as i3dNode when the
---   file is already cached as a shared i3d.
---   FocusManager.lua:94 then does elementsByNodeId[nil] = element
---   → "table index is nil" crash, which leaves currentFocusElement
---   in a corrupt state → FocusManager.lua:126 cascade every frame.
---
--- Why CLASS-level (not instance): g_gui.focusManager is nil at both
--- mod load time AND loadMission00Finished in FS25 v1.16. Patching
--- FocusManager (the class table) covers all instances via Lua __index
--- dispatch and is unaffected by when g_gui initialises its fields.
--- ============================================================
-do
-    if type(FocusManager) == "table" and type(FocusManager.loadSharedI3DFileFinished) == "function" then
-        local origFn = FocusManager.loadSharedI3DFileFinished
-        FocusManager.loadSharedI3DFileFinished = function(self, i3dNode, failedReason, args)
-            if i3dNode == nil then
-                print("[CropStress] FocusManager nil-node guard triggered — suppressed")
-                return
-            end
-            return origFn(self, i3dNode, failedReason, args)
-        end
-        print("[CropStress] FocusManager nil-node guard applied to FocusManager class")
-    else
-        print("[CropStress] WARNING: FocusManager class guard skipped — FocusManager not available at load time")
-    end
-end
-
 -- Weather bridge
 source(modDir .. "src/WeatherIntegration.lua")
 
@@ -81,6 +48,9 @@ source(modDir .. "src/events/CropStressSettingsSyncEvent.lua")
 -- Persistence
 source(modDir .. "src/SaveLoadHandler.lua")
 
+-- GUI dialog loader (must precede dialog scripts)
+source(modDir .. "src/gui/CsDialogLoader.lua")
+
 -- GUI dialogs
 source(modDir .. "gui/FieldMoisturePanel.lua")
 source(modDir .. "gui/IrrigationScheduleDialog.lua")
@@ -88,15 +58,6 @@ source(modDir .. "gui/CropConsultantDialog.lua")
 
 -- Central coordinator (must load last — depends on all modules above)
 source(modDir .. "src/CropStressManager.lua")
-
--- ============================================================
--- Install harvest yield hook.
--- Attempt 1: at source() load time. HarvestingMachine is a base-game
--- global that SHOULD be available here, but log evidence shows it can
--- be nil on some FS25 builds/load orders. The flag prevents double-install.
--- Attempt 2 (retry) happens inside loadMission00Finished below.
--- ============================================================
-CropStressModifier.installHarvestHook()
 
 -- ============================================================
 -- INPUT BINDING (NPCFavor pattern — confirmed working)
@@ -171,46 +132,52 @@ end)
 Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00Finished, function(self, ...)
     if g_csManager == nil then return end
 
-    -- Retry harvest hook if it was skipped at load time (HarvestingMachine was nil).
-    -- By loadMission00Finished all base-game classes are guaranteed in scope.
-    if not CropStressModifier.harvestHookInstalled then
-        CropStressModifier.installHarvestHook()
+    -- ============================================================
+    -- FOCUSMANAGER NIL-NODE GUARD
+    -- Installed here (not at source() load time) because FocusManager
+    -- is a GUI class that isn't available until after mission load.
+    --
+    -- Root cause (FS25 v1.16 regression):
+    --   g_gui:loadGui() calls loadSharedI3DFile for the focus-ring i3d.
+    --   When the file is already cached, the callback fires with i3dNode=nil.
+    --   FocusManager.lua:94 then does elementsByNodeId[nil] = element
+    --   → "table index is nil" crash + corrupt currentFocusElement every frame.
+    -- ============================================================
+    do
+        if type(FocusManager) == "table" and type(FocusManager.loadSharedI3DFileFinished) == "function" then
+            if not FocusManager._csNilNodeGuardInstalled then
+                local origFn = FocusManager.loadSharedI3DFileFinished
+                FocusManager.loadSharedI3DFileFinished = function(fm, i3dNode, failedReason, args)
+                    if i3dNode == nil then
+                        print("[CropStress] FocusManager nil-node guard triggered — suppressed")
+                        return
+                    end
+                    return origFn(fm, i3dNode, failedReason, args)
+                end
+                FocusManager._csNilNodeGuardInstalled = true
+                print("[CropStress] FocusManager nil-node guard applied")
+            end
+        else
+            print("[CropStress] WARNING: FocusManager not available at loadMission00Finished — guard skipped")
+        end
     end
 
     g_csManager:initialize()
 
-    -- Register dialogs with the GUI system.
-    -- PATTERN (from FS25_NPCFavor/DialogLoader.lua — confirmed working):
-    --   g_gui:loadGui(xml, name, instance)  ← 3 args: xml, name string, pre-created instance
-    --   Do NOT pass a 4th arg (false) — that code path triggers the FS25 v1.16
-    --   shared-i3d nil-node bug (FocusManager.lua:94) on any dialog loaded after
-    --   the first mod has already cached the button focus-ring i3d.
-    -- Wrap in pcall and verify via g_gui.guis[name] (matches NPCFavor pattern).
-    if g_gui ~= nil then
-        local function safeLoadDialog(xmlPath, name, instance)
-            local ok, err = pcall(function()
-                g_gui:loadGui(xmlPath, name, instance)
-            end)
-            if not ok then
-                print("[CropStress] WARNING: " .. name .. " load error: " .. tostring(err))
-            elseif g_gui.guis and g_gui.guis[name] then
-                print("[CropStress] " .. name .. " loaded OK")
-            else
-                print("[CropStress] WARNING: " .. name .. " not in g_gui.guis after loadGui")
-            end
-        end
+    -- Install field-ready updater immediately after initialize (NPCFavor pattern).
+    -- The updater polls g_currentMission.isMissionStarted + g_fieldManager.fields
+    -- each frame and self-removes once enumeration succeeds.
+    g_csManager:installFieldReadyUpdater()
 
-        safeLoadDialog(
-            modDir .. "gui/IrrigationScheduleDialog.xml",
-            "IrrigationScheduleDialog",
-            IrrigationScheduleDialog.new()
-        )
-        safeLoadDialog(
-            modDir .. "gui/CropConsultantDialog.xml",
-            "CropConsultantDialog",
-            CropConsultantDialog.new()
-        )
-    end
+    -- Register dialogs with CsDialogLoader (NPCFavor confirmed pattern).
+    -- Dialogs are lazily loaded on first CsDialogLoader.show() call:
+    --   ensureLoaded() creates the instance + calls g_gui:loadGui()
+    --   → g_gui:loadGui() calls onCreate() → superClass().onCreate() auto-wires elements
+    --   show() calls the data setter BEFORE g_gui:showDialog() fires onOpen()
+    -- No stored instance references needed on g_csManager.
+    CsDialogLoader.init(modDir)
+    CsDialogLoader.register("IrrigationScheduleDialog", IrrigationScheduleDialog, "gui/IrrigationScheduleDialog.xml")
+    CsDialogLoader.register("CropConsultantDialog",     CropConsultantDialog,     "gui/CropConsultantDialog.xml")
 
     -- Register console debug commands
     if addConsoleCommand ~= nil then
@@ -236,6 +203,9 @@ end)
 
 -- 5. Cleanup on mission unload
 FSBaseMission.delete = Utils.appendedFunction(FSBaseMission.delete, function(self)
+    -- Reset dialog instances so the next mission load creates fresh ones.
+    CsDialogLoader.cleanup()
+
     if g_csManager ~= nil then
         g_csManager:delete()
         g_csManager = nil
@@ -265,21 +235,40 @@ FSCareerMissionInfo.saveToXMLFile = Utils.appendedFunction(FSCareerMissionInfo.s
     end
 end)
 
--- 7. Load saved state (fires after fields are populated)
+-- 7. Mission start: load settings, install field-ready updater (NPCFavor pattern),
+--    load saved field data. Field enumeration itself happens inside the updater
+--    once g_currentMission.isMissionStarted + g_fieldManager.fields are ready.
 Mission00.onStartMission = Utils.appendedFunction(Mission00.onStartMission, function(self, ...)
-    if g_csManager ~= nil then
-        -- Load settings from savegame first
-        if self.missionInfo ~= nil then
-            g_csManager.settings:load(self.missionInfo)
-            g_csManager:applySettings()
-        end
-        
-        -- Enumerate fields first (fieldManager is guaranteed ready at this lifecycle stage).
-        -- lateInitialize() is a no-op if fields were already found during loadMission00Finished.
-        g_csManager:lateInitialize()
-        g_csManager:loadFromXMLFile()
+    if g_csManager == nil then return end
+
+    -- Load settings first so subsystems get correct thresholds before fields init
+    if self.missionInfo ~= nil then
+        g_csManager.settings:load(self.missionInfo)
+        g_csManager:applySettings()
     end
+
+    -- Install the self-removing frame updater that waits for g_fieldManager.fields
+    -- to be populated, then enumerates fields and builds the fieldId map exactly once.
+    g_csManager:installFieldReadyUpdater()
+
+    -- Load saved moisture/stress/irrigation state (fresh game = no-op)
+    g_csManager:loadFromXMLFile()
 end)
+
+-- 8a. Vehicles loaded: install harvest hook.
+-- HarvestingMachine is a vehicle specialization class. It is NOT available at
+-- source() load time, loadMission00Finished, or onStartMission — all of those
+-- fire before vehicle XML files are parsed and specializations registered.
+-- FSBaseMission.onAllVehiclesLoaded is the first guaranteed-safe hook point.
+-- (Confirmed by FS25_NPCFavor and CoursePlay: they hook vehicle specs here too.)
+FSBaseMission.onAllVehiclesLoaded = Utils.appendedFunction(
+    FSBaseMission.onAllVehiclesLoaded,
+    function(self)
+        if not CropStressModifier.harvestHookInstalled then
+            CropStressModifier.installHarvestHook()
+        end
+    end
+)
 
 -- 8. Multiplayer: send initial state to new client
 FSBaseMission.sendInitialClientState = Utils.appendedFunction(
@@ -305,8 +294,10 @@ addModEventListener({
     mouseEvent = function(self, posX, posY, isDown, isUp, button)
         if g_csManager == nil then return end
         if g_csManager.hudOverlay == nil then return end
-        -- Guard: don't intercept while a GUI/dialog is open
-        if g_gui ~= nil and (g_gui:getIsGuiVisible() or g_gui:getIsDialogVisible()) then return end
+        -- Guard: don't intercept while a GUI/dialog is open.
+        -- getIsGuiVisible() returns true for both menus and dialogs in FS25 —
+        -- getIsDialogVisible() does not exist in all builds, so we don't call it.
+        if g_gui ~= nil and g_gui:getIsGuiVisible() then return end
         g_csManager.hudOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
     end
 })

@@ -260,27 +260,81 @@ end
 -- ============================================================
 -- HELPERS
 -- ============================================================
-function CropConsultant:getCropName(fieldId)
-    if g_currentMission == nil or g_currentMission.fieldManager == nil then return "?" end
-    local field = nil
-    if g_currentMission.fieldManager.getFieldByIndex ~= nil then
-        field = g_currentMission.fieldManager:getFieldByIndex(fieldId)
+-- Look up a field object by fieldId using the manager's pre-built map.
+-- Falls back to a linear scan of getFields() if the map isn't ready yet
+-- (e.g. called before lateInitialize completes on a slow-loading map).
+--
+-- WHY NOT getFieldByIndex(fieldId):
+--   getFieldByIndex(n) returns fieldManager.fields[n] — the nth element
+--   of the internal array. On any map where fields aren't in strict
+--   fieldId order (custom maps, deleted fields, modded farmlands) it
+--   silently returns the WRONG field. Confirmed on GDN forums + source.
+function CropConsultant:getFieldObject(fieldId)
+    -- Fast path: use the manager's cached map (O(1))
+    if self.manager ~= nil and self.manager.fieldById ~= nil then
+        local f = self.manager.fieldById[fieldId]
+        if f ~= nil then return f end
     end
-    if field == nil then
-        local fields = g_currentMission.fieldManager:getFields()
+
+    -- Slow fallback: linear scan (map not built yet or field was added dynamically)
+    if g_currentMission == nil or g_currentMission.fieldManager == nil then return nil end
+    local ok, fields = pcall(function()
+        return g_currentMission.fieldManager:getFields()
+    end)
+    if ok and fields ~= nil then
         for _, f in pairs(fields) do
-            if f.fieldId == fieldId then field = f; break end
+            if f ~= nil and f.fieldId == fieldId then return f end
         end
     end
+    return nil
+end
+
+-- Returns display name for the crop on a field, e.g. "Wheat", "Corn", "Fallow".
+-- Uses FS25 getFieldState() API first (FS25-native), then legacy getFruitType()
+-- as fallback for compatibility.
+function CropConsultant:getCropName(fieldId)
+    local field = self:getFieldObject(fieldId)
     if field == nil then return "?" end
 
-    local ft = type(field.getFruitType) == "function"
-        and field:getFruitType()
-        or field.fruitType
-    if ft ~= nil and ft.name ~= nil then
-        return ft.name:sub(1,1):upper() .. ft.name:sub(2):lower()
+    -- FS25 primary: getFieldState() returns { fruitTypeIndex, growthState, ... }
+    if type(field.getFieldState) == "function" then
+        local ok, state = pcall(function() return field:getFieldState() end)
+        if ok and state ~= nil and state.fruitTypeIndex ~= nil and state.fruitTypeIndex > 0 then
+            -- Resolve fruitTypeIndex → fruitType descriptor via g_fruitTypeManager
+            if g_fruitTypeManager ~= nil then
+                local ft = g_fruitTypeManager:getFruitTypeByIndex(state.fruitTypeIndex)
+                if ft ~= nil and ft.name ~= nil then
+                    return self:formatCropName(ft.name)
+                end
+            end
+        end
     end
-    return "?"
+
+    -- Fallback: legacy getFruitType() (FS19/22 API, still present in many FS25 maps)
+    local ft = nil
+    if type(field.getFruitType) == "function" then
+        local ok, result = pcall(function() return field:getFruitType() end)
+        if ok then ft = result end
+    end
+    if ft == nil then ft = field.fruitType end
+
+    if ft ~= nil and ft.name ~= nil then
+        return self:formatCropName(ft.name)
+    end
+
+    return "Fallow"
+end
+
+-- Format an internal fruit type name for display.
+-- Capitalises first letter, lowercases rest; maps grass/weed/etc → "Fallow".
+function CropConsultant:formatCropName(rawName)
+    if rawName == nil then return "Fallow" end
+    local name = rawName:lower()
+    if name == "grass" or name == "drygrass" or name == "weed"
+    or name == "stone" or name == "meadow" then
+        return "Fallow"
+    end
+    return rawName:sub(1,1):upper() .. rawName:sub(2):lower()
 end
 
 -- ============================================================

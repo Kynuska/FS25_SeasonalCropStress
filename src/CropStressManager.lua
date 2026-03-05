@@ -71,6 +71,10 @@ function CropStressManager.new()
     self.isInitialized = false
     self.debugMode     = false
 
+    -- fieldId → field object lookup. Built by buildFieldMap() in installFieldReadyUpdater().
+    -- All subsystems use this instead of getFieldByIndex() or linear scans.
+    self.fieldById = {}
+
     -- Hourly tick tracking (monotonic day * 24 + hour)
     self.lastHourKey   = -1
 
@@ -115,7 +119,15 @@ function CropStressManager.new()
     -- New optional mod bridges (loaded in main.lua after PrecisionFarmingOverlay)
     local function makeNoop(methods)
         local stub = {}
-        for _, m in ipairs(methods) do stub[m] = function() end end
+        for _, m in ipairs(methods) do
+            if m == "isActive" then
+                stub[m] = function() return false end
+            elseif m == "getActiveVehicleCount" or m == "getDestinationCount" or m == "getWaterDestinationCount" then
+                stub[m] = function() return 0 end
+            else
+                stub[m] = function() end
+            end
+        end
         return stub
     end
 
@@ -195,17 +207,93 @@ function CropStressManager:initialize()
     ))
 end
 
--- Called from onStartMission (after fields and save data are available).
--- Re-runs field enumeration if the initial attempt during loadMission00Finished
--- found zero fields (fieldManager was nil too early in the lifecycle).
-function CropStressManager:lateInitialize()
+-- Called from loadMission00Finished. Installs a self-removing frame updater
+-- (NPCFavor pattern) that polls g_currentMission.isMissionStarted and
+-- g_fieldManager.fields each frame. When both are ready it enumerates fields,
+-- builds the fieldId lookup map, and removes itself — no lifecycle hooks needed.
+function CropStressManager:installFieldReadyUpdater()
     if not self.isInitialized then return end
-    if self.soilSystem:getFieldCount() == 0 then
-        local found = self.soilSystem:enumerateFields()
-        csLog(string.format(
-            "CropStressManager lateInit: %d fields now tracked", found
-        ))
+    if self._fieldReadyUpdaterInstalled then return end
+    self._fieldReadyUpdaterInstalled = true
+
+    local manager = self
+    local updater = {
+        _done = false,
+        update = function(u, dt)
+            if u._done then return true end
+
+            -- Wait for mission started AND g_fieldManager with at least one field
+            if not g_currentMission or not g_currentMission.isMissionStarted then
+                return false
+            end
+            if not g_fieldManager or not g_fieldManager.fields then
+                return false
+            end
+            if next(g_fieldManager.fields) == nil then
+                return false  -- fields table exists but is empty — keep waiting
+            end
+
+            -- Ready — enumerate and map fields exactly once
+            u._done = true
+
+            local found = manager.soilSystem:enumerateFields()
+            csLog(string.format("CropStressManager fieldReady: enumerateFields found %d fields", found))
+
+            local mapped = manager:buildFieldMap()
+            csLog(string.format("CropStressManager fieldReady: buildFieldMap mapped %d fields", mapped))
+
+            if found == 0 then
+                csLog("CropStressManager fieldReady: WARNING — enumerateFields returned 0. Check g_fieldManager.fields.")
+            end
+
+            return true  -- remove updater
+        end
+    }
+
+    if g_currentMission and g_currentMission.addUpdateable then
+        g_currentMission:addUpdateable(updater)
+        csLog("CropStressManager: field-ready updater installed")
+    else
+        csLog("CropStressManager: WARNING — addUpdateable not available, attempting immediate enumeration")
+        manager.soilSystem:enumerateFields()
+        manager:buildFieldMap()
     end
+end
+
+-- ============================================================
+-- FIELD ID MAP
+-- Builds a fieldId → field object lookup table.
+-- Must be called AFTER g_fieldManager.fields is populated
+-- (installFieldReadyUpdater handles the correct timing).
+--
+-- Why: getFieldByIndex(n) returns fields[n] — the nth element
+-- of an internal array — NOT the field whose field.fieldId == n.
+-- On custom maps, deleted/renumbered fields, or any map that
+-- loads fields in a different order, getFieldByIndex(fieldId)
+-- silently returns the WRONG field. The only correct approach
+-- is to iterate getFields() once, build a hash map keyed by
+-- field.fieldId, and do all subsequent lookups in O(1).
+--
+-- Pattern confirmed by every production FS22/FS25 mod (AdditionalFieldInfo,
+-- CropRotation, CoursePlay) and explicitly documented on GDN forums.
+-- ============================================================
+function CropStressManager:buildFieldMap()
+    self.fieldById = {}
+    if g_fieldManager == nil or g_fieldManager.fields == nil then
+        csLog("buildFieldMap: g_fieldManager unavailable — map will be empty")
+        return 0
+    end
+
+    local count = 0
+    for _, field in pairs(g_fieldManager.fields) do
+        if field ~= nil and field.fieldId ~= nil then
+            self.fieldById[field.fieldId] = field
+            count = count + 1
+        end
+    end
+
+    csLog(string.format("buildFieldMap: %d fields mapped by fieldId", count))
+    return count
 end
 
 -- Apply current settings to all subsystems.
@@ -283,9 +371,11 @@ function CropStressManager:onHourlyTick()
     self.consultant:hourlyEvaluate()
 
     if self.debugMode then
+        local seasonName = WeatherIntegration.SEASON_NAMES[self.weatherIntegration:getCurrentSeason()]
+            or tostring(self.weatherIntegration:getCurrentSeason())
         csLog(string.format(
-            "Hourly tick complete. Season=%d Temp=%.1f Rain=%s",
-            self.weatherIntegration:getCurrentSeason(),
+            "Hourly tick complete. Season=%s Temp=%.1f Rain=%s",
+            seasonName,
             self.weatherIntegration:getCurrentTemp(),
             tostring(self.weatherIntegration.isRaining)
         ))
@@ -332,10 +422,11 @@ end
 -- OPTIONAL MOD DETECTION
 -- ============================================================
 function CropStressManager:detectOptionalMods()
-    -- Use plain global access (not getfenv) — FS25 mod sandboxing means getfenv(0)
-    -- reads from our mod's own environment, not the shared game global table where
-    -- other mods export their globals via getfenv(0)["x"] = val.
-    if g_NPCSystem ~= nil then
+    -- Cross-mod globals MUST be read via getfenv(0)["name"]. FS25 mod sandboxing
+    -- means plain global access (e.g. g_NPCSystem) only sees our own mod environment.
+    -- Other mods export globals via getfenv(0)["x"] = val (game shared env), so we
+    -- must read them the same way. Confirmed: NPCFavor/NPCAI.lua uses getfenv(0)["g_NPCSystem"].
+    if getfenv(0)["g_NPCSystem"] ~= nil then
         csLog("FS25_NPCFavor detected — enabling NPC integration")
         self.npcIntegration.npcFavorActive = true
         -- Also enable NPCFavor mode on the consultant so alerts route through Alex Chen
@@ -375,17 +466,26 @@ function CropStressManager:detectOptionalMods()
         csLog("AutoDrive detected — water destination hints will appear in critical alerts")
         self.autoDriveIntegration:enableAutoDriveMode()
     end
+
+    -- FS25_RealisticWeather moisture integration.
+    -- RW injects g_currentMission.moistureSystem in DensityMapHeightManager.loadMapData,
+    -- which runs before loadMission00Finished, so the object is available here.
+    -- We verify getValuesAtCoords exists to avoid false-positive collisions.
+    local rwMs = g_currentMission and g_currentMission.moistureSystem
+    if rwMs ~= nil and type(rwMs.getValuesAtCoords) == "function" then
+        csLog("FS25_RealisticWeather MoistureSystem detected — moisture sourced from RW cells; harvest penalty deferred to RW")
+        self.soilSystem:setRWMoistureSystem(rwMs)
+        self.stressModifier:setRWMode(true)
+    end
 end
 
 -- ============================================================
 -- INPUT EVENT — CONSULTANT DIALOG
 -- ============================================================
 function CropStressManager:onOpenConsultantDialog()
-    if g_gui == nil then return end
-    local dialog = g_gui:showDialog("CropConsultantDialog")
-    if dialog ~= nil and dialog.target ~= nil then
-        dialog.target:onConsultantDialogOpen()
-    end
+    -- CsDialogLoader lazily loads the dialog on first call, then shows it.
+    -- No data setter needed — CropConsultantDialog.onOpen() reads live data.
+    CsDialogLoader.show("CropConsultantDialog")
 end
 
 -- ============================================================
@@ -411,15 +511,14 @@ function CropStressManager:onOpenIrrigationDialog()
     end
 
     if firstId ~= nil then
-        -- showDialog returns the dialog instance; call onDialogOpen manually
-        -- because the 3-arg form of showDialog does not forward args to the callback
-        local dialog = g_gui:showDialog("IrrigationScheduleDialog")
-        if dialog ~= nil and dialog.target ~= nil then
-            dialog.target:onIrrigationDialogOpen(firstId)
-        end
+        -- CsDialogLoader.show() calls setSystemId(firstId) BEFORE showDialog(),
+        -- so onOpen() sees a valid systemId when it fires.
+        CsDialogLoader.show("IrrigationScheduleDialog", "setSystemId", firstId)
     else
         if g_currentMission ~= nil then
-            g_currentMission:showBlinkingWarning(g_i18n:getText("cs_no_irrigation_systems"), 3000)
+            g_currentMission:showBlinkingWarning(
+                (g_i18n ~= nil and g_i18n:getText("cs_no_irrigation_systems"))
+                or "No irrigation systems registered.", 3000)
         end
     end
 end
@@ -481,17 +580,17 @@ function CropStressManager:consoleStatus()
 
     -- Optional mod integration status
     print("  Optional integrations:")
-    print(string.format("    NPCFavor:       %s", tostring(self.npcIntegration.npcFavorActive)))
-    print(string.format("    UsedPlus:       %s", tostring(self.financeIntegration.usedPlusActive)))
-    print(string.format("    PrecisionFarm:  %s", tostring(self.precisionFarmingOverlay.pfActive)))
-    print(string.format("    SoilFertilizer: %s", tostring(self.soilFertilizerIntegration.sfActive)))
+    print(string.format("    NPCFavor:       %s", tostring(self.npcIntegration and self.npcIntegration.npcFavorActive or false)))
+    print(string.format("    UsedPlus:       %s", tostring(self.financeIntegration and self.financeIntegration.usedPlusActive or false)))
+    print(string.format("    PrecisionFarm:  %s", tostring(self.precisionFarmingOverlay and self.precisionFarmingOverlay.pfActive or false)))
+    print(string.format("    SoilFertilizer: %s", tostring(self.soilFertilizerIntegration and self.soilFertilizerIntegration.sfActive or false)))
     print(string.format("    CoursePlay:     %s (vehicles active: %d)",
-        tostring(self.coursePlayIntegration.cpActive),
-        self.coursePlayIntegration:getActiveVehicleCount() or 0))
+        tostring(self.coursePlayIntegration and self.coursePlayIntegration.cpActive or false),
+        self.coursePlayIntegration and self.coursePlayIntegration:getActiveVehicleCount() or 0))
     print(string.format("    AutoDrive:      %s (destinations: %d, water: %d)",
-        tostring(self.autoDriveIntegration.adActive),
-        self.autoDriveIntegration:getDestinationCount()      or 0,
-        self.autoDriveIntegration:getWaterDestinationCount() or 0))
+        tostring(self.autoDriveIntegration and self.autoDriveIntegration.adActive or false),
+        self.autoDriveIntegration and self.autoDriveIntegration:getDestinationCount()      or 0,
+        self.autoDriveIntegration and self.autoDriveIntegration:getWaterDestinationCount() or 0))
 
     -- Print top 5 driest fields
     local sorted = self.soilSystem:getFieldsSortedByMoisture()
@@ -558,16 +657,11 @@ end
 
 
 function CropStressManager:consoleConsultant()
-    if g_gui == nil then
-        print("CropStress: g_gui not available")
-        return
-    end
-    local dialog = g_gui:showDialog("CropConsultantDialog")
-    if dialog ~= nil and dialog.target ~= nil then
-        dialog.target:onConsultantDialogOpen()
+    local shown = CsDialogLoader.show("CropConsultantDialog")
+    if shown then
         print("CropStress: CropConsultant dialog opened")
     else
-        print("CropStress: CropConsultantDialog not registered — check main.lua loadGui call")
+        print("CropStress: CropConsultant dialog failed to open — check log for CsDialogLoader errors")
     end
 end
 

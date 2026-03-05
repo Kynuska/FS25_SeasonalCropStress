@@ -181,10 +181,9 @@ function IrrigationPivot.onInteractPressed(self)
     if not self.playerInRange then return end
     if g_cropStressManager == nil then return end
 
-    local dialog = g_gui:showDialog("IrrigationScheduleDialog")
-    if dialog ~= nil and dialog.target ~= nil then
-        dialog.target:onIrrigationDialogOpen(self.id)
-    end
+    -- CsDialogLoader.show() calls setSystemId(self.id) BEFORE showDialog(),
+    -- so onOpen() sees a valid systemId when it fires.
+    CsDialogLoader.show("IrrigationScheduleDialog", "setSystemId", self.id)
 
     self:removeInteractionAction()
 end

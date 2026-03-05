@@ -6,12 +6,13 @@
 -- Agronomist" as an external NPC. When active, consultant alerts
 -- are forwarded here to generate NPC dialog and favor quests.
 --
--- IMPORTANT: All g_NPCSystem calls are nil-guarded because
--- the NPCFavor API is verified against a specific mod version.
+-- IMPORTANT: All g_NPCSystem accesses go through getNPCSystem() (defined below).
+-- NPCFavor exports g_NPCSystem via getfenv(0)["g_NPCSystem"] into the shared game
+-- environment; plain `g_NPCSystem` only sees our mod's own env and is always nil.
 -- If the API differs, integration fails SILENTLY — the standalone
 -- consultant alerts in CropConsultant.lua continue to work.
 --
--- NPCFavor exports the global g_NPCSystem (set in NPCFavor/main.lua).
+-- NPCFavor exports the global g_NPCSystem via getfenv(0) in NPCFavor/main.lua.
 --
 -- LUADOC NOTE: The following NPCFavor API calls need verification
 -- against FS25_NPCFavor source before shipping:
@@ -20,6 +21,12 @@
 --   • g_NPCSystem:getRelationshipLevel(npcId)
 --   • g_NPCSystem:sendNPCDialog(npcId, text, duration)
 -- ============================================================
+
+-- Cross-mod global accessor: NPCFavor exports g_NPCSystem via getfenv(0)["g_NPCSystem"]
+-- into the shared game environment. Plain `g_NPCSystem` only sees our mod's own env.
+local function getNPCSystem()
+    return getfenv(0)["g_NPCSystem"]
+end
 
 NPCIntegration = {}
 NPCIntegration.__index = NPCIntegration
@@ -91,7 +98,7 @@ end
 -- All calls are nil-guarded and wrapped in pcall for safety.
 -- ============================================================
 function NPCIntegration:registerConsultantNPC()
-    if g_NPCSystem == nil then
+    if getNPCSystem() == nil then
         csLog("NPCIntegration: g_NPCSystem nil at registration — skipping")
         return
     end
@@ -99,7 +106,7 @@ function NPCIntegration:registerConsultantNPC()
     -- LUADOC NOTE: Verify registerExternalNPC signature against FS25_NPCFavor v1.2+.
     -- Expected: registerExternalNPC(config) → npcId string | nil
     -- Config fields: id, name (i18n key), relationship (starting value), favors (table)
-    if type(g_NPCSystem.registerExternalNPC) ~= "function" then
+    if type(getNPCSystem().registerExternalNPC) ~= "function" then
         csLog("NPCIntegration: registerExternalNPC API not found — version mismatch?")
         return
     end
@@ -112,7 +119,7 @@ function NPCIntegration:registerConsultantNPC()
     }
 
     local ok, result = pcall(function()
-        return g_NPCSystem:registerExternalNPC(npcConfig)
+        return getNPCSystem():registerExternalNPC(npcConfig)
     end)
 
     if ok and result ~= nil then
@@ -185,7 +192,7 @@ function NPCIntegration:sendConsultantAlert(data)
 end
 
 function NPCIntegration:forwardAlertToNPC(data)
-    if g_NPCSystem == nil then return end
+    if getNPCSystem() == nil then return end
     if not self.isRegistered or self.consultantNPCId == nil then return end
 
     -- Build dialog text from severity
@@ -199,9 +206,9 @@ function NPCIntegration:forwardAlertToNPC(data)
 
     -- Show NPC dialog message
     -- LUADOC NOTE: verify sendNPCDialog signature — (npcId, text, durationMs)
-    if type(g_NPCSystem.sendNPCDialog) == "function" then
+    if type(getNPCSystem().sendNPCDialog) == "function" then
         local ok = pcall(function()
-            g_NPCSystem:sendNPCDialog(self.consultantNPCId, dialogText, 8000)
+            getNPCSystem():sendNPCDialog(self.consultantNPCId, dialogText, 8000)
         end)
         if not ok then
             csLog("NPCIntegration: sendNPCDialog call failed")
@@ -228,14 +235,14 @@ end
 -- LUADOC NOTE: verify generateFavor(npcId, favorType, data) signature.
 -- ============================================================
 function NPCIntegration:generateFavor(favorType, favorData)
-    if g_NPCSystem == nil then return end
+    if getNPCSystem() == nil then return end
     if not self.isRegistered or self.consultantNPCId == nil then return end
 
     -- LUADOC NOTE: verify exact method name — may be createFavor() or addFavor()
-    if type(g_NPCSystem.generateFavor) ~= "function" then return end
+    if type(getNPCSystem().generateFavor) ~= "function" then return end
 
     local ok, err = pcall(function()
-        g_NPCSystem:generateFavor(self.consultantNPCId, favorType, favorData)
+        getNPCSystem():generateFavor(self.consultantNPCId, favorType, favorData)
     end)
     if not ok then
         csLog(string.format("NPCIntegration: generateFavor(%s) failed — %s",
@@ -252,14 +259,14 @@ end
 -- Returns 0 if NPCFavor is not active or API differs.
 -- ============================================================
 function NPCIntegration:getRelationshipLevel()
-    if g_NPCSystem == nil then return 0 end
+    if getNPCSystem() == nil then return 0 end
     if not self.isRegistered or self.consultantNPCId == nil then return 0 end
 
     -- LUADOC NOTE: verify getRelationshipLevel(npcId) returns a number (0-100 scale)
-    if type(g_NPCSystem.getRelationshipLevel) ~= "function" then return 0 end
+    if type(getNPCSystem().getRelationshipLevel) ~= "function" then return 0 end
 
     local ok, level = pcall(function()
-        return g_NPCSystem:getRelationshipLevel(self.consultantNPCId)
+        return getNPCSystem():getRelationshipLevel(self.consultantNPCId)
     end)
     if ok then return level or 0 end
     return 0
@@ -305,13 +312,13 @@ end
 -- ============================================================
 function NPCIntegration:delete()
     -- Deregister NPC from NPCFavor if registered
-    if g_NPCSystem ~= nil
+    if getNPCSystem() ~= nil
     and self.isRegistered
     and self.consultantNPCId ~= nil then
         -- LUADOC NOTE: verify deregisterExternalNPC(npcId) exists
-        if type(g_NPCSystem.deregisterExternalNPC) == "function" then
+        if type(getNPCSystem().deregisterExternalNPC) == "function" then
             pcall(function()
-                g_NPCSystem:deregisterExternalNPC(self.consultantNPCId)
+                getNPCSystem():deregisterExternalNPC(self.consultantNPCId)
             end)
         end
     end
