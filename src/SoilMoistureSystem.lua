@@ -54,8 +54,14 @@ function SoilMoistureSystem.new(manager)
     --   moisture        = float (0.0-1.0),
     --   soilType        = string ("sandy"/"loamy"/"clay"),
     --   irrigationGain  = float (0.0 = none; set by IrrigationManager in Phase 2),
+    --   centerX         = float (world X of field centre, used for RW cell sampling),
+    --   centerZ         = float (world Z of field centre, used for RW cell sampling),
     -- }
     self.fieldData = {}
+
+    -- When FS25_RealisticWeather is present this is g_currentMission.moistureSystem.
+    -- hourlyUpdate() reads RW cells instead of running our own evap/rain simulation.
+    self.rwMoistureSystem = nil
 
     self.irrigationGains = {}  -- fieldId -> total gain per hour
 
@@ -104,11 +110,20 @@ function SoilMoistureSystem:enumerateFields()
     for _, field in pairs(g_fieldManager.fields) do
         local fid = field.fieldId
         if fid ~= nil and self.fieldData[fid] == nil then
+            -- World-space centre used for FS25_RealisticWeather cell sampling.
+            local cx = field.posX
+                or (field.startX and (field.startX + (field.widthX or 0) * 0.5))
+                or 0
+            local cz = field.posZ
+                or (field.startZ and (field.startZ + (field.heightZ or 0) * 0.5))
+                or 0
             self.fieldData[fid] = {
                 fieldId        = fid,
                 moisture       = startMoisture,
                 soilType       = self:detectSoilType(field),
                 irrigationGain = 0.0,
+                centerX        = cx,
+                centerZ        = cz,
             }
             count = count + 1
         end
@@ -127,6 +142,14 @@ end
 function SoilMoistureSystem:hourlyUpdate(weather)
     if not self.isInitialized then return end
     if weather == nil then return end
+
+    -- FS25_RealisticWeather integration: read moisture from RW cells instead of
+    -- simulating our own evap/rain. We still apply irrigation gains on top and
+    -- write them back to RW's system so it stays in sync.
+    if self.rwMoistureSystem ~= nil then
+        self:_syncFromRW()
+        return
+    end
 
     local evapMultiplier = weather:getHourlyEvapMultiplier()
     local rainAmount     = weather:getHourlyRainAmount()
@@ -268,6 +291,93 @@ function SoilMoistureSystem:detectSoilType(field)
 
     -- 4. Default
     return "loamy"
+end
+
+-- ============================================================
+-- RW MOISTURE INTEGRATION
+-- ============================================================
+
+-- Wire up (or clear) the RealisticWeather MoistureSystem reference.
+-- Called by CropStressManager:detectOptionalMods() when RW is detected.
+function SoilMoistureSystem:setRWMoistureSystem(rwSystem)
+    self.rwMoistureSystem = rwSystem
+    if rwSystem ~= nil then
+        csLog("SoilMoistureSystem: RW MoistureSystem wired — own simulation disabled")
+    end
+end
+
+-- Hourly sync when FS25_RealisticWeather is active.
+-- Reads per-cell moisture from RW at each field's centre coordinate,
+-- applies our irrigation gains on top, and writes that delta back to
+-- RW so its state stays accurate for future reads and its own yield hook.
+function SoilMoistureSystem:_syncFromRW()
+    local env     = g_currentMission and g_currentMission.environment
+    local hourKey = 0
+    if env ~= nil then
+        hourKey = (env.currentMonotonicDay or 0) * 24 + (env.currentHour or 0)
+    end
+
+    local sfInteg     = self.manager and self.manager.soilFertilizerIntegration
+    local sfHasStress = sfInteg ~= nil and type(sfInteg.getFieldStressMod) == "function"
+
+    for fieldId, data in pairs(self.fieldData) do
+        -- Sample RW's cell at this field's world-space centre
+        local rwValues   = self.rwMoistureSystem:getValuesAtCoords(
+            data.centerX, data.centerZ, {"moisture"})
+        local rwMoisture = rwValues and rwValues.moisture
+
+        -- RW returns nil for out-of-bounds cells; keep current value as fallback
+        if rwMoisture == nil then
+            rwMoisture = data.moisture
+        end
+
+        -- Our irrigation gain adds on top of RW's rain/evap simulation
+        local irrigGain  = self.irrigationGains[fieldId] or 0.0
+        local newMoisture = math.max(0.0, math.min(1.0, rwMoisture + irrigGain))
+
+        -- Write the irrigation delta back to RW so its future reads
+        -- include our infrastructure contribution.  addToPendingSync=false:
+        -- we don't need MP re-broadcast (RW handles its own MP sync).
+        if irrigGain > 0.0 then
+            self.rwMoistureSystem:setValuesAtCoords(
+                data.centerX, data.centerZ, {moisture = irrigGain}, false)
+        end
+
+        local prevMoisture = data.moisture
+        data.moisture      = newMoisture
+
+        -- Publish moisture update event so HUD and consultant still work
+        if self.manager ~= nil and self.manager.eventBus ~= nil then
+            self.manager.eventBus.publish("CS_MOISTURE_UPDATED", {
+                fieldId  = fieldId,
+                previous = prevMoisture,
+                current  = data.moisture,
+            })
+        end
+
+        -- Critical threshold alert (12-hour cooldown, same as own-sim path)
+        local sfStressMod = sfHasStress and sfInteg:getFieldStressMod(fieldId) or 0.0
+        if data.moisture <= (self:getCriticalMoisture() + sfStressMod) then
+            local lastAlert = self.criticalAlertCooldown[fieldId] or -999
+            if (hourKey - lastAlert) >= 12 then
+                self.criticalAlertCooldown[fieldId] = hourKey
+                if self.manager ~= nil and self.manager.eventBus ~= nil then
+                    self.manager.eventBus.publish("CS_CRITICAL_THRESHOLD", {
+                        fieldId       = fieldId,
+                        moistureLevel = data.moisture,
+                    })
+                end
+            end
+        end
+
+        if self.manager ~= nil and self.manager.debugMode then
+            csLog(string.format(
+                "Field %d [RW]: %.1f%% → %.1f%% (rw=%.1f%% irr=%.4f)",
+                fieldId, prevMoisture * 100, data.moisture * 100,
+                rwMoisture * 100, irrigGain
+            ))
+        end
+    end
 end
 
 function SoilMoistureSystem:delete()

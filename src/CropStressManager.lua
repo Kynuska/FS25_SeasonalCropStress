@@ -466,6 +466,17 @@ function CropStressManager:detectOptionalMods()
         csLog("AutoDrive detected — water destination hints will appear in critical alerts")
         self.autoDriveIntegration:enableAutoDriveMode()
     end
+
+    -- FS25_RealisticWeather moisture integration.
+    -- RW injects g_currentMission.moistureSystem in DensityMapHeightManager.loadMapData,
+    -- which runs before loadMission00Finished, so the object is available here.
+    -- We verify getValuesAtCoords exists to avoid false-positive collisions.
+    local rwMs = g_currentMission and g_currentMission.moistureSystem
+    if rwMs ~= nil and type(rwMs.getValuesAtCoords) == "function" then
+        csLog("FS25_RealisticWeather MoistureSystem detected — moisture sourced from RW cells; harvest penalty deferred to RW")
+        self.soilSystem:setRWMoistureSystem(rwMs)
+        self.stressModifier:setRWMode(true)
+    end
 end
 
 -- ============================================================

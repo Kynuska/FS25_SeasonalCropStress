@@ -58,6 +58,11 @@ function CropStressModifier.new(manager)
     -- Per-field accumulated stress: fieldId → float (0.0–1.0)
     self.fieldStress = {}
 
+    -- When FS25_RealisticWeather is present, its getHarvestScaleMultiplier hook
+    -- handles the yield penalty. We skip our doGroundWorkArea reduction to avoid
+    -- stacking, but still accumulate stress for HUD display.
+    self.rwModeActive = false
+
     self.isInitialized = false
     return self
 end
@@ -268,13 +273,28 @@ function CropStressModifier.installHarvestHook()
             local fieldId = CropStressModifier.getFieldIdAtPosition(wx, wz)
             if fieldId == nil then return end
 
-            local stress = g_cropStressManager.stressModifier:getStress(fieldId)
+            local stressModifier = g_cropStressManager.stressModifier
+            local stress = stressModifier:getStress(fieldId)
+
+            -- When RW is active its getHarvestScaleMultiplier hook handles yield.
+            -- We reset our accumulated stress (clears HUD) but skip fill-level changes.
+            if stressModifier.rwModeActive then
+                if stress > 0.01 and g_cropStressManager.debugMode then
+                    csLog(string.format(
+                        "Harvest field %d: stress=%.2f display-only (RW handles yield)",
+                        fieldId, stress
+                    ))
+                end
+                stressModifier:resetStress(fieldId)
+                return
+            end
+
             if stress <= 0.01 then return end
 
             -- Calculate yield reduction factor using the player-configured max yield loss.
             -- Uses the instance method (which reads settings-adjusted value) rather than
             -- the class constant so difficulty/settings changes take effect at harvest.
-            local maxLoss = g_cropStressManager.stressModifier:getMaxYieldLoss()
+            local maxLoss = stressModifier:getMaxYieldLoss()
             local reduction = stress * maxLoss
             local keepFactor = 1.0 - reduction
 
@@ -298,7 +318,7 @@ function CropStressModifier.installHarvestHook()
                     fieldId, stress, reduction * 100
                 ))
             end
-            g_cropStressManager.stressModifier:resetStress(fieldId)
+            stressModifier:resetStress(fieldId)
         end
     )
 
@@ -310,6 +330,14 @@ function CropStressModifier:delete()
     self.isInitialized = false
     -- Note: the harvest hook patch cannot be uninstalled without storing the original.
     -- On mod reload, the whole game restarts so this is not a concern.
+end
+
+-- Enable/disable RW integration mode (called by CropStressManager:detectOptionalMods)
+function CropStressModifier:setRWMode(active)
+    self.rwModeActive = active == true
+    if self.rwModeActive then
+        csLog("CropStressModifier: RW mode active — harvest yield penalty deferred to RW")
+    end
 end
 
 -- Set stress rate multiplier from settings
