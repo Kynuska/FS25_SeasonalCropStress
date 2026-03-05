@@ -465,7 +465,7 @@ function HUDOverlay:drawFieldRow(row, px, rowY)
     local stress   = row.stress   or 0
 
     local cropLabel   = row.cropName or "?"
-    local stageStr    = row.growthStage and (" S" .. tostring(row.growthStage)) or ""
+    local stageStr    = row.growthStage and (" Stage " .. tostring(row.growthStage)) or ""
     local label       = string.format("F%d · %s%s", row.fieldId, cropLabel, stageStr)
     local stressStr   = stress > 0.15 and " !" or ""
 
@@ -642,16 +642,16 @@ function HUDOverlay:rebuildDisplayRows()
             growthStage = field.fieldState and field.fieldState.growthState
         end
 
-        -- Final fallback: field not in map yet (enumeration race on slow-loading map)
-        if cropName == nil then cropName = "?" end
-
-        table.insert(self.displayRows, {
-            fieldId     = entry.fieldId,
-            moisture    = entry.moisture,
-            stress      = stress,
-            cropName    = cropName,
-            growthStage = growthStage,
-        })
+        -- Only show crops tracked for stress (fallow, greenhouse, carrots etc. = irrelevant noise)
+        if cropName ~= nil and CropStressModifier.CROP_WINDOWS[cropName] ~= nil then
+            table.insert(self.displayRows, {
+                fieldId     = entry.fieldId,
+                moisture    = entry.moisture,
+                stress      = stress,
+                cropName    = cropName,
+                growthStage = growthStage,
+            })
+        end
     end
 
     -- If selected field is no longer in the display list, mark forecast dirty
@@ -702,19 +702,21 @@ function HUDOverlay:toggle()
             local count = 0
             for fid, field in pairs(fieldById) do
                 if count >= HUDOverlay.MAX_FIELDS then break end
-                local stress = 0
-                if self.manager ~= nil and self.manager.stressModifier ~= nil then
-                    stress = self.manager.stressModifier:getStress(fid) or 0
+                local cn = self:resolveCropName(field)
+                if cn ~= nil and CropStressModifier.CROP_WINDOWS[cn] ~= nil then
+                    local stress = 0
+                    if self.manager ~= nil and self.manager.stressModifier ~= nil then
+                        stress = self.manager.stressModifier:getStress(fid) or 0
+                    end
+                    table.insert(self.displayRows, {
+                        fieldId     = fid,
+                        moisture    = 0,
+                        stress      = stress,
+                        cropName    = cn,
+                        growthStage = field.fieldState and field.fieldState.growthState,
+                    })
+                    count = count + 1
                 end
-                local growthStage = field.fieldState and field.fieldState.growthState
-                table.insert(self.displayRows, {
-                    fieldId     = fid,
-                    moisture    = 0,
-                    stress      = stress,
-                    cropName    = self:resolveCropName(field),
-                    growthStage = growthStage,
-                })
-                count = count + 1
             end
         end
         
