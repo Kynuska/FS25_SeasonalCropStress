@@ -146,7 +146,8 @@ function IrrigationManager:detectCoveredFields(placeable, cx, cz)
         local fields = g_currentMission.fieldManager:getFields()
         for _, field in pairs(fields) do
             if self:fieldIntersectsCircle(field, cx, cz, radius) then
-                table.insert(covered, field.fieldId)
+                local fid = field.farmland and field.farmland.id
+                if fid ~= nil then table.insert(covered, fid) end
             end
         end
     elseif placeable.irrigationType == "drip" then
@@ -160,7 +161,8 @@ function IrrigationManager:detectCoveredFields(placeable, cx, cz)
         local fields = g_currentMission.fieldManager:getFields()
         for _, field in pairs(fields) do
             if self:fieldIntersectsDripLine(field, startX, startZ, endX, endZ, spacing) then
-                table.insert(covered, field.fieldId)
+                local fid = field.farmland and field.farmland.id
+                if fid ~= nil then table.insert(covered, fid) end
             end
         end
     end
