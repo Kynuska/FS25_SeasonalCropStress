@@ -286,8 +286,10 @@ function CropStressManager:buildFieldMap()
 
     local count = 0
     for _, field in pairs(g_fieldManager.fields) do
-        if field ~= nil and field.fieldId ~= nil then
-            self.fieldById[field.fieldId] = field
+        -- FS25: fields are keyed by farmland ID. field.fieldId does not exist.
+        local fid = field ~= nil and field.farmland and field.farmland.id
+        if fid ~= nil then
+            self.fieldById[fid] = field
             count = count + 1
         end
     end
