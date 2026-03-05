@@ -8,7 +8,7 @@ Thanks for your interest in contributing. This document covers everything you ne
 
 Read `CLAUDE.md` — it is the authoritative reference for this project's architecture, known FS25 Lua constraints, and code patterns. Anything in that file takes precedence over general Lua or modding conventions you may know from other projects.
 
-Read `DEVELOPMENT.md` for environment setup, build steps, and how to run the mod locally.
+Build with `bash build.sh --deploy` to compile and deploy to your local mods folder. Check `log.txt` after loading — look for `[CropStress]` prefixed lines to confirm the mod loaded correctly.
 
 ---
 
@@ -26,7 +26,7 @@ Filter for lines tagged `[CropStress]`. Include everything from the first `[Crop
 
 ## Requesting Features
 
-Use the **Feature Request** issue template. Before submitting, check the roadmap in `README.md` — your idea may already be planned.
+Use the **Feature Request** issue template. Before submitting, search open issues and discussions — your idea may already be tracked.
 
 Keep feature requests scoped. A request for "improve irrigation" will be closed. A request for "allow drip line coverage to be adjusted after placement" is actionable.
 
