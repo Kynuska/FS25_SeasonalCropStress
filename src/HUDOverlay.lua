@@ -643,7 +643,8 @@ function HUDOverlay:rebuildDisplayRows()
         end
 
         -- Only show crops tracked for stress (fallow, greenhouse, carrots etc. = irrelevant noise)
-        if cropName ~= nil and CropStressModifier.CROP_WINDOWS[cropName] ~= nil then
+        -- cropName is title-cased for display ("Wheat"); CROP_WINDOWS keys are lowercase
+        if cropName ~= nil and CropStressModifier.CROP_WINDOWS[cropName:lower()] ~= nil then
             table.insert(self.displayRows, {
                 fieldId     = entry.fieldId,
                 moisture    = entry.moisture,
@@ -703,7 +704,7 @@ function HUDOverlay:toggle()
             for fid, field in pairs(fieldById) do
                 if count >= HUDOverlay.MAX_FIELDS then break end
                 local cn = self:resolveCropName(field)
-                if cn ~= nil and CropStressModifier.CROP_WINDOWS[cn] ~= nil then
+                if cn ~= nil and CropStressModifier.CROP_WINDOWS[cn:lower()] ~= nil then
                     local stress = 0
                     if self.manager ~= nil and self.manager.stressModifier ~= nil then
                         stress = self.manager.stressModifier:getStress(fid) or 0
