@@ -591,19 +591,12 @@ function HUDOverlay:resolveCropName(field)
 
     local ft = nil
 
-    -- FS25 primary: field.currentFruitTypeIndex (engine-written property)
-    local fti = field.currentFruitTypeIndex
+    -- FS25 confirmed API: field.fieldState.fruitTypeIndex
+    -- (field.currentFruitTypeIndex, field:getFruitType(), field.fruitType do NOT exist in FS25)
+    local fieldState = field.fieldState
+    local fti = fieldState and fieldState.fruitTypeIndex
     if fti ~= nil and fti > 0 and g_fruitTypeManager ~= nil then
         ft = g_fruitTypeManager:getFruitTypeByIndex(fti)
-    end
-
-    -- Legacy fallback: getFruitType() / fruitType (FS22-era field API)
-    if ft == nil then
-        if type(field.getFruitType) == "function" then
-            local ok, result = pcall(function() return field:getFruitType() end)
-            if ok then ft = result end
-        end
-        if ft == nil then ft = field.fruitType end
     end
 
     if ft ~= nil and ft.name ~= nil then
@@ -645,13 +638,8 @@ function HUDOverlay:rebuildDisplayRows()
             -- FS25-native crop resolution: getFieldState() → fruitTypeIndex
             cropName = self:resolveCropName(field)
 
-            -- Growth stage
-            if type(field.getGrowthState) == "function" then
-                local ok2, result = pcall(function() return field:getGrowthState() end)
-                if ok2 then growthStage = result end
-            elseif field.growthState ~= nil then
-                growthStage = field.growthState
-            end
+            -- Growth stage (FS25: field.fieldState.growthState — confirmed from rtmnet/sdk)
+            growthStage = field.fieldState and field.fieldState.growthState
         end
 
         -- Final fallback: field not in map yet (enumeration race on slow-loading map)
@@ -718,13 +706,7 @@ function HUDOverlay:toggle()
                 if self.manager ~= nil and self.manager.stressModifier ~= nil then
                     stress = self.manager.stressModifier:getStress(fid) or 0
                 end
-                local growthStage = nil
-                if type(field.getGrowthState) == "function" then
-                    local ok, result = pcall(function() return field:getGrowthState() end)
-                    if ok then growthStage = result end
-                elseif field.growthState ~= nil then
-                    growthStage = field.growthState
-                end
+                local growthStage = field.fieldState and field.fieldState.growthState
                 table.insert(self.displayRows, {
                     fieldId     = fid,
                     moisture    = 0,
