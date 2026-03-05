@@ -5,7 +5,7 @@
 
 [![Downloads](https://img.shields.io/github/downloads/TheCodingDad-TisonK/FS25_SeasonalCropStress/total?style=for-the-badge&logo=github&color=4caf50&logoColor=white)](https://github.com/TheCodingDad-TisonK/FS25_SeasonalCropStress/releases)
 [![Release](https://img.shields.io/github/v/release/TheCodingDad-TisonK/FS25_SeasonalCropStress?style=for-the-badge&logo=tag&color=76c442&logoColor=white)](https://github.com/TheCodingDad-TisonK/FS25_SeasonalCropStress/releases/latest)
-[![License](https://img.shields.io/badge/license-All%20Rights%20Reserved-red?style=for-the-badge&logo=shield&logoColor=white)](#license)
+[![License](https://img.shields.io/badge/license-CC%20BY--NC--ND%204.0-lightgrey?style=for-the-badge&logo=creativecommons&logoColor=white)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
 <br>
 
@@ -214,12 +214,13 @@ Found a bug? [Open an issue](https://github.com/TheCodingDad-TisonK/FS25_Seasona
 
 ## 📝 License
 
-> [!CAUTION]
-> Redistribution, modification, or reupload without explicit written permission is **not permitted**.
+This mod is licensed under **[CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/)**.
+
+You may share it in its original form with attribution. You may not sell it, modify and redistribute it, or reupload it under a different name or authorship. Contributions via pull request are explicitly permitted and encouraged.
 
 **Author:** TisonK · **Version:** 1.0.0.0
 
-© TisonK — All Rights Reserved. Personal use only. See [LICENSE](LICENSE) for full terms.
+© 2026 TisonK — See [LICENSE](LICENSE) for full terms.
 
 ---
 
