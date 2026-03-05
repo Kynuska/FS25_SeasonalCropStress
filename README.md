@@ -6,7 +6,7 @@
 [![Downloads](https://img.shields.io/github/downloads/TheCodingDad-TisonK/FS25_SeasonalCropStress/total?style=for-the-badge&logo=github&color=4caf50&logoColor=white)](https://github.com/TheCodingDad-TisonK/FS25_SeasonalCropStress/releases)
 [![Release](https://img.shields.io/github/v/release/TheCodingDad-TisonK/FS25_SeasonalCropStress?style=for-the-badge&logo=tag&color=76c442&logoColor=white)](https://github.com/TheCodingDad-TisonK/FS25_SeasonalCropStress/releases/latest)
 [![License](https://img.shields.io/badge/license-All%20Rights%20Reserved-red?style=for-the-badge&logo=shield&logoColor=white)](#license--credits)
-[![Phase](https://img.shields.io/badge/Phase%204-In%20Development-orange?style=for-the-badge&logo=hammer&logoColor=white)](#roadmap)
+[![Phase](https://img.shields.io/badge/v1.0.0.0-Assets%20Pending-yellow?style=for-the-badge&logo=hammer&logoColor=white)](#roadmap)
 
 <br>
 
@@ -22,18 +22,21 @@ Real soil moisture physics. Heat evaporates. Rain replenishes. Sandy soil drains
 
 </div>
 
+> [!IMPORTANT]
+> **v1.0.0.0 is feature-complete and fully playable.** All gameplay systems — soil moisture simulation, crop stress, irrigation scheduling, Crop Consultant, HUD overlay, settings, and save/load — are implemented and verified in-game. The only remaining work is final 3D art assets for the irrigation placeables (center pivot, water pump, drip line), which are currently being created. The mod ships and plays correctly now with placeholder geometry.
+
 ---
 
 ## 🗺️ Roadmap
 
 | Phase | Status | Contents |
 |---|---|---|
-| **1** — Soil Moisture & Crop Stress | ✅ Live | Moisture sim, evapotranspiration, soil types, yield loss, Field HUD |
-| **2** — Irrigation Infrastructure | ✅ Live | Center pivot, water pump, pressure curve, irrigation schedule dialog |
-| **3** — Crop Consultant | ✅ Live | 3-tier alert system, consultant dialog, NPCFavor integration |
-| **4** — Economy & Polish | 🔧 In development | Finance integration, drip irrigation, Precision Farming DLC overlay |
-| **5** — Stability & HUD Polish | 📋 Planned | HUD position persistence, Polish locale, UX improvements |
-| **6** — Release Readiness | 📋 Planned | Final 3D art, mod icon, Steam Workshop, v1.0.0.0 |
+| **1** — Soil Moisture & Crop Stress | ✅ Complete | Moisture sim, evapotranspiration, soil types, yield loss, Field HUD |
+| **2** — Irrigation Infrastructure | ✅ Complete | Center pivot, water pump, pressure curve, irrigation schedule dialog |
+| **3** — Crop Consultant | ✅ Complete | 3-tier alert system, consultant dialog, NPCFavor integration |
+| **4** — Economy & Polish | ✅ Complete | Finance integration, drip irrigation, Precision Farming DLC overlay |
+| **5** — Stability & HUD Polish | ✅ Complete | HUD position persistence, Polish locale, RealisticWeather integration, UX improvements |
+| **6** — Release Readiness | 🎨 Assets in progress | Final 3D art for irrigation placeables, mod icon |
 
 ---
 

@@ -8,7 +8,7 @@
     <text name="cs_hud_critical"      text="KRITISCH — Jetzt bewässern!"/>
     <text name="cs_hud_no_crop"       text="Keine Frucht"/>
     <text name="cs_hud_forecast"      text="5-Tage-Prognose"/>
-    <text name="cs_hud_first_run"      text="Bodenfeuchte-Monitor ist jetzt aktiv. Shift+M zum Ein-/Ausblenden."/>
+    <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.0.0 geladen. Shift+M öffnet das Feuchte-HUD. Neu dabei? Öffne das Hilfe-Menü (ESC → Hilfe) und suche nach Seasonal Crop Stress, um alles zu erfahren."/>
     <text name="cs_hud_click_forecast" text="Zeile anklicken für 5-Tage-Prognose"/>
 
     <!-- ========== FIELD STATUS ========== -->

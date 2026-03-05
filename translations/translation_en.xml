@@ -8,7 +8,7 @@
     <text name="cs_hud_critical"      text="CRITICAL — Irrigate Now!"/>
     <text name="cs_hud_no_crop"       text="No crop"/>
     <text name="cs_hud_forecast"      text="5-Day Forecast"/>
-    <text name="cs_hud_first_run"      text="Crop Moisture Monitor is now active. Press Shift+M to toggle the field status panel."/>
+    <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.0.0 loaded. Press Shift+M to open the moisture HUD. New to the mod? Open the Help menu (ESC → Help) and find Seasonal Crop Stress to learn how everything works."/>
     <text name="cs_hud_click_forecast" text="Click a row for 5-day forecast"/>
 
     <!-- ========== FIELD STATUS ========== -->
