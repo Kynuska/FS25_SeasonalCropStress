@@ -1,0 +1,63 @@
+name: Feature Request
+description: Suggest a new feature or improvement.
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before opening this request:**
+        - Check the roadmap in the README — your idea may already be planned.
+        - Check open issues to avoid duplicates.
+        - Keep requests scoped and specific. "Improve irrigation" will be closed. "Allow drip line coverage radius to be adjusted after placement" is actionable.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the situation or frustration this would address. Focus on the problem, not the solution.
+      placeholder: "When I have 20+ fields, the HUD list gets too long to read at a glance. I can't quickly see which fields need attention."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: Describe what you want to happen. Be specific about the behavior, not just the concept.
+      placeholder: "Add a filter to the HUD that shows only fields below the critical moisture threshold, so the list stays short when most fields are fine."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you thought of other ways to solve this? Why are they not good enough?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Which part of the mod does this relate to?
+      options:
+        - Soil Moisture Simulation
+        - Irrigation Infrastructure (pivots, pumps, drip lines)
+        - Crop Stress & Yield
+        - HUD Overlay
+        - Crop Consultant / Alerts
+        - Irrigation Schedule Dialog
+        - Settings / Difficulty
+        - Multiplayer
+        - Mod Compatibility
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Anything Else?
+      description: Screenshots, mockups, references to how other mods handle this, or any extra context.
+    validations:
+      required: false

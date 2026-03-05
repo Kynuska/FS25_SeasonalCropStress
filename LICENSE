@@ -1,0 +1,41 @@
+Copyright (c) 2025 Tison Kuster. All Rights Reserved.
+
+DEFINITIONS
+
+"Mod" refers to FS25_SeasonalCropStress and all files contained in this repository,
+including Lua source code, XML configuration, i3d assets, translations, and artwork.
+
+"Author" refers to the original copyright holder, Tison Kuster.
+
+PERMISSIONS
+
+You MAY:
+  - Install and play this mod in Farming Simulator 25 for personal use.
+  - Fork this repository and modify it privately for your own non-distributed use.
+  - Submit pull requests to contribute improvements back to the original repository.
+  - Study the source code for learning purposes.
+
+RESTRICTIONS
+
+You MAY NOT, without explicit written permission from the Author:
+  - Redistribute this mod or any modified version of it on any platform
+    (ModHub, Farming Simulator mod sites, Steam Workshop, file hosting services, etc.).
+  - Upload this mod or any derivative work under a different name or authorship.
+  - Use assets from this mod (code, models, textures, icons) in another mod or project.
+  - Sell, sublicense, or commercially exploit this mod or any part of it.
+  - Remove or alter this license notice or any attribution credits.
+
+CONTRIBUTIONS
+
+By submitting a pull request or otherwise contributing code or assets to this
+repository, you agree that your contribution is made under the same terms as this
+license and that the Author retains full copyright over the combined work.
+
+DISCLAIMER
+
+THIS MOD IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+THE AUTHOR IS NOT RESPONSIBLE FOR ANY DAMAGE TO SAVE FILES, GAME INSTALLATIONS,
+OR OTHER SOFTWARE RESULTING FROM THE USE OF THIS MOD.
+
+For permissions beyond the scope of this license, contact the Author via the
+GitHub repository at https://github.com/TheCodingDad-TisonK/FS25_SeasonalCropStress.
