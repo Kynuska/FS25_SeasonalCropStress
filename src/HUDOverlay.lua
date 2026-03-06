@@ -39,9 +39,14 @@ HUDOverlay.HEADER_TEXT_SIZE  = 0.014
 HUDOverlay.MAX_FIELDS        = 6
 
 -- ── Forecast strip layout ──────────────────────────────────
-HUDOverlay.FORECAST_H        = 0.068   -- total height of the forecast panel
+-- Layout sections from bottom to top:
+--   PADDING | PCT_ROW | BAR_AREA | PADDING | LABEL_ROW | PADDING | HEADER
+-- Total = 0.004+0.018+0.032+0.004+0.014+0.004+0.022 = 0.098 → 0.100
+HUDOverlay.FORECAST_H        = 0.100   -- total height of the forecast panel
 HUDOverlay.FORECAST_HEADER_H = 0.022
-HUDOverlay.FORECAST_ROW_H    = 0.020
+HUDOverlay.FORECAST_BAR_AREA = 0.032   -- height of vertical bars
+HUDOverlay.FORECAST_ROW_H    = 0.018   -- pct text row below bars
+HUDOverlay.FORECAST_LABEL_H  = 0.014   -- day label row above bars
 HUDOverlay.FORECAST_COLS     = 5
 HUDOverlay.FORECAST_COL_W    = 0.040   -- width per forecast column
 HUDOverlay.FORECAST_BAR_H    = 0.010
@@ -501,6 +506,15 @@ end
 -- ============================================================
 -- DRAW FORECAST STRIP
 -- Renders a 5-column bar-chart below the main panel.
+--
+-- Explicit section layout (bottom → top), all relative to strip py:
+--   py + 0                                      bottom edge
+--   py + PADDING                                pct % text baseline
+--   py + PADDING + FORECAST_ROW_H               bar area bottom
+--   py + PADDING + FORECAST_ROW_H + BAR_AREA    bar area top
+--   py + PADDING + FORECAST_ROW_H + BAR_AREA + PADDING  day labels
+--   py + FORECAST_H - FORECAST_HEADER_H + PADDING       header text
+--   py + FORECAST_H                             top edge
 -- ============================================================
 function HUDOverlay:drawForecastStrip(px, py)
     if self.forecastCache == nil then return end
@@ -508,36 +522,38 @@ function HUDOverlay:drawForecastStrip(px, py)
     local projections = self.forecastCache.projections
     local fieldId     = self.forecastCache.fieldId
     local fH          = HUDOverlay.FORECAST_H
+    local pad         = HUDOverlay.PADDING
 
     -- Background
     setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_FORECAST_BG))
     renderOverlay(self.fillOverlay, px, py, HUDOverlay.PANEL_W, fH)
 
-    -- Header
+    -- Header text (top section, clearly separated from columns)
     setTextColor(unpack(HUDOverlay.COLOR_HEADER_TEXT))
     setTextBold(true)
     local titleText = string.format("%s — F%d",
         (g_i18n ~= nil and g_i18n:getText("cs_hud_forecast")) or "5-Day Forecast",
         fieldId)
     renderText(
-        px + HUDOverlay.PADDING,
-        py + fH - HUDOverlay.FORECAST_HEADER_H + HUDOverlay.PADDING,
+        px + pad,
+        py + fH - HUDOverlay.FORECAST_HEADER_H + pad,
         HUDOverlay.FORECAST_TEXT_SZ,
         titleText
     )
     setTextBold(false)
 
-    -- Column labels and bars
-    -- projections[1..5] are day+1 through day+5 from WeatherIntegration:getMoistureForecast().
-    -- We show current moisture as the first "Now" column directly from soilSystem,
-    -- then the five projected days.  Shift projections into display slots 2-5 and
-    -- insert current moisture as slot 1.
-    local colLabels   = {"Now", "D+1", "D+2", "D+3", "D+4"}
+    -- Explicit section anchors
+    local pctBaseY  = py + pad                                         -- pct text row
+    local barBaseY  = pctBaseY + HUDOverlay.FORECAST_ROW_H            -- bar area bottom
+    local barAreaH  = HUDOverlay.FORECAST_BAR_AREA                    -- fixed bar height
+    local labelY    = barBaseY + barAreaH + pad                        -- day labels, above bars
+
+    -- Column data
+    local colLabels = {"Now", "D+1", "D+2", "D+3", "D+4"}
     local currentMoisture = 0
     if self.manager ~= nil and self.manager.soilSystem ~= nil then
         currentMoisture = self.manager.soilSystem:getMoisture(fieldId) or 0
     end
-    -- Build display values: [current, proj[1], proj[2], proj[3], proj[4]]
     local displayVals = {
         currentMoisture,
         projections[1] or currentMoisture,
@@ -545,34 +561,30 @@ function HUDOverlay:drawForecastStrip(px, py)
         projections[3] or currentMoisture,
         projections[4] or currentMoisture,
     }
-    local colStartX   = px + HUDOverlay.PADDING
-    local colGap      = (HUDOverlay.PANEL_W - HUDOverlay.PADDING * 2) / HUDOverlay.FORECAST_COLS
-    local barAreaH    = fH - HUDOverlay.FORECAST_HEADER_H - HUDOverlay.PADDING * 2
-    local barMaxH     = barAreaH - HUDOverlay.FORECAST_ROW_H  -- reserve space for pct text
-    local barBaseY    = py + HUDOverlay.PADDING + HUDOverlay.FORECAST_ROW_H
+    local colGap    = (HUDOverlay.PANEL_W - pad * 2) / HUDOverlay.FORECAST_COLS
+    local colStartX = px + pad
 
     for i = 1, HUDOverlay.FORECAST_COLS do
         local val = displayVals[i] or 0
-        local cx  = colStartX + (i - 1) * colGap + HUDOverlay.PADDING
+        local cx  = colStartX + (i - 1) * colGap + pad
+        local bw  = HUDOverlay.FORECAST_COL_W - pad
 
-        -- Column label (day label, small, dimmed)
+        -- Day label (above bars, below header)
         setTextColor(unpack(HUDOverlay.COLOR_DIM_TEXT))
-        renderText(cx, barBaseY + barMaxH + HUDOverlay.PADDING, HUDOverlay.FORECAST_TEXT_SZ,
-            colLabels[i] or "?")
+        renderText(cx, labelY, HUDOverlay.FORECAST_TEXT_SZ, colLabels[i] or "?")
 
         -- Bar background
-        local bw = HUDOverlay.FORECAST_COL_W - HUDOverlay.PADDING
         setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_BAR_BG))
-        renderOverlay(self.fillOverlay, cx, barBaseY, bw, barMaxH)
+        renderOverlay(self.fillOverlay, cx, barBaseY, bw, barAreaH)
 
         -- Bar fill
-        local fillH = barMaxH * val
+        local fillH = barAreaH * val
         setOverlayColor(self.fillOverlay, unpack(self:getMoistureColor(val)))
         renderOverlay(self.fillOverlay, cx, barBaseY, bw, fillH)
 
-        -- Percentage text below bar
+        -- Percentage text (below bars)
         setTextColor(unpack(HUDOverlay.COLOR_TEXT))
-        renderText(cx, py + HUDOverlay.PADDING, HUDOverlay.FORECAST_TEXT_SZ,
+        renderText(cx, pctBaseY, HUDOverlay.FORECAST_TEXT_SZ,
             string.format("%d%%", math.floor(val * 100 + 0.5)))
     end
 end
