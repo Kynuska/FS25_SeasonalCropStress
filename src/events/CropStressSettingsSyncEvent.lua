@@ -190,16 +190,23 @@ function CropStressSettingsSyncEvent:applySingleSetting(key, value, connection)
         -- Server: verify master rights before applying
         if not self:senderHasMasterRights(connection) then
             csLog("WARNING: Non-master player attempted to change settings, ignoring")
+            -- Send current server settings back so the client's UI reverts to actual state
+            if connection ~= nil then
+                CropStressSettingsSyncEvent.sendAllToConnection(connection)
+            end
             return
         end
-        
+
         -- Apply setting and validate
         g_cropStressManager.settings[key] = value
         g_cropStressManager.settings:validateSettings()
         g_cropStressManager:applySettings()
-        
+
         csLog("Setting applied: " .. key .. " = " .. tostring(value))
-        
+
+        -- Broadcast to all clients (including the sender) so everyone stays in sync
+        g_server:broadcastEvent(CropStressSettingsSyncEvent.newSingle(key, value), false)
+
     else
         -- Client: apply setting directly (already validated by server)
         g_cropStressManager.settings[key] = value
