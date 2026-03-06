@@ -330,6 +330,11 @@ function CropStressManager:update(dt)
     if not self.isInitialized then return end
     if g_currentMission == nil then return end
 
+    -- NPCFavor deferred registration: poll each frame until npcSystem.isInitialized
+    if self.npcIntegration ~= nil then
+        self.npcIntegration:tryDeferredRegistration()
+    end
+
     local env = g_currentMission.environment
     if env == nil then return end
 

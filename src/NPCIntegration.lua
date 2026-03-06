@@ -66,10 +66,11 @@ function NPCIntegration.new(manager)
     local self = setmetatable({}, NPCIntegration)
     self.manager = manager
 
-    self.npcFavorActive  = false   -- set by CropStressManager:detectOptionalMods()
-    self.consultantNPCId = nil     -- returned by registerExternalNPC()
-    self.isRegistered    = false   -- true once NPC is registered with NPCFavor
-    self.isInitialized   = false
+    self.npcFavorActive      = false   -- set by CropStressManager:detectOptionalMods()
+    self.consultantNPCId     = nil     -- integer id of Alex Chen in npcSystem.activeNPCs
+    self.isRegistered        = false   -- true once NPC is in NPCFavor's activeNPCs
+    self.isInitialized       = false
+    self.pendingRegistration = false   -- true while waiting for npcSystem.isInitialized
 
     -- Queue of alerts received before NPC is registered (replayed on registration)
     self.pendingAlerts   = {}
@@ -80,7 +81,9 @@ end
 -- ============================================================
 -- INITIALIZE
 -- Called by CropStressManager:initialize().
--- If npcFavorActive was set by detectOptionalMods(), attempts NPC registration.
+-- NPCFavor's NPC system is async — it defers actual NPC creation until
+-- isMissionStarted + terrain are ready (can be minutes after loadMission00Finished).
+-- We set a pending flag here and poll in tryDeferredRegistration() each frame.
 -- ============================================================
 function NPCIntegration:initialize()
     if not self.npcFavorActive then
@@ -89,89 +92,106 @@ function NPCIntegration:initialize()
         return
     end
 
-    self:registerConsultantNPC()
+    self.pendingRegistration = true
     self.isInitialized = true
+    csLog("NPCIntegration: NPCFavor detected — will register Alex Chen once NPCFavor finishes init")
+end
+
+-- ============================================================
+-- DEFERRED REGISTRATION POLL
+-- Called every frame by CropStressManager:update().
+-- Waits for npcSystem.isInitialized, then runs registerConsultantNPC once.
+-- ============================================================
+function NPCIntegration:tryDeferredRegistration()
+    if not self.pendingRegistration then return end
+
+    local npcSystem = getNPCSystem()
+    if npcSystem == nil or not npcSystem.isInitialized then return end
+
+    self.pendingRegistration = false
+    self:registerConsultantNPC()
 end
 
 -- ============================================================
 -- REGISTER CONSULTANT NPC
--- Registers Alex Chen with the NPCFavor system.
--- All calls are nil-guarded and wrapped in pcall for safety.
+-- Uses NPCFavor's real API: createNPCAtLocation + initializeNPCData.
+-- First checks if Alex Chen was already restored from a saved game.
 -- ============================================================
 function NPCIntegration:registerConsultantNPC()
-    if getNPCSystem() == nil then
-        csLog("NPCIntegration: g_NPCSystem nil at registration — skipping")
+    local npcSystem = getNPCSystem()
+    if npcSystem == nil then
+        csLog("NPCIntegration: npcSystem nil at registration — skipping")
         return
     end
 
-    -- LUADOC NOTE: Verify registerExternalNPC signature against FS25_NPCFavor v1.2+.
-    -- Expected: registerExternalNPC(config) → npcId string | nil
-    -- Config fields: id, name (i18n key), relationship (starting value), favors (table)
-    if type(getNPCSystem().registerExternalNPC) ~= "function" then
-        csLog("NPCIntegration: registerExternalNPC API not found — version mismatch?")
+    local consultantName = (g_i18n ~= nil) and g_i18n:getText(NPCIntegration.NPC_NAME) or "Alex Chen"
+
+    -- Check if Alex Chen was already restored from a saved game
+    for _, existing in ipairs(npcSystem.activeNPCs or {}) do
+        if existing.name == consultantName then
+            self.consultantNPCId = existing.id
+            self.isRegistered    = true
+            csLog(string.format("NPCIntegration: Alex Chen adopted from save (id=%s)", tostring(existing.id)))
+            self:replayPendingAlerts()
+            return
+        end
+    end
+
+    -- Not in save — create fresh using the real NPCFavor spawn API
+    if type(npcSystem.createNPCAtLocation) ~= "function" then
+        csLog("NPCIntegration: createNPCAtLocation not found — NPCFavor version mismatch?")
         return
     end
 
-    local npcConfig = {
-        id           = NPCIntegration.NPC_ID,
-        name         = (g_i18n ~= nil) and g_i18n:getText(NPCIntegration.NPC_NAME) or "Alex Chen",
-        relationship = 10,  -- start at a small positive value so player isn't cold
-        favors       = self:buildFavorConfigs(),
-    }
+    -- Spawn near player if position is known, else world origin
+    local spawnPos = {x = 0, y = 0, z = 0}
+    if npcSystem.playerPositionValid and npcSystem.playerPosition then
+        spawnPos = {
+            x = npcSystem.playerPosition.x + 15,
+            y = npcSystem.playerPosition.y,
+            z = npcSystem.playerPosition.z + 15,
+        }
+    end
 
-    local ok, result = pcall(function()
-        return getNPCSystem():registerExternalNPC(npcConfig)
+    local ok, npc = pcall(function()
+        return npcSystem:createNPCAtLocation(spawnPos)
     end)
 
-    if ok and result ~= nil then
-        self.consultantNPCId = result
-        self.isRegistered    = true
-        csLog(string.format("NPCIntegration: Alex Chen registered (npcId=%s)", tostring(result)))
+    if not ok or npc == nil then
+        csLog(string.format("NPCIntegration: createNPCAtLocation failed — %s", tostring(npc)))
+        return
+    end
 
-        -- Replay any alerts that arrived before registration
-        for _, alertData in ipairs(self.pendingAlerts) do
-            self:forwardAlertToNPC(alertData)
-        end
-        self.pendingAlerts = {}
+    -- Override generated name/role for Alex Chen
+    npc.name         = consultantName
+    npc.role         = "agronomist"
+    npc.relationship = 10  -- slight head start so player isn't cold
+
+    local npcIndex = #npcSystem.activeNPCs + 1
+    local ok2, err = pcall(function()
+        npcSystem:initializeNPCData(npc, spawnPos, npcIndex)
+        table.insert(npcSystem.activeNPCs, npc)
+        npcSystem.npcCount = npcSystem.npcCount + 1
+    end)
+
+    if ok2 then
+        self.consultantNPCId = npc.id
+        self.isRegistered    = true
+        csLog(string.format("NPCIntegration: Alex Chen created (id=%s)", tostring(npc.id)))
+        self:replayPendingAlerts()
     else
-        csLog(string.format("NPCIntegration: NPC registration failed — %s", tostring(result)))
+        csLog(string.format("NPCIntegration: NPC insert failed — %s", tostring(err)))
     end
 end
 
 -- ============================================================
--- BUILD FAVOR CONFIGS
--- Returns a table of favor configuration objects for all 4 favor types.
--- LUADOC NOTE: Verify favor config schema against FS25_NPCFavor source.
+-- REPLAY PENDING ALERTS
 -- ============================================================
-function NPCIntegration:buildFavorConfigs()
-    return {
-        {
-            type             = NPCIntegration.FAVOR_SOIL_SAMPLE,
-            relThreshold     = NPCIntegration.REL_THRESHOLD_BASIC,
-            -- Callback name called by NPCFavor when player accepts the favor
-            -- LUADOC NOTE: verify whether NPCFavor calls a global or passes a callback
-            onAccept         = "cs_favor_onSoilSample",
-            onComplete       = "cs_favor_onSoilSampleDone",
-        },
-        {
-            type             = NPCIntegration.FAVOR_IRRIGATION_CHECK,
-            relThreshold     = NPCIntegration.REL_THRESHOLD_ADVANCED,
-            onAccept         = "cs_favor_onIrrigationCheck",
-            onComplete       = "cs_favor_onIrrigationCheckDone",
-        },
-        {
-            type             = NPCIntegration.FAVOR_EMERGENCY_WATER,
-            relThreshold     = NPCIntegration.REL_THRESHOLD_BASIC,
-            onAccept         = "cs_favor_onEmergencyWater",
-            onComplete       = "cs_favor_onEmergencyWaterDone",
-        },
-        {
-            type             = NPCIntegration.FAVOR_SEASONAL_PLAN,
-            relThreshold     = NPCIntegration.REL_THRESHOLD_EXPERT,
-            onAccept         = "cs_favor_onSeasonalPlan",
-            onComplete       = "cs_favor_onSeasonalPlanDone",
-        },
-    }
+function NPCIntegration:replayPendingAlerts()
+    for _, alertData in ipairs(self.pendingAlerts) do
+        self:forwardAlertToNPC(alertData)
+    end
+    self.pendingAlerts = {}
 end
 
 -- ============================================================
@@ -193,83 +213,62 @@ function NPCIntegration:sendConsultantAlert(data)
 end
 
 function NPCIntegration:forwardAlertToNPC(data)
-    if getNPCSystem() == nil then return end
+    local npcSystem = getNPCSystem()
+    if npcSystem == nil then return end
     if not self.isRegistered or self.consultantNPCId == nil then return end
 
-    -- Build dialog text from severity
     local severity = data.severity or "WARNING"
     local msgKey   = "cs_alert_warning"
     if severity == "CRITICAL" then msgKey = "cs_alert_critical"
     elseif severity == "INFO"  then msgKey = "cs_alert_info" end
 
-    local template = (g_i18n ~= nil) and g_i18n:getText(msgKey) or msgKey
+    local template   = (g_i18n ~= nil) and g_i18n:getText(msgKey) or msgKey
     local dialogText = string.format(template, data.fieldId, data.cropName or "?")
 
-    -- Show NPC dialog message
-    -- LUADOC NOTE: verify sendNPCDialog signature — (npcId, text, durationMs)
-    if type(getNPCSystem().sendNPCDialog) == "function" then
-        local ok = pcall(function()
-            getNPCSystem():sendNPCDialog(self.consultantNPCId, dialogText, 8000)
+    -- NPCFavor's confirmed notification API: showNotification(title, message)
+    if type(npcSystem.showNotification) == "function" then
+        local consultantName = (g_i18n ~= nil) and g_i18n:getText(NPCIntegration.NPC_NAME) or "Alex Chen"
+        pcall(function()
+            npcSystem:showNotification(consultantName, dialogText)
         end)
-        if not ok then
-            csLog("NPCIntegration: sendNPCDialog call failed")
-        end
     end
 
-    -- Generate a favor quest for CRITICAL alerts
-    if severity == "CRITICAL" then
+    -- Log favor hint — NPCFavor's favor system is player-initiated; no push API exists.
+    if severity == "CRITICAL" or severity == "WARNING" then
         self:generateFavor(NPCIntegration.FAVOR_EMERGENCY_WATER, {
             fieldId = data.fieldId,
-            urgency = "high",
-        })
-    elseif severity == "WARNING" then
-        self:generateFavor(NPCIntegration.FAVOR_IRRIGATION_CHECK, {
-            fieldId = data.fieldId,
-            urgency = "normal",
+            urgency = severity == "CRITICAL" and "high" or "normal",
         })
     end
 end
 
 -- ============================================================
 -- GENERATE FAVOR
--- Asks NPCFavor to create a new favor quest for the player.
--- LUADOC NOTE: verify generateFavor(npcId, favorType, data) signature.
+-- NPCFavor's favor system is entirely player-initiated (player walks up
+-- to an NPC and interacts). There is no API to push a favor from outside.
+-- This logs a hint for Phase 4 when NPCFavor adds an external favor API.
 -- ============================================================
 function NPCIntegration:generateFavor(favorType, favorData)
-    if getNPCSystem() == nil then return end
-    if not self.isRegistered or self.consultantNPCId == nil then return end
-
-    -- LUADOC NOTE: verify exact method name — may be createFavor() or addFavor()
-    if type(getNPCSystem().generateFavor) ~= "function" then return end
-
-    local ok, err = pcall(function()
-        getNPCSystem():generateFavor(self.consultantNPCId, favorType, favorData)
-    end)
-    if not ok then
-        csLog(string.format("NPCIntegration: generateFavor(%s) failed — %s",
-            favorType, tostring(err)))
-    else
-        csLog(string.format("NPCIntegration: favor generated [%s] for field %s",
-            favorType, tostring(favorData and favorData.fieldId or "?")))
-    end
+    if not self.isRegistered then return end
+    csLog(string.format("NPCIntegration: favor hint [%s] field=%s — player must interact with Alex Chen",
+        favorType, tostring(favorData and favorData.fieldId or "?")))
 end
 
 -- ============================================================
 -- GET RELATIONSHIP LEVEL
--- Returns the player's relationship level with Alex Chen.
--- Returns 0 if NPCFavor is not active or API differs.
+-- Returns 0-100 relationship with Alex Chen.
+-- Reads npc.relationship directly — confirmed field on NPCFavor NPC objects.
 -- ============================================================
 function NPCIntegration:getRelationshipLevel()
-    if getNPCSystem() == nil then return 0 end
+    local npcSystem = getNPCSystem()
+    if npcSystem == nil then return 0 end
     if not self.isRegistered or self.consultantNPCId == nil then return 0 end
+    if type(npcSystem.getNPCById) ~= "function" then return 0 end
 
-    -- LUADOC NOTE: verify getRelationshipLevel(npcId) returns a number (0-100 scale)
-    if type(getNPCSystem().getRelationshipLevel) ~= "function" then return 0 end
-
-    local ok, level = pcall(function()
-        return getNPCSystem():getRelationshipLevel(self.consultantNPCId)
+    local ok, npc = pcall(function()
+        return npcSystem:getNPCById(self.consultantNPCId)
     end)
-    if ok then return level or 0 end
+    if ok and npc ~= nil then return npc.relationship or 0 end
     return 0
 end
 
@@ -310,22 +309,13 @@ end
 
 -- ============================================================
 -- CLEANUP
+-- Alex Chen lives in NPCFavor's activeNPCs and is saved/restored by
+-- NPCFavor's own persistence. Don't remove him — just clear our refs.
 -- ============================================================
 function NPCIntegration:delete()
-    -- Deregister NPC from NPCFavor if registered
-    if getNPCSystem() ~= nil
-    and self.isRegistered
-    and self.consultantNPCId ~= nil then
-        -- LUADOC NOTE: verify deregisterExternalNPC(npcId) exists
-        if type(getNPCSystem().deregisterExternalNPC) == "function" then
-            pcall(function()
-                getNPCSystem():deregisterExternalNPC(self.consultantNPCId)
-            end)
-        end
-    end
-
-    self.pendingAlerts   = {}
-    self.isRegistered    = false
-    self.consultantNPCId = nil
-    self.isInitialized   = false
+    self.pendingAlerts       = {}
+    self.pendingRegistration = false
+    self.isRegistered        = false
+    self.consultantNPCId     = nil
+    self.isInitialized       = false
 end
