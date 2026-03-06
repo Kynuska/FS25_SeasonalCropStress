@@ -43,21 +43,21 @@
 
     <!--
         Evapotranspiration base rates per soil type (moisture fraction lost per in-game hour).
-        Sandy = drains fast, Clay = holds moisture, Loamy = balanced.
+        Sandy = drains fast but absorbs rain well, Clay = holds moisture but absorbs rain slowly, Loamy = balanced.
     -->
     <soilTypes>
-        <soilType name="sandy" evapModifier="1.40" rainAbsorption="0.90"/>
+        <soilType name="sandy" evapModifier="1.40" rainAbsorption="1.25"/>
         <soilType name="loamy" evapModifier="1.00" rainAbsorption="1.00"/>
-        <soilType name="clay"  evapModifier="0.70" rainAbsorption="0.80"/>
+        <soilType name="clay"  evapModifier="0.70" rainAbsorption="0.72"/>
     </soilTypes>
 
     <!--
-        Season evaporation modifiers.
+        Season starting moisture and evaporation modifiers.
         0=spring, 1=summer, 2=autumn, 3=winter
     -->
     <seasonModifiers>
         <season index="0" evapModifier="0.80" startMoisture="0.60"/>
-        <season index="1" evapModifier="1.40" startMoisture="0.40"/>
+        <season index="1" evapModifier="1.40" startMoisture="0.50"/>
         <season index="2" evapModifier="0.90" startMoisture="0.55"/>
         <season index="3" evapModifier="0.20" startMoisture="0.70"/>
     </seasonModifiers>
@@ -69,14 +69,49 @@
         stressRatePerHour: stress accumulated per hour of deficit (0.0-1.0 scale).
     -->
     <cropStressWindows>
-        <crop name="wheat"     stages="3,4"   criticalMoisture="0.35" stressRatePerHour="0.003"/>
-        <crop name="barley"    stages="3,4"   criticalMoisture="0.30" stressRatePerHour="0.003"/>
-        <crop name="corn"      stages="4,5"   criticalMoisture="0.40" stressRatePerHour="0.004"/>
-        <crop name="canola"    stages="2,3"   criticalMoisture="0.45" stressRatePerHour="0.005"/>
-        <crop name="sunflower" stages="3,4"   criticalMoisture="0.30" stressRatePerHour="0.002"/>
-        <crop name="soybeans"  stages="3,4"   criticalMoisture="0.40" stressRatePerHour="0.004"/>
-        <crop name="sugarbeet" stages="2,3,4" criticalMoisture="0.50" stressRatePerHour="0.005"/>
-        <crop name="potato"    stages="2,3,4" criticalMoisture="0.55" stressRatePerHour="0.006"/>
+        <!-- Base game crops -->
+        <crop name="wheat"      stages="3,4,5"   criticalMoisture="0.35" stressRatePerHour="0.003"/>
+        <crop name="barley"     stages="3,4,5"   criticalMoisture="0.30" stressRatePerHour="0.003"/>
+        <crop name="corn"       stages="4,5"     criticalMoisture="0.40" stressRatePerHour="0.006"/>
+        <crop name="canola"     stages="2,3"     criticalMoisture="0.45" stressRatePerHour="0.005"/>
+        <crop name="sunflower"  stages="3,4,5"   criticalMoisture="0.30" stressRatePerHour="0.002"/>
+        <crop name="soybeans"   stages="4,5"     criticalMoisture="0.40" stressRatePerHour="0.004"/>
+        <crop name="sugarbeet"  stages="2,3,4"   criticalMoisture="0.50" stressRatePerHour="0.005"/>
+        <crop name="potato"     stages="2,3,4"   criticalMoisture="0.55" stressRatePerHour="0.006"/>
+        <!-- Small grains -->
+        <crop name="oat"        stages="3,4,5"   criticalMoisture="0.30" stressRatePerHour="0.003"/>
+        <crop name="rye"        stages="3,4,5"   criticalMoisture="0.25" stressRatePerHour="0.002"/>
+        <crop name="spelt"      stages="3,4,5"   criticalMoisture="0.35" stressRatePerHour="0.003"/>
+        <crop name="triticale"  stages="3,4,5"   criticalMoisture="0.30" stressRatePerHour="0.003"/>
+        <!-- Drought-tolerant row crops -->
+        <crop name="sorghum"    stages="3,4,5"   criticalMoisture="0.25" stressRatePerHour="0.002"/>
+        <crop name="millet"     stages="3,4,5"   criticalMoisture="0.25" stressRatePerHour="0.002"/>
+        <!-- High-water row crops -->
+        <crop name="rice"       stages="3,4,5"   criticalMoisture="0.70" stressRatePerHour="0.008"/>
+        <crop name="sugarcane"  stages="3,4,5"   criticalMoisture="0.55" stressRatePerHour="0.006"/>
+        <crop name="cotton"     stages="3,4,5"   criticalMoisture="0.45" stressRatePerHour="0.005"/>
+        <!-- Legumes -->
+        <crop name="pintobean"  stages="3,4"     criticalMoisture="0.40" stressRatePerHour="0.004"/>
+        <crop name="pea"        stages="2,3"     criticalMoisture="0.40" stressRatePerHour="0.004"/>
+        <crop name="lentil"     stages="2,3"     criticalMoisture="0.35" stressRatePerHour="0.003"/>
+        <!-- Forage and cover crops -->
+        <crop name="alfalfa"    stages="2,3,4"   criticalMoisture="0.45" stressRatePerHour="0.004"/>
+        <crop name="clover"     stages="2,3"     criticalMoisture="0.45" stressRatePerHour="0.003"/>
+        <crop name="grass"      stages="1,2,3"   criticalMoisture="0.35" stressRatePerHour="0.002"/>
+        <crop name="buckwheat"  stages="2,3,4"   criticalMoisture="0.40" stressRatePerHour="0.004"/>
+        <!-- Industrial and specialty -->
+        <crop name="hemp"       stages="2,3,4"   criticalMoisture="0.45" stressRatePerHour="0.004"/>
+        <crop name="miscanthus" stages="2,3,4"   criticalMoisture="0.30" stressRatePerHour="0.002"/>
+        <crop name="poplar"     stages="2,3"     criticalMoisture="0.40" stressRatePerHour="0.003"/>
+        <crop name="mint"       stages="2,3,4"   criticalMoisture="0.55" stressRatePerHour="0.005"/>
+        <!-- Root vegetables -->
+        <crop name="onion"      stages="2,3,4"   criticalMoisture="0.50" stressRatePerHour="0.005"/>
+        <crop name="carrot"     stages="2,3,4"   criticalMoisture="0.45" stressRatePerHour="0.004"/>
+        <crop name="beetroot"   stages="2,3,4"   criticalMoisture="0.50" stressRatePerHour="0.005"/>
+        <crop name="parsnip"    stages="2,3,4"   criticalMoisture="0.45" stressRatePerHour="0.004"/>
+        <!-- Leafy and pod vegetables -->
+        <crop name="spinach"    stages="1,2,3"   criticalMoisture="0.50" stressRatePerHour="0.005"/>
+        <crop name="greenbean"  stages="2,3,4"   criticalMoisture="0.45" stressRatePerHour="0.004"/>
     </cropStressWindows>
 
 </cropStressConfig>

@@ -26,14 +26,49 @@ CropStressModifier.MAX_YIELD_LOSS = 0.60
 -- Crop stress configuration (matches cropStressDefaults.xml)
 -- key = lowercase fruit type name as returned by FS25 field:getFruitType().name
 CropStressModifier.CROP_WINDOWS = {
-    wheat      = { stages = {3,4},     criticalMoisture = 0.35, stressRatePerHour = 0.003 },
-    barley     = { stages = {3,4},     criticalMoisture = 0.30, stressRatePerHour = 0.003 },
-    corn       = { stages = {4,5},     criticalMoisture = 0.40, stressRatePerHour = 0.004 },
-    canola     = { stages = {2,3},     criticalMoisture = 0.45, stressRatePerHour = 0.005 },
-    sunflower  = { stages = {3,4},     criticalMoisture = 0.30, stressRatePerHour = 0.002 },
-    soybeans   = { stages = {3,4},     criticalMoisture = 0.40, stressRatePerHour = 0.004 },
-    sugarbeet  = { stages = {2,3,4},   criticalMoisture = 0.50, stressRatePerHour = 0.005 },
-    potato     = { stages = {2,3,4},   criticalMoisture = 0.55, stressRatePerHour = 0.006 },
+    -- Base game crops
+    wheat        = { stages = {3,4,5},   criticalMoisture = 0.35, stressRatePerHour = 0.003 },
+    barley       = { stages = {3,4,5},   criticalMoisture = 0.30, stressRatePerHour = 0.003 },
+    corn         = { stages = {4,5},     criticalMoisture = 0.40, stressRatePerHour = 0.006 },
+    canola       = { stages = {2,3},     criticalMoisture = 0.45, stressRatePerHour = 0.005 },
+    sunflower    = { stages = {3,4,5},   criticalMoisture = 0.30, stressRatePerHour = 0.002 },
+    soybeans     = { stages = {4,5},     criticalMoisture = 0.40, stressRatePerHour = 0.004 },
+    sugarbeet    = { stages = {2,3,4},   criticalMoisture = 0.50, stressRatePerHour = 0.005 },
+    potato       = { stages = {2,3,4},   criticalMoisture = 0.55, stressRatePerHour = 0.006 },
+    -- Small grains
+    oat          = { stages = {3,4,5},   criticalMoisture = 0.30, stressRatePerHour = 0.003 },
+    rye          = { stages = {3,4,5},   criticalMoisture = 0.25, stressRatePerHour = 0.002 },
+    spelt        = { stages = {3,4,5},   criticalMoisture = 0.35, stressRatePerHour = 0.003 },
+    triticale    = { stages = {3,4,5},   criticalMoisture = 0.30, stressRatePerHour = 0.003 },
+    -- Drought-tolerant row crops
+    sorghum      = { stages = {3,4,5},   criticalMoisture = 0.25, stressRatePerHour = 0.002 },
+    millet       = { stages = {3,4,5},   criticalMoisture = 0.25, stressRatePerHour = 0.002 },
+    -- High-water row crops
+    rice         = { stages = {3,4,5},   criticalMoisture = 0.70, stressRatePerHour = 0.008 },
+    sugarcane    = { stages = {3,4,5},   criticalMoisture = 0.55, stressRatePerHour = 0.006 },
+    cotton       = { stages = {3,4,5},   criticalMoisture = 0.45, stressRatePerHour = 0.005 },
+    -- Legumes
+    pintobean    = { stages = {3,4},     criticalMoisture = 0.40, stressRatePerHour = 0.004 },
+    pea          = { stages = {2,3},     criticalMoisture = 0.40, stressRatePerHour = 0.004 },
+    lentil       = { stages = {2,3},     criticalMoisture = 0.35, stressRatePerHour = 0.003 },
+    -- Forage & cover crops
+    alfalfa      = { stages = {2,3,4},   criticalMoisture = 0.45, stressRatePerHour = 0.004 },
+    clover       = { stages = {2,3},     criticalMoisture = 0.45, stressRatePerHour = 0.003 },
+    grass        = { stages = {1,2,3},   criticalMoisture = 0.35, stressRatePerHour = 0.002 },
+    buckwheat    = { stages = {2,3,4},   criticalMoisture = 0.40, stressRatePerHour = 0.004 },
+    -- Industrial / specialty
+    hemp         = { stages = {2,3,4},   criticalMoisture = 0.45, stressRatePerHour = 0.004 },
+    miscanthus   = { stages = {2,3,4},   criticalMoisture = 0.30, stressRatePerHour = 0.002 },
+    poplar       = { stages = {2,3},     criticalMoisture = 0.40, stressRatePerHour = 0.003 },
+    mint         = { stages = {2,3,4},   criticalMoisture = 0.55, stressRatePerHour = 0.005 },
+    -- Root vegetables
+    onion        = { stages = {2,3,4},   criticalMoisture = 0.50, stressRatePerHour = 0.005 },
+    carrot       = { stages = {2,3,4},   criticalMoisture = 0.45, stressRatePerHour = 0.004 },
+    beetroot     = { stages = {2,3,4},   criticalMoisture = 0.50, stressRatePerHour = 0.005 },
+    parsnip      = { stages = {2,3,4},   criticalMoisture = 0.45, stressRatePerHour = 0.004 },
+    -- Leafy / pod vegetables
+    spinach      = { stages = {1,2,3},   criticalMoisture = 0.50, stressRatePerHour = 0.005 },
+    greenbean    = { stages = {2,3,4},   criticalMoisture = 0.45, stressRatePerHour = 0.004 },
 }
 
 -- Whether the harvest hook has been installed (static flag, module-level)
