@@ -22,10 +22,11 @@
 --   • g_NPCSystem:sendNPCDialog(npcId, text, duration)
 -- ============================================================
 
--- Cross-mod global accessor: NPCFavor exports g_NPCSystem via getfenv(0)["g_NPCSystem"]
--- into the shared game environment. Plain `g_NPCSystem` only sees our mod's own env.
+-- Cross-mod accessor: NPCFavor writes npcSystem to mission.npcFavorSystem (Mission00.load hook).
+-- g_currentMission is a true shared global visible to all mods.
+-- getfenv(0) is per-mod scoped in FS25 and NOT shared between mods — do NOT use it here.
 local function getNPCSystem()
-    return getfenv(0)["g_NPCSystem"]
+    return g_currentMission and g_currentMission.npcFavorSystem
 end
 
 NPCIntegration = {}

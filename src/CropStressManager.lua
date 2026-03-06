@@ -436,7 +436,10 @@ function CropStressManager:detectOptionalMods()
     -- means plain global access (e.g. g_NPCSystem) only sees our own mod environment.
     -- Other mods export globals via getfenv(0)["x"] = val (game shared env), so we
     -- must read them the same way. Confirmed: NPCFavor/NPCAI.lua uses getfenv(0)["g_NPCSystem"].
-    if getfenv(0)["g_NPCSystem"] ~= nil then
+    -- NPCFavor detection: getfenv(0) is per-mod scoped in FS25 — NOT shared between mods.
+    -- NPCFavor bridges its system via mission.npcFavorSystem (set in Mission00.load hook).
+    -- g_currentMission == mission at this point (loadMission00Finished).
+    if g_currentMission ~= nil and g_currentMission.npcFavorSystem ~= nil then
         csLog("FS25_NPCFavor detected — enabling NPC integration")
         self.npcIntegration.npcFavorActive = true
         -- Also enable NPCFavor mode on the consultant so alerts route through Alex Chen
