@@ -39,13 +39,23 @@ HUDOverlay.HEADER_TEXT_SIZE  = 0.014
 HUDOverlay.MAX_FIELDS        = 6
 
 -- ── Forecast strip layout ──────────────────────────────────
-HUDOverlay.FORECAST_H        = 0.068   -- total height of the forecast panel
+-- Layout sections from bottom to top:
+--   PADDING | PCT_ROW | BAR_AREA | PADDING | LABEL_ROW | PADDING | HEADER
+-- Total = 0.004+0.018+0.032+0.004+0.014+0.004+0.022 = 0.098 → 0.100
+HUDOverlay.FORECAST_H        = 0.100   -- total height of the forecast panel
 HUDOverlay.FORECAST_HEADER_H = 0.022
-HUDOverlay.FORECAST_ROW_H    = 0.020
+HUDOverlay.FORECAST_BAR_AREA = 0.032   -- height of vertical bars
+HUDOverlay.FORECAST_ROW_H    = 0.018   -- pct text row below bars
+HUDOverlay.FORECAST_LABEL_H  = 0.014   -- day label row above bars
 HUDOverlay.FORECAST_COLS     = 5
 HUDOverlay.FORECAST_COL_W    = 0.040   -- width per forecast column
 HUDOverlay.FORECAST_BAR_H    = 0.010
 HUDOverlay.FORECAST_TEXT_SZ  = 0.011
+
+-- ── Scale & resize ─────────────────────────────────────────
+HUDOverlay.MIN_SCALE          = 0.6
+HUDOverlay.MAX_SCALE          = 1.6
+HUDOverlay.RESIZE_HANDLE_SIZE = 0.008
 
 -- ── Selection highlight ────────────────────────────────────
 -- A thin colored border is drawn on the selected row
@@ -116,6 +126,20 @@ function HUDOverlay.new(manager)
     self.dragOffsetX    = 0
     self.dragOffsetY    = 0
 
+    -- Scale & resize state
+    self.scale            = 1.0
+    self.resizing         = false
+    self.resizeStartX     = 0
+    self.resizeStartY     = 0
+    self.resizeStartScale = 1.0
+    self.hoverCorner      = nil
+    self.animTimer        = 0
+
+    -- Camera freeze state (NPCFavor pattern)
+    self.savedCamRotX     = nil
+    self.savedCamRotY     = nil
+    self.savedCamRotZ     = nil
+
     self.isInitialized  = false
     return self
 end
@@ -150,6 +174,35 @@ end
 function HUDOverlay:update(dt)
     if not self.isInitialized then return end
     if not self.isVisible then return end
+
+    self.animTimer = self.animTimer + dt
+
+    -- Edit mode: freeze camera rotation + assert cursor every frame (NPCFavor pattern)
+    if self.editMode then
+        if g_inputBinding and g_inputBinding.setShowMouseCursor then
+            g_inputBinding:setShowMouseCursor(true)
+        end
+        if self.savedCamRotX and getCamera and setRotation then
+            local ok, cam = pcall(getCamera)
+            if ok and cam and cam ~= 0 then
+                pcall(setRotation, cam, self.savedCamRotX, self.savedCamRotY, self.savedCamRotZ)
+            end
+        end
+        -- Auto-exit if a GUI/dialog opens
+        if g_gui and (g_gui:getIsGuiVisible() or g_gui:getIsDialogVisible()) then
+            self:exitEditMode()
+        end
+        -- Hover detection for corner handles
+        if not self.dragging and not self.resizing then
+            if g_inputBinding and g_inputBinding.mousePosXLast and g_inputBinding.mousePosYLast then
+                self.hoverCorner = self:hitTestCorner(g_inputBinding.mousePosXLast, g_inputBinding.mousePosYLast)
+            else
+                self.hoverCorner = nil
+            end
+        end
+    else
+        self.hoverCorner = nil
+    end
 
     -- Detect resolution changes and recalculate coordinates
     local currentResolution = { g_screenWidth, g_screenHeight }
@@ -194,6 +247,100 @@ function HUDOverlay:recalculateCoordinates()
     if settings == nil then return end
     self.panelX = settings.hudPanelX or HUDOverlay.PANEL_X
     self.panelY = settings.hudPanelY or HUDOverlay.PANEL_Y
+    self.scale  = settings.hudScale  or 1.0
+end
+
+-- ============================================================
+-- EDIT MODE (NPCFavor pattern — cursor unlock + camera freeze)
+-- ============================================================
+function HUDOverlay:enterEditMode()
+    self.editMode = true
+    self.dragging = false
+    if g_inputBinding and g_inputBinding.setShowMouseCursor then
+        g_inputBinding:setShowMouseCursor(true)
+    end
+    if getCamera and getRotation then
+        local ok, cam = pcall(getCamera)
+        if ok and cam and cam ~= 0 then
+            local ok2, rx, ry, rz = pcall(getRotation, cam)
+            if ok2 then
+                self.savedCamRotX, self.savedCamRotY, self.savedCamRotZ = rx, ry, rz
+            end
+        end
+    end
+    csLog("HUD edit mode ON — drag to move, corners to resize")
+end
+
+function HUDOverlay:exitEditMode()
+    self.editMode    = false
+    self.dragging    = false
+    self.resizing    = false
+    self.hoverCorner = nil
+    self.savedCamRotX, self.savedCamRotY, self.savedCamRotZ = nil, nil, nil
+    if g_inputBinding and g_inputBinding.setShowMouseCursor then
+        g_inputBinding:setShowMouseCursor(false)
+    end
+    if self.manager ~= nil and self.manager.settings ~= nil then
+        self.manager.settings.hudPanelX = self.panelX
+        self.manager.settings.hudPanelY = self.panelY
+        self.manager.settings.hudScale  = self.scale
+    end
+    csLog("HUD edit mode OFF — position saved")
+end
+
+-- ── Geometry helpers ──────────────────────────────────────
+
+function HUDOverlay:getHUDRect()
+    local s      = self.scale
+    local panelW = HUDOverlay.PANEL_W * s
+    local numRows = math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)
+    local panelH = self:calcPanelHeight(numRows == 0 and 1 or numRows)
+    return self.panelX, self.panelY, panelW, panelH
+end
+
+function HUDOverlay:isPointerOverHUD(posX, posY)
+    local px, py, pw, ph = self:getHUDRect()
+    if posX >= px and posX <= px + pw and posY >= py and posY <= py + ph then
+        return true
+    end
+    -- Also include forecast strip
+    if self.forecastCache ~= nil then
+        local s    = self.scale
+        local stripH = HUDOverlay.FORECAST_H * s + HUDOverlay.PADDING * s
+        if posX >= px and posX <= px + pw
+        and posY >= py - stripH and posY <= py then
+            return true
+        end
+    end
+    return false
+end
+
+function HUDOverlay:getResizeHandleRects()
+    local px, py, pw, ph = self:getHUDRect()
+    local hs = HUDOverlay.RESIZE_HANDLE_SIZE
+    return {
+        bl = {x = px,        y = py,        w = hs, h = hs},
+        br = {x = px+pw-hs,  y = py,        w = hs, h = hs},
+        tl = {x = px,        y = py+ph-hs,  w = hs, h = hs},
+        tr = {x = px+pw-hs,  y = py+ph-hs,  w = hs, h = hs},
+    }
+end
+
+function HUDOverlay:hitTestCorner(posX, posY)
+    local handles = self:getResizeHandleRects()
+    for key, rect in pairs(handles) do
+        if posX >= rect.x and posX <= rect.x + rect.w
+        and posY >= rect.y and posY <= rect.y + rect.h then
+            return key
+        end
+    end
+    return nil
+end
+
+function HUDOverlay:clampPosition()
+    local px, py, pw, ph = self:getHUDRect()
+    self.panelX = math.max(0.01, math.min(1.0 - pw - 0.01, self.panelX))
+    self.panelY = math.max(ph + 0.01, math.min(0.99, self.panelY))
 end
 
 -- ============================================================
@@ -222,15 +369,19 @@ function HUDOverlay:detectRowClick()
         if ok then mx, my = x or 0, y or 0 end
     end
 
+    local s       = self.scale
+    local panelW  = HUDOverlay.PANEL_W * s
+    local rowH    = HUDOverlay.ROW_H * s
+    local headerH = HUDOverlay.HEADER_H * s
     local numRows = math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)
     local panelH  = self:calcPanelHeight(numRows)
     local px      = self.panelX
     local py      = self.panelY
 
     for i = 1, numRows do
-        local rowY = py + panelH - HUDOverlay.HEADER_H - (i * HUDOverlay.ROW_H)
-        if mx >= px and mx <= px + HUDOverlay.PANEL_W
-        and my >= rowY and my <= rowY + HUDOverlay.ROW_H then
+        local rowY = py + panelH - headerH - (i * rowH)
+        if mx >= px and mx <= px + panelW
+        and my >= rowY and my <= rowY + rowH then
             local newId = self.displayRows[i].fieldId
             if self.selectedFieldId == newId then
                 self.selectedFieldId = nil
@@ -245,70 +396,92 @@ function HUDOverlay:detectRowClick()
 end
 
 -- ============================================================
--- MOUSE EVENT — edit mode + drag reposition
+-- MOUSE EVENT — edit mode, drag, and corner resize
 -- Called from main.lua addModEventListener mouseEvent handler.
 -- FS25 button numbers: 1=left, 3=right, 2=middle.
 --
--- IMPORTANT: In FS25 gameplay mode, the cursor is captured for
--- camera control. mouseEvent fires ONLY on button state changes
--- (down/up) — NOT for intermediate mouse movement. This means
--- continuous drag tracking is impossible. We use the NPCFavor
--- pattern: record position on LMB down, apply the full delta
--- (release - click) on LMB up. One-shot repositioning.
+-- With setShowMouseCursor(true) active during edit mode, FS25
+-- fires mouseEvent on every mouse MOVEMENT as well as clicks,
+-- enabling true continuous drag (NPCFavor pattern).
 --
--- Flow:
---   RMB down → toggle edit mode (orange border = edit active)
---   LMB down (in edit mode) → record click position + HUD origin
---   LMB up (in edit mode)   → apply DOWN→UP delta to HUD position
+-- CRITICAL FIX: RMB only enters edit mode if the cursor is
+-- over THIS HUD panel — prevents cross-contamination when
+-- other mods (NPCFavor, SoilFertilizer) also handle RMB.
 -- ============================================================
 function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
     if not self.isVisible then return end
 
-    -- ── RMB: toggle edit mode ─────────────────────────────
+    -- ── RMB: enter edit mode only if cursor is over our panel ──
     if isDown and button == 3 then
-        self.editMode = not self.editMode
-        if not self.editMode then
-            self.dragging = false
-            -- Persist new position to settings so it survives reload.
-            if self.manager ~= nil and self.manager.settings ~= nil then
-                self.manager.settings.hudPanelX = self.panelX
-                self.manager.settings.hudPanelY = self.panelY
-            end
-            csLog("HUD edit mode OFF — position saved")
-        else
-            csLog("HUD edit mode ON — LMB click+release to reposition")
+        if self.editMode then
+            self:exitEditMode()     -- exit on any RMB while already editing
+        elseif self:isPointerOverHUD(posX, posY) then
+            self:enterEditMode()    -- enter only when clicking on our panel
         end
         return
     end
 
     if not self.editMode then return end
 
-    -- ── LMB down: record drag start ───────────────────────
+    -- ── LMB down: start corner resize or body drag ─────────
     if isDown and button == 1 then
-        self.dragging   = true
-        self.dragStartX = posX
-        self.dragStartY = posY
-        self.hudStartX  = self.panelX
-        self.hudStartY  = self.panelY
+        local corner = self:hitTestCorner(posX, posY)
+        if corner then
+            self.resizing         = true
+            self.dragging         = false
+            self.resizeStartX     = posX
+            self.resizeStartY     = posY
+            self.resizeStartScale = self.scale
+            return
+        end
+        if self:isPointerOverHUD(posX, posY) then
+            self.dragging    = true
+            self.resizing    = false
+            self.dragOffsetX = posX - self.panelX
+            self.dragOffsetY = posY - self.panelY
+        end
         return
     end
 
-    -- ── LMB up: apply full DOWN→UP delta ──────────────────
-    -- No intermediate movement events fire in FS25 gameplay mode,
-    -- so we apply the entire delta from click to release at once.
-    if isUp and button == 1 and self.dragging then
-        local dx = posX - self.dragStartX
-        local dy = posY - self.dragStartY
-        self.panelX = math.max(0.0, math.min(1.0 - HUDOverlay.PANEL_W, self.hudStartX + dx))
-        self.panelY = math.max(0.05, math.min(0.95, self.hudStartY + dy))
-        self.dragging = false
-        -- Persist immediately
-        if self.manager ~= nil and self.manager.settings ~= nil then
-            self.manager.settings.hudPanelX = self.panelX
-            self.manager.settings.hudPanelY = self.panelY
+    -- ── LMB up: end drag/resize ────────────────────────────
+    if isUp and button == 1 then
+        if self.dragging or self.resizing then
+            self.dragging = false
+            self.resizing = false
+            self:clampPosition()
+            if self.manager ~= nil and self.manager.settings ~= nil then
+                self.manager.settings.hudPanelX = self.panelX
+                self.manager.settings.hudPanelY = self.panelY
+                self.manager.settings.hudScale  = self.scale
+            end
+            csLog(string.format("HUD repositioned to %.3f,%.3f scale=%.2f", self.panelX, self.panelY, self.scale))
         end
-        csLog(string.format("HUD repositioned to %.3f,%.3f (delta: %+.3f,%+.3f)", self.panelX, self.panelY, dx, dy))
         return
+    end
+
+    -- ── Mouse movement: continuous drag / resize ──────────
+    -- Fires every frame while cursor is unlocked (setShowMouseCursor active).
+    if self.dragging then
+        local s = self.scale
+        local panelW = HUDOverlay.PANEL_W * s
+        self.panelX = math.max(0.0, math.min(1.0 - panelW, posX - self.dragOffsetX))
+        self.panelY = math.max(0.05, math.min(0.95, posY - self.dragOffsetY))
+    end
+
+    if self.resizing then
+        local px, py, pw, ph = self:getHUDRect()
+        local cx = px + pw * 0.5
+        local cy = py + ph * 0.5
+        local startDist = math.sqrt((self.resizeStartX-cx)^2 + (self.resizeStartY-cy)^2)
+        local currDist  = math.sqrt((posX-cx)^2 + (posY-cy)^2)
+        local delta     = (currDist - startDist) * 2.5
+        self.scale = math.max(HUDOverlay.MIN_SCALE, math.min(HUDOverlay.MAX_SCALE, self.resizeStartScale + delta))
+        self:clampPosition()
+    end
+
+    -- Hover detection for corner handles
+    if not self.dragging and not self.resizing then
+        self.hoverCorner = self:hitTestCorner(posX, posY)
     end
 end
 
@@ -340,9 +513,10 @@ end
 -- CALC PANEL HEIGHT (pure function, used in update + draw)
 -- ============================================================
 function HUDOverlay:calcPanelHeight(numRows)
-    return HUDOverlay.HEADER_H
-        + (numRows * HUDOverlay.ROW_H)
-        + HUDOverlay.PADDING * 2
+    local s = self.scale
+    return HUDOverlay.HEADER_H * s
+        + (numRows * HUDOverlay.ROW_H * s)
+        + HUDOverlay.PADDING * 2 * s
 end
 
 -- ============================================================
@@ -351,193 +525,211 @@ end
 function HUDOverlay:draw()
     if not self.isInitialized or not self.isVisible then return end
     if g_currentMission == nil then return end
-    -- Hide while any full-screen GUI (InGameMenu, dialogs) is open.
     if g_gui ~= nil and g_gui:getIsGuiVisible() then return end
-    -- fillOverlay is nil only if createImageOverlay was unavailable at init (extremely rare).
-    -- Bail out rather than spam nil-handle errors every frame.
     if self.fillOverlay == nil then return end
 
-    local numRows = math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)
+    local s        = self.scale
+    local panelW   = HUDOverlay.PANEL_W * s
+    local rowH     = HUDOverlay.ROW_H * s
+    local headerH  = HUDOverlay.HEADER_H * s
+    local pad      = HUDOverlay.PADDING * s
+    local numRows  = math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)
+    local showEmpty = (numRows == 0)
+    local panelH   = self:calcPanelHeight(showEmpty and 1 or numRows)
+    local px       = self.panelX
+    local py       = self.panelY
 
-    -- Use 1 placeholder row height when there are no fields so the panel
-    -- always renders visibly after Shift+M — gives the player feedback that
-    -- the toggle worked even on maps with no enumerated fields.
-    local showEmpty   = (numRows == 0)
-    local panelH      = self:calcPanelHeight(showEmpty and 1 or numRows)
-    local px          = self.panelX
-    local py          = self.panelY
-
-    -- Draw forecast strip BELOW the main panel (lower Y values)
+    -- Forecast strip BELOW the main panel
     if self.forecastCache ~= nil then
-        self:drawForecastStrip(px, py - HUDOverlay.FORECAST_H - HUDOverlay.PADDING)
+        self:drawForecastStrip(px, py - HUDOverlay.FORECAST_H * s - pad)
     end
+
+    -- Drop shadow
+    local shadowOff = 0.002 * s
+    setOverlayColor(self.fillOverlay, 0, 0, 0, 0.35)
+    renderOverlay(self.fillOverlay, px + shadowOff, py - shadowOff, panelW, panelH)
 
     -- Background panel
     setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_BG))
-    renderOverlay(self.fillOverlay, px, py, HUDOverlay.PANEL_W, panelH)
+    renderOverlay(self.fillOverlay, px, py, panelW, panelH)
+
+    -- Permanent subtle border
+    local bwN = 0.001
+    setOverlayColor(self.fillOverlay, 0.30, 0.40, 0.55, 0.50)
+    renderOverlay(self.fillOverlay, px,             py + panelH - bwN, panelW, bwN)
+    renderOverlay(self.fillOverlay, px,             py,                panelW, bwN)
+    renderOverlay(self.fillOverlay, px,             py,                bwN, panelH)
+    renderOverlay(self.fillOverlay, px + panelW - bwN, py,            bwN, panelH)
 
     -- Header bar
     setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_HEADER_BG))
-    renderOverlay(self.fillOverlay, px, py + panelH - HUDOverlay.HEADER_H, HUDOverlay.PANEL_W, HUDOverlay.HEADER_H)
+    renderOverlay(self.fillOverlay, px, py + panelH - headerH, panelW, headerH)
 
-    -- Header text
+    -- Header text + key hint
     setTextColor(unpack(HUDOverlay.COLOR_HEADER_TEXT))
     setTextBold(true)
-    renderText(
-        px + HUDOverlay.PADDING,
-        py + panelH - HUDOverlay.HEADER_H + HUDOverlay.PADDING,
-        HUDOverlay.HEADER_TEXT_SIZE,
-        (g_i18n ~= nil and g_i18n:getText("cs_hud_title")) or "CROP MOISTURE"
-    )
-    -- Key hint (right side of header)
-    renderText(
-        px + HUDOverlay.PANEL_W - 0.028,
-        py + panelH - HUDOverlay.HEADER_H + HUDOverlay.PADDING,
-        HUDOverlay.TEXT_SIZE,
-        "[M]"
-    )
+    renderText(px + pad, py + panelH - headerH + pad, HUDOverlay.HEADER_TEXT_SIZE * s,
+        (g_i18n ~= nil and g_i18n:getText("cs_hud_title")) or "CROP MOISTURE")
+    renderText(px + panelW - 0.028 * s, py + panelH - headerH + pad, HUDOverlay.TEXT_SIZE * s, "[M]")
     setTextBold(false)
 
-    -- Empty state: no fields tracked on this map
+    -- Edit mode: pulsing border + corner resize handles
+    if self.editMode then
+        local pulse = 0.5 + 0.5 * math.sin(self.animTimer * 4)
+        local bw = 0.002
+        setOverlayColor(self.fillOverlay, 0.30, 0.65, 1.00, 0.4 + 0.4 * pulse)
+        renderOverlay(self.fillOverlay, px,             py + panelH - bw, panelW, bw)
+        renderOverlay(self.fillOverlay, px,             py,               panelW, bw)
+        renderOverlay(self.fillOverlay, px,             py,               bw, panelH)
+        renderOverlay(self.fillOverlay, px + panelW - bw, py,            bw, panelH)
+
+        local handles = self:getResizeHandleRects()
+        for key, rect in pairs(handles) do
+            local hc = (self.hoverCorner == key)
+                and {0.50, 0.80, 1.00, 0.90}
+                or  {0.30, 0.55, 0.90, 0.65}
+            setOverlayColor(self.fillOverlay, unpack(hc))
+            renderOverlay(self.fillOverlay, rect.x, rect.y, rect.w, rect.h)
+        end
+    end
+
+    -- Empty state
     if showEmpty then
         setTextColor(unpack(HUDOverlay.COLOR_DIM_TEXT))
-        renderText(
-            px + HUDOverlay.PADDING,
-            py + HUDOverlay.PADDING + (HUDOverlay.ROW_H - HUDOverlay.TEXT_SIZE) * 0.5,
-            HUDOverlay.TEXT_SIZE,
-            (g_i18n ~= nil and g_i18n:getText("cs_hud_no_crop")) or "No field data"
-        )
+        renderText(px + pad, py + pad + (rowH - HUDOverlay.TEXT_SIZE * s) * 0.5,
+            HUDOverlay.TEXT_SIZE * s,
+            (g_i18n ~= nil and g_i18n:getText("cs_hud_no_crop")) or "No field data")
+        setTextAlignment(RenderText.ALIGN_LEFT)
+        setTextColor(1, 1, 1, 1)
         return
     end
 
     -- Field rows
     for i = 1, numRows do
         local row  = self.displayRows[i]
-        local rowY = py + panelH - HUDOverlay.HEADER_H - (i * HUDOverlay.ROW_H)
+        local rowY = py + panelH - headerH - (i * rowH)
 
-        -- Selection highlight background
         if row.fieldId == self.selectedFieldId then
             setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_ROW_HOVER))
-            renderOverlay(self.fillOverlay, px, rowY, HUDOverlay.PANEL_W, HUDOverlay.ROW_H)
-            -- Selection border (left edge stripe)
+            renderOverlay(self.fillOverlay, px, rowY, panelW, rowH)
             setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_SELECTED_BDR))
-            renderOverlay(self.fillOverlay, px, rowY, HUDOverlay.SELECTED_BORDER_W, HUDOverlay.ROW_H)
+            renderOverlay(self.fillOverlay, px, rowY, HUDOverlay.SELECTED_BORDER_W * s, rowH)
         end
 
-        self:drawFieldRow(row, px, rowY)
+        self:drawFieldRow(row, px, rowY, s)
     end
 
-    -- Hint text at bottom of panel if no field selected
-    if self.selectedFieldId == nil and not self.editMode then
-        setTextColor(unpack(HUDOverlay.COLOR_DIM_TEXT))
-        renderText(
-            px + HUDOverlay.PADDING,
-            py + HUDOverlay.PADDING,
-            0.010,
-            (g_i18n ~= nil and g_i18n:getText("cs_hud_click_forecast")) or "Click row for 5-day forecast"
-        )
-    end
-
-    -- Edit mode: orange border + hint text replacing the normal footer
+    -- Footer hint
     if self.editMode then
-        local bw = HUDOverlay.EDIT_BORDER_W
-        setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_EDIT_BORDER))
-        renderOverlay(self.fillOverlay, px,                      py + panelH - bw, HUDOverlay.PANEL_W, bw)  -- top
-        renderOverlay(self.fillOverlay, px,                      py,               HUDOverlay.PANEL_W, bw)  -- bottom
-        renderOverlay(self.fillOverlay, px,                      py,               bw,                 panelH)  -- left
-        renderOverlay(self.fillOverlay, px + HUDOverlay.PANEL_W - bw, py,          bw,                 panelH)  -- right
-
-        setTextColor(unpack(HUDOverlay.COLOR_EDIT_BORDER))
-        renderText(
-            px + HUDOverlay.PADDING,
-            py + HUDOverlay.PADDING,
-            0.010,
-            "LMB click+release to move  |  RMB to exit"
-        )
+        setTextColor(0.60, 0.80, 1.00, 0.85)
+        renderText(px + pad, py + pad, HUDOverlay.TEXT_SIZE * s * 0.85,
+            "Drag to move  |  Corners to scale  |  RMB to exit")
+    elseif self.selectedFieldId == nil then
+        setTextColor(unpack(HUDOverlay.COLOR_DIM_TEXT))
+        renderText(px + pad, py + pad, 0.010 * s,
+            (g_i18n ~= nil and g_i18n:getText("cs_hud_click_forecast")) or "Click row for 5-day forecast")
     end
+
+    setTextAlignment(RenderText.ALIGN_LEFT)
+    setTextColor(1, 1, 1, 1)
 end
 
 -- ============================================================
 -- DRAW FIELD ROW
 -- ============================================================
-function HUDOverlay:drawFieldRow(row, px, rowY)
+function HUDOverlay:drawFieldRow(row, px, rowY, s)
+    s = s or self.scale
     local moisture = row.moisture or 0
     local stress   = row.stress   or 0
+    local barW     = HUDOverlay.BAR_W * s
+    local barH     = HUDOverlay.BAR_H * s
+    local pad      = HUDOverlay.PADDING * s
+    local panelW   = HUDOverlay.PANEL_W * s
+    local rowH     = HUDOverlay.ROW_H * s
 
-    local cropLabel   = row.cropName or "?"
-    local stageStr    = row.growthStage and (" Stage " .. tostring(row.growthStage)) or ""
-    local label       = string.format("F%d · %s%s", row.fieldId, cropLabel, stageStr)
-    local stressStr   = stress > 0.15 and " !" or ""
+    local cropLabel = row.cropName or "?"
+    local stageStr  = row.growthStage and (" S" .. tostring(row.growthStage)) or ""
+    local label     = string.format("F%d · %s%s", row.fieldId, cropLabel, stageStr)
+    local stressStr = stress > 0.15 and " !" or ""
 
     setTextColor(unpack(HUDOverlay.COLOR_TEXT))
-    renderText(
-        px + HUDOverlay.PADDING + HUDOverlay.SELECTED_BORDER_W,
-        rowY + HUDOverlay.PADDING,
-        HUDOverlay.TEXT_SIZE,
-        label .. stressStr
-    )
+    renderText(px + pad + HUDOverlay.SELECTED_BORDER_W * s, rowY + pad,
+        HUDOverlay.TEXT_SIZE * s, label .. stressStr)
 
-    -- Moisture bar background
-    local barX = px + HUDOverlay.PANEL_W - HUDOverlay.BAR_W - HUDOverlay.PADDING * 2
-    local barY = rowY + (HUDOverlay.ROW_H - HUDOverlay.BAR_H) * 0.5
+    local barX = px + panelW - barW - pad * 2
+    local barY = rowY + (rowH - barH) * 0.5
     setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_BAR_BG))
-    renderOverlay(self.fillOverlay, barX, barY, HUDOverlay.BAR_W, HUDOverlay.BAR_H)
+    renderOverlay(self.fillOverlay, barX, barY, barW, barH)
 
-    -- Moisture bar fill
-    local barColor = self:getMoistureColor(moisture)
-    setOverlayColor(self.fillOverlay, unpack(barColor))
-    renderOverlay(self.fillOverlay, barX, barY, HUDOverlay.BAR_W * moisture, HUDOverlay.BAR_H)
+    setOverlayColor(self.fillOverlay, unpack(self:getMoistureColor(moisture)))
+    renderOverlay(self.fillOverlay, barX, barY, barW * moisture, barH)
 
-    -- Percentage text
     setTextColor(unpack(HUDOverlay.COLOR_TEXT))
-    renderText(
-        barX + HUDOverlay.BAR_W + HUDOverlay.PADDING,
-        rowY + HUDOverlay.PADDING,
-        HUDOverlay.TEXT_SIZE,
-        string.format("%d%%", math.floor(moisture * 100 + 0.5))
-    )
+    renderText(barX + barW + pad, rowY + pad, HUDOverlay.TEXT_SIZE * s,
+        string.format("%d%%", math.floor(moisture * 100 + 0.5)))
 end
 
 -- ============================================================
 -- DRAW FORECAST STRIP
 -- Renders a 5-column bar-chart below the main panel.
+--
+-- Explicit section layout (bottom → top), all relative to strip py:
+--   py + 0                                      bottom edge
+--   py + PADDING                                pct % text baseline
+--   py + PADDING + FORECAST_ROW_H               bar area bottom
+--   py + PADDING + FORECAST_ROW_H + BAR_AREA    bar area top
+--   py + PADDING + FORECAST_ROW_H + BAR_AREA + PADDING  day labels
+--   py + FORECAST_H - FORECAST_HEADER_H + PADDING       header text
+--   py + FORECAST_H                             top edge
 -- ============================================================
 function HUDOverlay:drawForecastStrip(px, py)
     if self.forecastCache == nil then return end
 
+    local s           = self.scale
     local projections = self.forecastCache.projections
     local fieldId     = self.forecastCache.fieldId
-    local fH          = HUDOverlay.FORECAST_H
+    local fH          = HUDOverlay.FORECAST_H * s
+    local pad         = HUDOverlay.PADDING * s
+    local panelW      = HUDOverlay.PANEL_W * s
+    local textSz      = HUDOverlay.FORECAST_TEXT_SZ * s
+
+    -- Drop shadow
+    local shadowOff = 0.002 * s
+    setOverlayColor(self.fillOverlay, 0, 0, 0, 0.30)
+    renderOverlay(self.fillOverlay, px + shadowOff, py - shadowOff, panelW, fH)
 
     -- Background
     setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_FORECAST_BG))
-    renderOverlay(self.fillOverlay, px, py, HUDOverlay.PANEL_W, fH)
+    renderOverlay(self.fillOverlay, px, py, panelW, fH)
 
-    -- Header
+    -- Subtle border
+    local bwN = 0.001
+    setOverlayColor(self.fillOverlay, 0.25, 0.35, 0.50, 0.45)
+    renderOverlay(self.fillOverlay, px,             py + fH - bwN, panelW, bwN)
+    renderOverlay(self.fillOverlay, px,             py,            panelW, bwN)
+    renderOverlay(self.fillOverlay, px,             py,            bwN, fH)
+    renderOverlay(self.fillOverlay, px + panelW - bwN, py,        bwN, fH)
+
+    -- Header text (top section, clearly separated from column labels)
     setTextColor(unpack(HUDOverlay.COLOR_HEADER_TEXT))
     setTextBold(true)
-    local titleText = string.format("%s — F%d",
-        (g_i18n ~= nil and g_i18n:getText("cs_hud_forecast")) or "5-Day Forecast",
-        fieldId)
-    renderText(
-        px + HUDOverlay.PADDING,
-        py + fH - HUDOverlay.FORECAST_HEADER_H + HUDOverlay.PADDING,
-        HUDOverlay.FORECAST_TEXT_SZ,
-        titleText
-    )
+    renderText(px + pad, py + fH - HUDOverlay.FORECAST_HEADER_H * s + pad, textSz,
+        string.format("%s — F%d",
+            (g_i18n ~= nil and g_i18n:getText("cs_hud_forecast")) or "5-Day Forecast",
+            fieldId))
     setTextBold(false)
 
-    -- Column labels and bars
-    -- projections[1..5] are day+1 through day+5 from WeatherIntegration:getMoistureForecast().
-    -- We show current moisture as the first "Now" column directly from soilSystem,
-    -- then the five projected days.  Shift projections into display slots 2-5 and
-    -- insert current moisture as slot 1.
-    local colLabels   = {"Now", "D+1", "D+2", "D+3", "D+4"}
+    -- Explicit section anchors (bottom → top): pct | bars | labels | header
+    local pctBaseY = py + pad
+    local barBaseY = pctBaseY + HUDOverlay.FORECAST_ROW_H * s
+    local barAreaH = HUDOverlay.FORECAST_BAR_AREA * s
+    local labelY   = barBaseY + barAreaH + pad
+
+    local colLabels = {"Now", "D+1", "D+2", "D+3", "D+4"}
     local currentMoisture = 0
     if self.manager ~= nil and self.manager.soilSystem ~= nil then
         currentMoisture = self.manager.soilSystem:getMoisture(fieldId) or 0
     end
-    -- Build display values: [current, proj[1], proj[2], proj[3], proj[4]]
     local displayVals = {
         currentMoisture,
         projections[1] or currentMoisture,
@@ -545,35 +737,25 @@ function HUDOverlay:drawForecastStrip(px, py)
         projections[3] or currentMoisture,
         projections[4] or currentMoisture,
     }
-    local colStartX   = px + HUDOverlay.PADDING
-    local colGap      = (HUDOverlay.PANEL_W - HUDOverlay.PADDING * 2) / HUDOverlay.FORECAST_COLS
-    local barAreaH    = fH - HUDOverlay.FORECAST_HEADER_H - HUDOverlay.PADDING * 2
-    local barMaxH     = barAreaH - HUDOverlay.FORECAST_ROW_H  -- reserve space for pct text
-    local barBaseY    = py + HUDOverlay.PADDING + HUDOverlay.FORECAST_ROW_H
+    local colGap    = (panelW - pad * 2) / HUDOverlay.FORECAST_COLS
+    local colStartX = px + pad
 
     for i = 1, HUDOverlay.FORECAST_COLS do
         local val = displayVals[i] or 0
-        local cx  = colStartX + (i - 1) * colGap + HUDOverlay.PADDING
+        local cx  = colStartX + (i - 1) * colGap + pad
+        local bw  = HUDOverlay.FORECAST_COL_W * s - pad
 
-        -- Column label (day label, small, dimmed)
         setTextColor(unpack(HUDOverlay.COLOR_DIM_TEXT))
-        renderText(cx, barBaseY + barMaxH + HUDOverlay.PADDING, HUDOverlay.FORECAST_TEXT_SZ,
-            colLabels[i] or "?")
+        renderText(cx, labelY, textSz, colLabels[i] or "?")
 
-        -- Bar background
-        local bw = HUDOverlay.FORECAST_COL_W - HUDOverlay.PADDING
         setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_BAR_BG))
-        renderOverlay(self.fillOverlay, cx, barBaseY, bw, barMaxH)
+        renderOverlay(self.fillOverlay, cx, barBaseY, bw, barAreaH)
 
-        -- Bar fill
-        local fillH = barMaxH * val
         setOverlayColor(self.fillOverlay, unpack(self:getMoistureColor(val)))
-        renderOverlay(self.fillOverlay, cx, barBaseY, bw, fillH)
+        renderOverlay(self.fillOverlay, cx, barBaseY, bw, barAreaH * val)
 
-        -- Percentage text below bar
         setTextColor(unpack(HUDOverlay.COLOR_TEXT))
-        renderText(cx, py + HUDOverlay.PADDING, HUDOverlay.FORECAST_TEXT_SZ,
-            string.format("%d%%", math.floor(val * 100 + 0.5)))
+        renderText(cx, pctBaseY, textSz, string.format("%d%%", math.floor(val * 100 + 0.5)))
     end
 end
 

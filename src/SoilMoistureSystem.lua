@@ -20,14 +20,14 @@ SoilMoistureSystem.BASE_EVAP_RATE = 0.004
 
 -- Soil type evaporation modifiers and rain absorption coefficients
 SoilMoistureSystem.SOIL_PARAMS = {
-    sandy = { evapMod = 1.40, rainAbsorb = 0.90 },
+    sandy = { evapMod = 1.40, rainAbsorb = 1.25 },
     loamy = { evapMod = 1.00, rainAbsorb = 1.00 },
-    clay  = { evapMod = 0.70, rainAbsorb = 0.80 },
+    clay  = { evapMod = 0.70, rainAbsorb = 0.72 },
 }
 
 -- Season-aware starting moisture (used when no saved state exists)
 -- 0=spring, 1=summer, 2=autumn, 3=winter
-SoilMoistureSystem.SEASON_START_MOISTURE = { [0]=0.60, [1]=0.40, [2]=0.55, [3]=0.70 }
+SoilMoistureSystem.SEASON_START_MOISTURE = { [0]=0.60, [1]=0.50, [2]=0.55, [3]=0.70 }
 
 -- Critical threshold — below this, fire CS_CRITICAL_THRESHOLD
 SoilMoistureSystem.CRITICAL_MOISTURE = 0.25
