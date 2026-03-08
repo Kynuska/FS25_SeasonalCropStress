@@ -105,6 +105,10 @@ function HUDOverlay.new(manager)
     self.forecastCache     = nil   -- cached {fieldId, projections[5]} — rebuilt when selection changes
     self.forecastDirty     = true
 
+    -- Scrolling support
+    self.scrollOffset      = 0     -- index of first visible field (0-based)
+    self.maxVisibleFields  = HUDOverlay.MAX_FIELDS
+
     -- Auto-show / auto-hide state
     self.autoShowActive = false
     self.autoHideTimer  = 0   -- real-time seconds; 0 = no auto-hide
@@ -344,31 +348,10 @@ function HUDOverlay:clampPosition()
 end
 
 -- ============================================================
--- CLICK DETECTION (LMB row selection — polling)
--- LMB rising-edge via getMouseButtonState(1).
--- RMB reposition is handled by onMouseEvent() via addModEventListener.
+-- SELECT ROW AT POSITION  (shared by LMB and RMB paths)
+-- Returns true if a row was hit.
 -- ============================================================
-function HUDOverlay:detectRowClick()
-    -- Suppress row selection while in edit/drag mode
-    if self.editMode then return end
-
-    local lmbDown = false
-    if type(getMouseButtonState) == "function" then
-        local ok, val = pcall(getMouseButtonState, 1)
-        if ok then lmbDown = val end
-    end
-    local lmbClicked   = lmbDown and not self.prevMouseDown
-    self.prevMouseDown = lmbDown
-
-    if not lmbClicked then return end
-
-    -- Get mouse position (FS25 normalized: 0-1 from bottom-left)
-    local mx, my = 0, 0
-    if type(getMousePosition) == "function" then
-        local ok, x, y = pcall(getMousePosition)
-        if ok then mx, my = x or 0, y or 0 end
-    end
-
+function HUDOverlay:selectRowAtPosition(mx, my)
     local s       = self.scale
     local panelW  = HUDOverlay.PANEL_W * s
     local rowH    = HUDOverlay.ROW_H * s
@@ -390,9 +373,83 @@ function HUDOverlay:detectRowClick()
                 self.selectedFieldId = newId
                 self.forecastDirty   = true
             end
-            break
+            return true
         end
     end
+    return false
+end
+
+-- ============================================================
+-- CLICK DETECTION (LMB row selection — polling)
+-- LMB rising-edge via getMouseButtonState(1).
+-- RMB reposition is handled by onMouseEvent() via addModEventListener.
+-- ============================================================
+function HUDOverlay:detectRowClick()
+    -- LMB row selection works in edit mode (cursor is visible)
+    if not self.editMode then return end
+
+    local lmbDown = false
+    if type(getMouseButtonState) == "function" then
+        local ok, val = pcall(getMouseButtonState, 1)
+        if ok then lmbDown = val end
+    elseif type(g_inputBinding) == "table" and type(g_inputBinding.getIsMouseButtonPressed) == "function" then
+        local ok, val = pcall(g_inputBinding.getIsMouseButtonPressed, g_inputBinding, 1)
+        if ok then lmbDown = val end
+    end
+
+    local lmbClicked   = lmbDown and not self.prevMouseDown
+    self.prevMouseDown = lmbDown
+
+    if not lmbClicked then return end
+
+    -- Get mouse position
+    local mx, my = 0, 0
+    if type(getMousePosition) == "function" then
+        local ok, x, y = pcall(getMousePosition)
+        if ok then mx, my = x or 0, y or 0 end
+    elseif type(g_inputBinding) == "table" and g_inputBinding.mousePosXLast and g_inputBinding.mousePosYLast then
+        mx, my = g_inputBinding.mousePosXLast, g_inputBinding.mousePosYLast
+    end
+
+    self:selectRowAtPosition(mx, my)
+end
+
+-- ============================================================
+-- SCROLLING
+-- ============================================================
+function HUDOverlay:scroll(delta)
+    if #self.displayRows == 0 then return end
+    
+    -- Get total field count from manager
+    local totalFields = 0
+    if self.manager ~= nil and self.manager.soilSystem ~= nil then
+        local sortedFields = self.manager.soilSystem:getFieldsSortedByMoisture()
+        if sortedFields ~= nil then
+            -- Count valid fields (same logic as rebuildDisplayRows)
+            local fieldById = (self.manager ~= nil) and self.manager.fieldById or {}
+            for _, entry in ipairs(sortedFields) do
+                local field = fieldById[entry.fieldId]
+                if field ~= nil then
+                    local cropName = self:resolveCropName(field)
+                    if cropName ~= nil and CropStressModifier.CROP_WINDOWS[cropName:lower()] ~= nil then
+                        totalFields = totalFields + 1
+                    end
+                end
+            end
+        end
+    end
+    
+    if totalFields <= self.maxVisibleFields then return end
+    
+    -- Apply scroll delta (negative delta = scroll up, positive = scroll down)
+    self.scrollOffset = self.scrollOffset - delta
+    
+    -- Clamp scroll offset
+    local maxOffset = math.max(0, totalFields - self.maxVisibleFields)
+    self.scrollOffset = math.max(0, math.min(maxOffset, self.scrollOffset))
+    
+    -- Rebuild display rows to show new visible fields
+    self:rebuildDisplayRows()
 end
 
 -- ============================================================
@@ -411,12 +468,28 @@ end
 function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
     if not self.isVisible then return end
 
-    -- ── RMB: enter edit mode only if cursor is over our panel ──
+    -- ── Mouse wheel scrolling (works any time cursor is over HUD, no edit mode needed) ──
+    -- FS25 button numbers: 4 = wheel up, 5 = wheel down
+    if button == 4 then
+        if self:isPointerOverHUD(posX, posY) then
+            self:scroll(-1)  -- Scroll up one field
+        end
+        return
+    elseif button == 5 then
+        if self:isPointerOverHUD(posX, posY) then
+            self:scroll(1)   -- Scroll down one field
+        end
+        return
+    end
+
+    -- ── RMB: toggle edit mode; also select the row under cursor on RMB-down ──
     if isDown and button == 3 then
         if self.editMode then
-            self:exitEditMode()     -- exit on any RMB while already editing
+            self:exitEditMode()     -- second RMB exits edit mode
         elseif self:isPointerOverHUD(posX, posY) then
-            self:enterEditMode()    -- enter only when clicking on our panel
+            self:enterEditMode()    -- enter edit mode when clicking on our panel
+            -- Immediately select whichever row the cursor is over
+            self:selectRowAtPosition(posX, posY)
         end
         return
     end
@@ -630,6 +703,9 @@ function HUDOverlay:draw()
             (g_i18n ~= nil and g_i18n:getText("cs_hud_click_forecast")) or "Click row for 5-day forecast")
     end
 
+    -- Scroll indicator (show when there are more fields than visible)
+    self:drawScrollIndicator(px, py, s)
+
     setTextAlignment(RenderText.ALIGN_LEFT)
     setTextColor(1, 1, 1, 1)
 end
@@ -805,9 +881,9 @@ function HUDOverlay:rebuildDisplayRows()
     -- — silently wrong on custom maps, renumbered fields, or non-sequential farmlands.
     local fieldById = (self.manager ~= nil) and self.manager.fieldById or {}
 
+    -- Filter and collect all valid fields
+    local allValidFields = {}
     for _, entry in ipairs(sortedFields) do
-        if #self.displayRows >= HUDOverlay.MAX_FIELDS then break end
-
         local stress      = 0
         local cropName    = nil
         local growthStage = nil
@@ -828,7 +904,7 @@ function HUDOverlay:rebuildDisplayRows()
         -- Only show crops tracked for stress (fallow, greenhouse, carrots etc. = irrelevant noise)
         -- cropName is title-cased for display ("Wheat"); CROP_WINDOWS keys are lowercase
         if cropName ~= nil and CropStressModifier.CROP_WINDOWS[cropName:lower()] ~= nil then
-            table.insert(self.displayRows, {
+            table.insert(allValidFields, {
                 fieldId     = entry.fieldId,
                 moisture    = entry.moisture,
                 stress      = stress,
@@ -836,6 +912,24 @@ function HUDOverlay:rebuildDisplayRows()
                 growthStage = growthStage,
             })
         end
+    end
+
+    -- Apply scrolling: show only visible fields based on scroll offset
+    local totalFields = #allValidFields
+    local maxVisible = self.maxVisibleFields
+    
+    -- Ensure scroll offset is valid
+    if self.scrollOffset < 0 then self.scrollOffset = 0 end
+    if self.scrollOffset > math.max(0, totalFields - maxVisible) then
+        self.scrollOffset = math.max(0, totalFields - maxVisible)
+    end
+
+    -- Copy visible fields to displayRows
+    local startIndex = self.scrollOffset + 1
+    local endIndex = math.min(startIndex + maxVisible - 1, totalFields)
+    
+    for i = startIndex, endIndex do
+        table.insert(self.displayRows, allValidFields[i])
     end
 
     -- If selected field is no longer in the display list, mark forecast dirty
@@ -960,6 +1054,60 @@ function HUDOverlay:onMoistureUpdated(data)
     if data ~= nil and data.fieldId == self.selectedFieldId then
         self.forecastDirty = true
     end
+end
+
+-- ============================================================
+-- DRAW SCROLL INDICATOR
+-- Shows when there are more fields than can be displayed
+-- ============================================================
+function HUDOverlay:drawScrollIndicator(px, py, s)
+    -- Get total field count from manager
+    local totalFields = 0
+    if self.manager ~= nil and self.manager.soilSystem ~= nil then
+        local sortedFields = self.manager.soilSystem:getFieldsSortedByMoisture()
+        if sortedFields ~= nil then
+            -- Count valid fields (same logic as rebuildDisplayRows)
+            local fieldById = (self.manager ~= nil) and self.manager.fieldById or {}
+            for _, entry in ipairs(sortedFields) do
+                local field = fieldById[entry.fieldId]
+                if field ~= nil then
+                    local cropName = self:resolveCropName(field)
+                    if cropName ~= nil and CropStressModifier.CROP_WINDOWS[cropName:lower()] ~= nil then
+                        totalFields = totalFields + 1
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Only show scroll indicator if there are more fields than visible
+    if totalFields <= self.maxVisibleFields then return end
+    
+    local pad = HUDOverlay.PADDING * s
+    local panelW = HUDOverlay.PANEL_W * s
+    local numRows = math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)
+    local panelH = self:calcPanelHeight(numRows)
+    local headerH = HUDOverlay.HEADER_H * s
+    
+    -- Draw scroll indicator on the right side of the panel
+    local indicatorX = px + panelW - 0.012 * s
+    local indicatorY = py + pad
+    local indicatorH = panelH - headerH - pad * 2
+    
+    -- Background of scroll indicator
+    setOverlayColor(self.fillOverlay, 0.20, 0.20, 0.20, 0.60)
+    renderOverlay(self.fillOverlay, indicatorX, indicatorY, 0.008 * s, indicatorH)
+    
+    -- Scroll thumb
+    local thumbHeight = math.max(0.010 * s, indicatorH * (self.maxVisibleFields / totalFields))
+    local thumbPosition = indicatorY + (indicatorH - thumbHeight) * (self.scrollOffset / math.max(1, totalFields - self.maxVisibleFields))
+    
+    setOverlayColor(self.fillOverlay, 0.40, 0.80, 1.00, 0.80)
+    renderOverlay(self.fillOverlay, indicatorX, thumbPosition, 0.008 * s, thumbHeight)
+    
+    -- Scroll hint text
+    setTextColor(0.60, 0.80, 1.00, 0.85)
+    renderText(px + pad, py + pad, 0.008 * s, "Scroll: Mouse Wheel")
 end
 
 -- ============================================================
