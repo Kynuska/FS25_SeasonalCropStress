@@ -56,6 +56,16 @@ function CropStressSettingsIntegration:onFrameOpen()
         return
     end
 
+    -- Support both property names used by different FS25 versions/mods.
+    -- RealisticHarvesting accesses the layout via generalSettingsLayout;
+    -- vanilla FS25 exposes it as gameSettingsLayout.  If RH ran its instance
+    -- hook before us it may have only populated generalSettingsLayout on the
+    -- live page object, leaving gameSettingsLayout nil.  Alias it here so the
+    -- rest of this file works unchanged regardless of load order.
+    if self.gameSettingsLayout == nil and self.generalSettingsLayout ~= nil then
+        self.gameSettingsLayout = self.generalSettingsLayout
+    end
+
     -- Guard: gameSettingsLayout must exist on this frame.
     -- If nil, skip injection silently so InGameMenu still opens.
     if self.gameSettingsLayout == nil then
@@ -418,21 +428,54 @@ end
 -- FS25 build orders where the GUI classes load after mod scripts.
 -- ============================================================
 local function initHooks()
-    if not InGameMenuSettingsFrame then
-        csLog("WARNING: InGameMenuSettingsFrame not available — ESC menu integration skipped")
+    -- ----------------------------------------------------------------
+    -- INSTANCE-LEVEL hook (not class-level).
+    --
+    -- Some mods (e.g. FS25_RealisticHarvesting) hook onFrameOpen on the
+    -- LIVE PAGE INSTANCE via Utils.appendedFunction at loadMission00Finished
+    -- time.  An instance property shadows the class method, so any
+    -- subsequent class-level patch (InGameMenuSettingsFrame.onFrameOpen = …)
+    -- is never reached when the instance already owns that key.
+    --
+    -- We therefore hook the instance directly, exactly as RH does, so
+    -- both mods' hooks coexist on the same instance chain regardless of
+    -- which mod loads first.
+    -- ----------------------------------------------------------------
+    local settingsPage = g_gui
+        and g_gui.screenControllers
+        and g_gui.screenControllers[InGameMenu]
+        and g_gui.screenControllers[InGameMenu].pageSettings
+
+    if not settingsPage then
+        -- Fallback: if the live page isn't available yet, patch the class.
+        -- This covers bare FS25 without conflicting mods.
+        if not InGameMenuSettingsFrame then
+            csLog("WARNING: InGameMenuSettingsFrame not available — ESC menu integration skipped")
+            return
+        end
+        InGameMenuSettingsFrame.onFrameOpen = Utils.appendedFunction(
+            InGameMenuSettingsFrame.onFrameOpen,
+            CropStressSettingsIntegration.onFrameOpen
+        )
+        if InGameMenuSettingsFrame.updateGameSettings then
+            InGameMenuSettingsFrame.updateGameSettings = Utils.appendedFunction(
+                InGameMenuSettingsFrame.updateGameSettings,
+                CropStressSettingsIntegration.updateGameSettings
+            )
+        end
+        csLog("ESC menu hook installed (class-level fallback)")
         return
     end
 
-    -- Inject our elements once when the frame opens
-    InGameMenuSettingsFrame.onFrameOpen = Utils.appendedFunction(
-        InGameMenuSettingsFrame.onFrameOpen,
+    -- Primary path: hook the instance directly.
+    settingsPage.onFrameOpen = Utils.appendedFunction(
+        settingsPage.onFrameOpen,
         CropStressSettingsIntegration.onFrameOpen
     )
 
-    -- Refresh our values whenever the game refreshes its own settings UI
-    if InGameMenuSettingsFrame.updateGameSettings then
-        InGameMenuSettingsFrame.updateGameSettings = Utils.appendedFunction(
-            InGameMenuSettingsFrame.updateGameSettings,
+    if settingsPage.updateGameSettings then
+        settingsPage.updateGameSettings = Utils.appendedFunction(
+            settingsPage.updateGameSettings,
             CropStressSettingsIntegration.updateGameSettings
         )
     end
