@@ -305,8 +305,15 @@ function CropStressManager:applySettings()
     if not self.isInitialized then return end
     if self.settings == nil then return end
 
-    -- Apply settings to subsystems
-    self.hudOverlay.isVisible = self.settings.hudVisible
+    -- Apply settings to subsystems.
+    -- Use toggle() to reach the desired visibility state so that all side-effects
+    -- fire (rebuildDisplayRows, firstRunShown, forecast init, etc.).  Direct
+    -- assignment to isVisible skips those and leaves the HUD rendering blank even
+    -- though the flag is set — the symptom reported in issue #48 follow-up where
+    -- pressing the keybind logged "toggled" but nothing appeared.
+    if self.hudOverlay.isVisible ~= self.settings.hudVisible then
+        self.hudOverlay:toggle()
+    end
     self.soilSystem:setEvapMultiplier(self.settings:getTotalEvapMultiplier())
     self.soilSystem:setCriticalThreshold(self.settings.criticalThreshold)
     self.stressModifier:setRateMultiplier(self.settings:getDifficultyStressMultiplier())
