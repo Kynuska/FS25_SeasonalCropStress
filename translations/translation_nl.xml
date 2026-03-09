@@ -10,6 +10,7 @@
     <text name="cs_hud_forecast"      text="5-dagenprognose"/>
     <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.0.0 geladen. Shift+M opent de vochtigheids-HUD. Nieuw? Open het Help-menu (ESC → Help) en zoek Seasonal Crop Stress om alles te leren."/>
     <text name="cs_hud_click_forecast" text="Klik op een rij voor 5-dagenprognose"/>
+    <text name="cs_hud_vehicle_disabled" text="Overlay uitgeschakeld in voertuig"/>
 
     <!-- ========== FIELD STATUS ========== -->
     <text name="cs_field_moisture"        text="Vochtigheid"/>
@@ -109,6 +110,7 @@
     <text name="input_CS_TOGGLE_HUD"      text="HUD vochtigheid in-/uitschakelen"/>
     <text name="input_CS_OPEN_IRRIGATION" text="Irrigatiebeheer openen"/>
     <text name="input_CS_OPEN_CONSULTANT" text="Gewasadviseur openen"/>
+    <text name="input_CS_EDIT_HUD"        text="HUD vochtigheid verplaatsen/schalen"/>
 
     <!-- ========== PRECISION FARMING DLC ========== -->
     <text name="cs_pf_moisture_overlay"      text="Grondvochtigheid"/>

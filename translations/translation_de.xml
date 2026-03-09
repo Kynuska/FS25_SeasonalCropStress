@@ -10,6 +10,7 @@
     <text name="cs_hud_forecast"      text="5-Tage-Prognose"/>
     <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.0.0 geladen. Shift+M öffnet das Feuchte-HUD. Neu dabei? Öffne das Hilfe-Menü (ESC → Hilfe) und suche nach Seasonal Crop Stress, um alles zu erfahren."/>
     <text name="cs_hud_click_forecast" text="Zeile anklicken für 5-Tage-Prognose"/>
+    <text name="cs_hud_vehicle_disabled" text="Overlay im Fahrzeug deaktiviert"/>
 
     <!-- ========== FIELD STATUS ========== -->
     <text name="cs_field_moisture"        text="Feuchte"/>
@@ -109,6 +110,7 @@
     <text name="input_CS_TOGGLE_HUD"      text="Feuchte-HUD umschalten"/>
     <text name="input_CS_OPEN_IRRIGATION" text="Bewässerungsmanager öffnen"/>
     <text name="input_CS_OPEN_CONSULTANT" text="Pflanzenberater öffnen"/>
+    <text name="input_CS_EDIT_HUD"        text="Feuchte-HUD verschieben/skalieren"/>
 
     <!-- ========== PRECISION FARMING DLC ========== -->
     <text name="cs_pf_moisture_overlay"      text="Bodenfeuchte"/>

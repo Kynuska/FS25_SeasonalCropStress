@@ -10,6 +10,7 @@
     <text name="cs_hud_forecast"      text="Prognoza 5-dniowa"/>
     <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.0.0 załadowany. Shift+M otwiera HUD wilgotności. Nowy użytkownik? Otwórz menu Pomoc (ESC → Pomoc) i znajdź Seasonal Crop Stress, aby dowiedzieć się wszystkiego."/>
     <text name="cs_hud_click_forecast" text="Kliknij wiersz aby zobaczyć prognozę 5-dniową"/>
+    <text name="cs_hud_vehicle_disabled" text="Nakładka wyłączona w pojeździe"/>
 
     <!-- ========== FIELD STATUS ========== -->
     <text name="cs_field_moisture"        text="Wilgotność"/>
@@ -109,6 +110,7 @@
     <text name="input_CS_TOGGLE_HUD"      text="Przełącz HUD wilgotności"/>
     <text name="input_CS_OPEN_IRRIGATION" text="Otwórz menedżera nawadniania"/>
     <text name="input_CS_OPEN_CONSULTANT" text="Otwórz konsultanta upraw"/>
+    <text name="input_CS_EDIT_HUD"        text="Przesuń/skaluj HUD wilgotności"/>
 
     <!-- ========== PRECISION FARMING DLC ========== -->
     <text name="cs_pf_moisture_overlay"      text="Wilgotność gleby"/>

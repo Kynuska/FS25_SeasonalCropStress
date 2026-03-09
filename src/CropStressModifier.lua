@@ -93,6 +93,11 @@ function CropStressModifier.new(manager)
     -- Per-field accumulated stress: fieldId → float (0.0–1.0)
     self.fieldStress = {}
 
+    -- Per-field last seen fruitTypeIndex: fieldId → int
+    -- Used to detect when a new crop is planted after harvest so that
+    -- accumulated stress from the previous crop does not bleed into the new one.
+    self.lastFruitTypeIndex = {}
+
     -- When FS25_RealisticWeather is present, its getHarvestScaleMultiplier hook
     -- handles the yield penalty. We skip our Cutter.processCutterArea reduction
     -- to avoid stacking. Stress still accumulates for HUD display.
@@ -146,8 +151,26 @@ function CropStressModifier:processFieldStress(field, fieldId, moisture)
                 csLog(string.format("Field %d: no crop — stress reset to 0", fieldId))
             end
         end
+        -- Clear the last-seen crop index so the next planting is treated as fresh
+        self.lastFruitTypeIndex[fieldId] = nil
         return
     end
+
+    -- Detect crop change: player planted a new crop after harvest.
+    -- The old fruitTypeIndex → new fruitTypeIndex transition means any stress
+    -- accumulated for the previous crop must not carry over to the new one.
+    local lastIndex = self.lastFruitTypeIndex[fieldId]
+    if lastIndex ~= nil and lastIndex ~= fruitTypeIndex then
+        local prevStress = self.fieldStress[fieldId] or 0
+        self.fieldStress[fieldId] = 0
+        if self.manager ~= nil and self.manager.debugMode then
+            csLog(string.format(
+                "Field %d: crop changed (fti %d → %d) — stress reset from %.3f to 0",
+                fieldId, lastIndex, fruitTypeIndex, prevStress
+            ))
+        end
+    end
+    self.lastFruitTypeIndex[fieldId] = fruitTypeIndex
 
     local fruitType = g_fruitTypeManager ~= nil and g_fruitTypeManager:getFruitTypeByIndex(fruitTypeIndex)
     if fruitType == nil then return end
@@ -199,6 +222,7 @@ end
 
 function CropStressModifier:resetStress(fieldId)
     self.fieldStress[fieldId] = 0.0
+    self.lastFruitTypeIndex[fieldId] = nil
 end
 
 -- Returns estimated yield impact as a display string, e.g. "-18%".
