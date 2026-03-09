@@ -10,6 +10,7 @@
     <text name="cs_hud_forecast"      text="5-Day Forecast"/>
     <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.0.0 loaded. Press Shift+M to open the moisture HUD. New to the mod? Open the Help menu (ESC → Help) and find Seasonal Crop Stress to learn how everything works."/>
     <text name="cs_hud_click_forecast" text="Click a row for 5-day forecast"/>
+    <text name="cs_hud_vehicle_disabled" text="Overlay disabled in vehicle"/>
 
     <!-- ========== FIELD STATUS ========== -->
     <text name="cs_field_moisture"        text="Moisture"/>
@@ -109,6 +110,7 @@
     <text name="input_CS_TOGGLE_HUD"      text="Toggle Moisture HUD"/>
     <text name="input_CS_OPEN_IRRIGATION" text="Open Irrigation Manager"/>
     <text name="input_CS_OPEN_CONSULTANT" text="Open Crop Consultant"/>
+    <text name="input_CS_EDIT_HUD"        text="Edit/Move Moisture HUD"/>
 
     <!-- ========== PRECISION FARMING DLC ========== -->
     <text name="cs_pf_moisture_overlay"      text="Soil Moisture"/>

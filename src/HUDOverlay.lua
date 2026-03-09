@@ -181,12 +181,15 @@ function HUDOverlay:update(dt)
 
     self.animTimer = self.animTimer + dt
 
-    -- Edit mode: freeze camera rotation + assert cursor every frame (NPCFavor pattern)
+    -- Edit mode: assert cursor every frame + freeze free-roam camera (NPCFavor pattern).
+    -- When in a vehicle we still keep the cursor unlocked, but we must NOT touch the
+    -- camera transforms — the vehicle controller owns them and fighting it causes the
+    -- twitchy/locked camera bug reported by in-vehicle users.
     if self.editMode then
         if g_inputBinding and g_inputBinding.setShowMouseCursor then
             g_inputBinding:setShowMouseCursor(true)
         end
-        if self.savedCamRotX and getCamera and setRotation then
+        if not self:isPlayerInVehicle() and self.savedCamRotX and getCamera and setRotation then
             local ok, cam = pcall(getCamera)
             if ok and cam and cam ~= 0 then
                 pcall(setRotation, cam, self.savedCamRotX, self.savedCamRotY, self.savedCamRotZ)
@@ -257,22 +260,83 @@ end
 -- ============================================================
 -- EDIT MODE (NPCFavor pattern — cursor unlock + camera freeze)
 -- ============================================================
+
+--- Returns true when the local player is seated in a vehicle.
+-- In that context we still unlock the cursor, but we must NOT freeze the
+-- vehicle camera — the vehicle's own camera controller owns those transforms.
+--
+-- FS25 confirmed: when a player enters a vehicle, g_localPlayer becomes nil.
+-- The authoritative check is g_currentMission.controlledVehicle.
+-- Additional fallback: when on foot g_localPlayer is non-nil, so nil = in vehicle.
+function HUDOverlay:isPlayerInVehicle()
+    local mission = g_currentMission
+    if mission == nil then return false end
+
+    -- Check 1: controlledVehicle on mission — the authoritative FS25 in-vehicle flag.
+    -- Set by BaseMission:setControlledVehicle() whenever the local player enters any vehicle.
+    if mission.controlledVehicle ~= nil then return true end
+
+    -- Check 2: Input binding context name.
+    -- FS25 switches the active input context to a vehicle-specific name when driving.
+    -- On foot the context is "PLAYER" or "ALL". Driving uses "VEHICLE", "COMBINE", etc.
+    if g_inputBinding ~= nil then
+        local ok, ctx = pcall(function()
+            if type(g_inputBinding.getContextName) == "function" then
+                return g_inputBinding:getContextName()
+            end
+            return g_inputBinding.currentContextName or g_inputBinding.contextName
+        end)
+        if ok and ctx ~= nil then
+            local upper = tostring(ctx):upper()
+            if upper ~= "PLAYER" and upper ~= "ALL" and upper ~= "MENU" and upper ~= "" then
+                return true
+            end
+        end
+    end
+
+    -- Check 3: g_localPlayer nil-implies-vehicle.
+    -- FS25 despawns the player pawn when entering a vehicle. If the mission has
+    -- started but g_localPlayer is nil, the local client is driving.
+    if mission.isMissionStarted and g_localPlayer == nil then return true end
+
+    -- Check 4: Explicit flags on g_localPlayer when it is present
+    if g_localPlayer ~= nil then
+        if g_localPlayer.controlledVehicle ~= nil then return true end
+        if g_localPlayer.currentVehicle    ~= nil then return true end
+        if g_localPlayer.isOnFoot == false          then return true end
+    end
+
+    -- Check 5: mission.player fallback
+    local mPlayer = mission.player
+    if mPlayer ~= nil then
+        if mPlayer.controlledVehicle ~= nil then return true end
+        if mPlayer.currentVehicle    ~= nil then return true end
+    end
+
+    return false
+end
+
 function HUDOverlay:enterEditMode()
     self.editMode = true
     self.dragging = false
     if g_inputBinding and g_inputBinding.setShowMouseCursor then
         g_inputBinding:setShowMouseCursor(true)
     end
-    if getCamera and getRotation then
-        local ok, cam = pcall(getCamera)
-        if ok and cam and cam ~= 0 then
-            local ok2, rx, ry, rz = pcall(getRotation, cam)
-            if ok2 then
-                self.savedCamRotX, self.savedCamRotY, self.savedCamRotZ = rx, ry, rz
+    -- Only freeze the free-roam camera. When the player is driving, the
+    -- vehicle's camera controller owns those transforms and fighting it causes
+    -- the twitchy/locked camera the user reported. Cursor still unlocks fine.
+    if not self:isPlayerInVehicle() then
+        if getCamera and getRotation then
+            local ok, cam = pcall(getCamera)
+            if ok and cam and cam ~= 0 then
+                local ok2, rx, ry, rz = pcall(getRotation, cam)
+                if ok2 then
+                    self.savedCamRotX, self.savedCamRotY, self.savedCamRotZ = rx, ry, rz
+                end
             end
         end
     end
-    csLog("HUD edit mode ON — drag to move, corners to resize")
+    csLog("HUD edit mode ON — drag to move, corners to resize (inVehicle=" .. tostring(self:isPlayerInVehicle()) .. ")")
 end
 
 function HUDOverlay:exitEditMode()
@@ -453,17 +517,17 @@ function HUDOverlay:scroll(delta)
 end
 
 -- ============================================================
--- MOUSE EVENT — edit mode, drag, and corner resize
+-- MOUSE EVENT — drag, resize, scroll, and row selection
 -- Called from main.lua addModEventListener mouseEvent handler.
--- FS25 button numbers: 1=left, 3=right, 2=middle.
+-- FS25 button numbers: 1=left, 2=middle, 3=right, 4=wheel up, 5=wheel down.
 --
--- With setShowMouseCursor(true) active during edit mode, FS25
--- fires mouseEvent on every mouse MOVEMENT as well as clicks,
--- enabling true continuous drag (NPCFavor pattern).
+-- Edit mode is toggled via the CS_EDIT_HUD input action (Middle Mouse Button
+-- by default), which works both on foot AND in vehicles without conflicting
+-- with the vehicle camera. RMB is no longer used to toggle edit mode.
 --
--- CRITICAL FIX: RMB only enters edit mode if the cursor is
--- over THIS HUD panel — prevents cross-contamination when
--- other mods (NPCFavor, SoilFertilizer) also handle RMB.
+-- With setShowMouseCursor(true) active during edit mode, FS25 fires
+-- mouseEvent on every mouse MOVEMENT as well as clicks, enabling true
+-- continuous drag (NPCFavor pattern).
 -- ============================================================
 function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
     if not self.isVisible then return end
@@ -482,13 +546,12 @@ function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
         return
     end
 
-    -- ── RMB: toggle edit mode; also select the row under cursor on RMB-down ──
+    -- ── RMB: select the row under cursor.
+    -- Works without edit mode so it functions in vehicles too — the vehicle's
+    -- input system can swallow some inputs but addModEventListener RMB still
+    -- arrives here. Removed the editMode gate that was blocking it.
     if isDown and button == 3 then
-        if self.editMode then
-            self:exitEditMode()     -- second RMB exits edit mode
-        elseif self:isPointerOverHUD(posX, posY) then
-            self:enterEditMode()    -- enter edit mode when clicking on our panel
-            -- Immediately select whichever row the cursor is over
+        if self:isPointerOverHUD(posX, posY) then
             self:selectRowAtPosition(posX, posY)
         end
         return
@@ -611,6 +674,72 @@ function HUDOverlay:draw()
     local panelH   = self:calcPanelHeight(showEmpty and 1 or numRows)
     local px       = self.panelX
     local py       = self.panelY
+
+    -- ── Debug: log vehicle detection state once every 5s (only when debug mode on) ──
+    if self.manager ~= nil and self.manager.debugMode then
+        self._vehicleDebugTimer = (self._vehicleDebugTimer or 0) + 0.016
+        if self._vehicleDebugTimer >= 5.0 then
+            self._vehicleDebugTimer = 0
+            local mission = g_currentMission
+            local ctv = mission and mission.controlledVehicle
+            local ctxName = "?"
+            if g_inputBinding ~= nil then
+                local ok, ctx = pcall(function()
+                    if type(g_inputBinding.getContextName) == "function" then return g_inputBinding:getContextName() end
+                    return g_inputBinding.currentContextName or g_inputBinding.contextName
+                end)
+                if ok and ctx ~= nil then ctxName = tostring(ctx) end
+            end
+            csLog(string.format(
+                "VehicleDetect: controlledVehicle=%s g_localPlayer=%s inputCtx=%s inVehicle=%s",
+                tostring(ctv ~= nil), tostring(g_localPlayer ~= nil), ctxName,
+                tostring(self:isPlayerInVehicle())
+            ))
+        end
+    end
+
+    -- ── In-vehicle mode: show a minimal panel with a red disabled notice ──
+    if self:isPlayerInVehicle() then
+        -- Drop shadow
+        local shadowOff = 0.002 * s
+        setOverlayColor(self.fillOverlay, 0, 0, 0, 0.35)
+        renderOverlay(self.fillOverlay, px + shadowOff, py - shadowOff, panelW, panelH)
+
+        -- Background panel
+        setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_BG))
+        renderOverlay(self.fillOverlay, px, py, panelW, panelH)
+
+        -- Subtle border
+        local bwN = 0.001
+        setOverlayColor(self.fillOverlay, 0.30, 0.40, 0.55, 0.50)
+        renderOverlay(self.fillOverlay, px,                 py + panelH - bwN, panelW, bwN)
+        renderOverlay(self.fillOverlay, px,                 py,                panelW, bwN)
+        renderOverlay(self.fillOverlay, px,                 py,                bwN,    panelH)
+        renderOverlay(self.fillOverlay, px + panelW - bwN,  py,                bwN,    panelH)
+
+        -- Header bar
+        setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_HEADER_BG))
+        renderOverlay(self.fillOverlay, px, py + panelH - headerH, panelW, headerH)
+
+        -- Header title
+        setTextColor(unpack(HUDOverlay.COLOR_HEADER_TEXT))
+        setTextBold(true)
+        renderText(px + pad, py + panelH - headerH + pad, HUDOverlay.HEADER_TEXT_SIZE * s,
+            (g_i18n ~= nil and g_i18n:getText("cs_hud_title")) or "CROP MOISTURE")
+        renderText(px + panelW - 0.028 * s, py + panelH - headerH + pad, HUDOverlay.TEXT_SIZE * s, "[M]")
+        setTextBold(false)
+
+        -- Red "overlay disabled" message centred in the body area
+        local bodyH   = panelH - headerH
+        local msgSize = HUDOverlay.TEXT_SIZE * s
+        setTextColor(0.95, 0.15, 0.15, 1.00)
+        setTextAlignment(RenderText.ALIGN_CENTER)
+        renderText(px + panelW * 0.5, py + bodyH * 0.5 - msgSize * 0.5, msgSize,
+            (g_i18n ~= nil and g_i18n:getText("cs_hud_vehicle_disabled")) or "Overlay disabled in vehicle")
+        setTextAlignment(RenderText.ALIGN_LEFT)
+        setTextColor(1, 1, 1, 1)
+        return
+    end
 
     -- Forecast strip BELOW the main panel
     if self.forecastCache ~= nil then
@@ -1125,3 +1254,4 @@ function HUDOverlay:delete()
     self.selectedFieldId = nil
     self.isInitialized   = false
 end
+

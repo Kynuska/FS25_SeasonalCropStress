@@ -10,6 +10,7 @@
     <text name="cs_hud_forecast"      text="Prévisions 5 jours"/>
     <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.0.0 chargé. Maj+M pour ouvrir le HUD d'humidité. Nouveau ? Ouvrez le menu Aide (ESC → Aide) et cherchez Seasonal Crop Stress pour tout apprendre."/>
     <text name="cs_hud_click_forecast" text="Cliquez sur une ligne pour la prévision 5 jours"/>
+    <text name="cs_hud_vehicle_disabled" text="Overlay désactivé en véhicule"/>
 
     <!-- ========== FIELD STATUS ========== -->
     <text name="cs_field_moisture"        text="Humidité"/>
@@ -109,6 +110,7 @@
     <text name="input_CS_TOGGLE_HUD"      text="Afficher/masquer HUD humidité"/>
     <text name="input_CS_OPEN_IRRIGATION" text="Ouvrir gestionnaire d'irrigation"/>
     <text name="input_CS_OPEN_CONSULTANT" text="Ouvrir conseiller cultural"/>
+    <text name="input_CS_EDIT_HUD"        text="Déplacer/redimensionner HUD humidité"/>
 
     <!-- ========== PRECISION FARMING DLC ========== -->
     <text name="cs_pf_moisture_overlay"      text="Humidité du sol"/>

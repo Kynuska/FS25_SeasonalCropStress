@@ -81,6 +81,18 @@ local function csOpenConsultantCallback(_, _, inputValue)
     if g_cropStressManager ~= nil then g_cropStressManager:onOpenConsultantDialog() end
 end
 
+local function csEditHUDCallback(_, _, inputValue)
+    if (inputValue or 0) <= 0 then return end
+    if g_cropStressManager ~= nil and g_cropStressManager.hudOverlay ~= nil then
+        local hud = g_cropStressManager.hudOverlay
+        if hud.editMode then
+            hud:exitEditMode()
+        elseif hud.isVisible then
+            hud:enterEditMode()
+        end
+    end
+end
+
 do
     if PlayerInputComponent ~= nil and PlayerInputComponent.registerActionEvents ~= nil then
         local origFn = PlayerInputComponent.registerActionEvents
@@ -103,9 +115,10 @@ do
                     end
                 end
 
-                reg(InputAction.CS_TOGGLE_HUD,     csToggleHUDCallback,      "input_CS_TOGGLE_HUD",      "Toggle Moisture HUD")
+                reg(InputAction.CS_TOGGLE_HUD,      csToggleHUDCallback,      "input_CS_TOGGLE_HUD",      "Toggle Moisture HUD")
                 reg(InputAction.CS_OPEN_IRRIGATION, csOpenIrrigationCallback, "input_CS_OPEN_IRRIGATION", "Open Irrigation Manager")
                 reg(InputAction.CS_OPEN_CONSULTANT, csOpenConsultantCallback, "input_CS_OPEN_CONSULTANT", "Open Crop Consultant")
+                reg(InputAction.CS_EDIT_HUD,        csEditHUDCallback,        "input_CS_EDIT_HUD",        "Edit/Move Moisture HUD")
 
                 g_inputBinding:endActionEventsModification()
             end
