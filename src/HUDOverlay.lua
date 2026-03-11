@@ -114,10 +114,9 @@ function HUDOverlay.new(manager)
     self.autoHideTimer  = 0   -- real-time seconds; 0 = no auto-hide
     self.rebuildTimer   = 0   -- throttles row rebuilds
 
-    -- Click detection: track previous left-mouse button state for row selection.
-    -- (FS25 Lua: getMouseButtonState(1) = LMB poll)
-    -- RMB edit mode and drag are handled via addModEventListener mouseEvent (button 3/1).
-    self.prevMouseDown  = false
+    -- LMB click-vs-drag detection: set true on LMB-down inside HUD, cleared on LMB-up.
+    -- If LMB-up fires and we never started dragging/resizing, it counts as a row click.
+    self.lmbDownOnHUD   = false
 
     -- Panel position — initialized from class constants, overridable via drag in edit mode
     self.panelX         = HUDOverlay.PANEL_X
@@ -361,8 +360,11 @@ end
 function HUDOverlay:getHUDRect()
     local s      = self.scale
     local panelW = HUDOverlay.PANEL_W * s
-    local numRows = math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)
-    local panelH = self:calcPanelHeight(numRows == 0 and 1 or numRows)
+    -- Use max(actual rows, 1) so hit-testing uses the same height the panel visually renders at.
+    -- Previously, if displayRows was empty, numRows=0 forced calcPanelHeight(1) which is correct,
+    -- but the real draw path passes max(numRows,1) as well. Keep consistent so dragging always works.
+    local numRows = math.max(1, math.min(#self.displayRows, HUDOverlay.MAX_FIELDS))
+    local panelH = self:calcPanelHeight(numRows)
     return self.panelX, self.panelY, panelW, panelH
 end
 
@@ -444,38 +446,12 @@ function HUDOverlay:selectRowAtPosition(mx, my)
 end
 
 -- ============================================================
--- CLICK DETECTION (LMB row selection — polling)
--- LMB rising-edge via getMouseButtonState(1).
--- RMB reposition is handled by onMouseEvent() via addModEventListener.
+-- CLICK DETECTION (stub — row selection moved to onMouseEvent LMB path)
+-- Row clicks are now handled inside onMouseEvent: LMB-up in edit mode
+-- without a drag/resize counts as a row selection click.
 -- ============================================================
 function HUDOverlay:detectRowClick()
-    -- LMB row selection works in edit mode (cursor is visible)
-    if not self.editMode then return end
-
-    local lmbDown = false
-    if type(getMouseButtonState) == "function" then
-        local ok, val = pcall(getMouseButtonState, 1)
-        if ok then lmbDown = val end
-    elseif type(g_inputBinding) == "table" and type(g_inputBinding.getIsMouseButtonPressed) == "function" then
-        local ok, val = pcall(g_inputBinding.getIsMouseButtonPressed, g_inputBinding, 1)
-        if ok then lmbDown = val end
-    end
-
-    local lmbClicked   = lmbDown and not self.prevMouseDown
-    self.prevMouseDown = lmbDown
-
-    if not lmbClicked then return end
-
-    -- Get mouse position
-    local mx, my = 0, 0
-    if type(getMousePosition) == "function" then
-        local ok, x, y = pcall(getMousePosition)
-        if ok then mx, my = x or 0, y or 0 end
-    elseif type(g_inputBinding) == "table" and g_inputBinding.mousePosXLast and g_inputBinding.mousePosYLast then
-        mx, my = g_inputBinding.mousePosXLast, g_inputBinding.mousePosYLast
-    end
-
-    self:selectRowAtPosition(mx, my)
+    -- No-op: handled by onMouseEvent button==1 isUp logic.
 end
 
 -- ============================================================
@@ -517,13 +493,14 @@ function HUDOverlay:scroll(delta)
 end
 
 -- ============================================================
--- MOUSE EVENT — drag, resize, scroll, and row selection
+-- MOUSE EVENT — edit toggle, drag, resize, scroll, row selection
 -- Called from main.lua addModEventListener mouseEvent handler.
 -- FS25 button numbers: 1=left, 2=middle, 3=right, 4=wheel up, 5=wheel down.
 --
--- Edit mode is toggled via the CS_EDIT_HUD input action (Middle Mouse Button
--- by default), which works both on foot AND in vehicles without conflicting
--- with the vehicle camera. RMB is no longer used to toggle edit mode.
+-- Interaction model (NPCFavor pattern):
+--   RMB on HUD          → toggle edit mode on/off
+--   In edit mode, LMB   → drag body, corner-resize, OR row select (click without drag)
+--   Scroll wheel        → always works over HUD (no edit mode required)
 --
 -- With setShowMouseCursor(true) active during edit mode, FS25 fires
 -- mouseEvent on every mouse MOVEMENT as well as clicks, enabling true
@@ -532,90 +509,105 @@ end
 function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
     if not self.isVisible then return end
 
-    -- ── Mouse wheel scrolling (works any time cursor is over HUD, no edit mode needed) ──
-    -- FS25 button numbers: 4 = wheel up, 5 = wheel down
+    -- ── Mouse wheel: scroll field list (always, no edit mode needed) ──
     if button == 4 then
-        if self:isPointerOverHUD(posX, posY) then
-            self:scroll(-1)  -- Scroll up one field
-        end
+        if self:isPointerOverHUD(posX, posY) then self:scroll(-1) end
         return
     elseif button == 5 then
-        if self:isPointerOverHUD(posX, posY) then
-            self:scroll(1)   -- Scroll down one field
-        end
+        if self:isPointerOverHUD(posX, posY) then self:scroll(1) end
         return
     end
 
-    -- ── RMB: select the row under cursor.
-    -- Works without edit mode so it functions in vehicles too — the vehicle's
-    -- input system can swallow some inputs but addModEventListener RMB still
-    -- arrives here. Removed the editMode gate that was blocking it.
+    -- ── RMB: toggle edit mode; selects row on the way in ──
     if isDown and button == 3 then
         if self:isPointerOverHUD(posX, posY) then
-            self:selectRowAtPosition(posX, posY)
+            if self.editMode then
+                self:exitEditMode()
+            else
+                self:selectRowAtPosition(posX, posY)
+                self:enterEditMode()
+            end
         end
         return
     end
 
+    -- Everything below is edit-mode only
     if not self.editMode then return end
 
-    -- ── LMB down: start corner resize or body drag ─────────
+    -- ── LMB down: start corner-resize, body-drag, or mark intent for row-select ──
+    -- No early return after drag-start so the movement block runs immediately
+    -- on the same event (NPCFavor pattern — zero 1-frame lag).
     if isDown and button == 1 then
         local corner = self:hitTestCorner(posX, posY)
         if corner then
             self.resizing         = true
             self.dragging         = false
+            self.lmbDownOnHUD     = false  -- corner resize, not a row-click candidate
             self.resizeStartX     = posX
             self.resizeStartY     = posY
             self.resizeStartScale = self.scale
-            return
-        end
-        if self:isPointerOverHUD(posX, posY) then
+            csLog("HUD resize started — corner=" .. corner)
+            -- Fall through so resize block below runs immediately
+        elseif self:isPointerOverHUD(posX, posY) then
             self.dragging    = true
             self.resizing    = false
+            self.lmbDownOnHUD = true   -- may become a row-select if released without moving
             self.dragOffsetX = posX - self.panelX
             self.dragOffsetY = posY - self.panelY
+            csLog(string.format("HUD drag started — pos=%.3f,%.3f", self.panelX, self.panelY))
+            -- Fall through so drag block below runs immediately
         end
-        return
     end
 
-    -- ── LMB up: end drag/resize ────────────────────────────
+    -- ── LMB up: end drag/resize OR fire row selection if it was a clean click ──
     if isUp and button == 1 then
-        if self.dragging or self.resizing then
-            self.dragging = false
-            self.resizing = false
+        local wasDragging  = self.dragging
+        local wasResizing  = self.resizing
+        local clickIntent  = self.lmbDownOnHUD
+
+        self.dragging     = false
+        self.resizing     = false
+        self.lmbDownOnHUD = false
+
+        if wasDragging or wasResizing then
             self:clampPosition()
             if self.manager ~= nil and self.manager.settings ~= nil then
                 self.manager.settings.hudPanelX = self.panelX
                 self.manager.settings.hudPanelY = self.panelY
                 self.manager.settings.hudScale  = self.scale
             end
-            csLog(string.format("HUD repositioned to %.3f,%.3f scale=%.2f", self.panelX, self.panelY, self.scale))
+            csLog(string.format("HUD repositioned to %.3f,%.3f scale=%.2f",
+                self.panelX, self.panelY, self.scale))
+        elseif clickIntent then
+            -- LMB pressed-and-released on HUD body without moving → row select
+            self:selectRowAtPosition(posX, posY)
         end
         return
     end
 
     -- ── Mouse movement: continuous drag / resize ──────────
-    -- Fires every frame while cursor is unlocked (setShowMouseCursor active).
+    -- Fires every frame while cursor is unlocked.
+    -- Also runs on the isDown event (no early return above) for immediate response.
     if self.dragging then
-        local s = self.scale
+        local s      = self.scale
         local panelW = HUDOverlay.PANEL_W * s
-        self.panelX = math.max(0.0, math.min(1.0 - panelW, posX - self.dragOffsetX))
-        self.panelY = math.max(0.05, math.min(0.95, posY - self.dragOffsetY))
+        local panelH = self:calcPanelHeight(math.max(1, math.min(#self.displayRows, HUDOverlay.MAX_FIELDS)))
+        self.panelX  = math.max(0.01, math.min(1.0 - panelW - 0.01, posX - self.dragOffsetX))
+        self.panelY  = math.max(panelH + 0.01, math.min(0.99, posY - self.dragOffsetY))
     end
 
     if self.resizing then
         local px, py, pw, ph = self:getHUDRect()
         local cx = px + pw * 0.5
         local cy = py + ph * 0.5
-        local startDist = math.sqrt((self.resizeStartX-cx)^2 + (self.resizeStartY-cy)^2)
-        local currDist  = math.sqrt((posX-cx)^2 + (posY-cy)^2)
+        local startDist = math.sqrt((self.resizeStartX - cx)^2 + (self.resizeStartY - cy)^2)
+        local currDist  = math.sqrt((posX - cx)^2 + (posY - cy)^2)
         local delta     = (currDist - startDist) * 2.5
         self.scale = math.max(HUDOverlay.MIN_SCALE, math.min(HUDOverlay.MAX_SCALE, self.resizeStartScale + delta))
         self:clampPosition()
     end
 
-    -- Hover detection for corner handles
+    -- Hover detection for corner handles (movement events only)
     if not self.dragging and not self.resizing then
         self.hoverCorner = self:hitTestCorner(posX, posY)
     end
@@ -825,11 +817,11 @@ function HUDOverlay:draw()
     if self.editMode then
         setTextColor(0.60, 0.80, 1.00, 0.85)
         renderText(px + pad, py + pad, HUDOverlay.TEXT_SIZE * s * 0.85,
-            "Drag to move  |  Corners to scale  |  RMB to exit")
+            "LMB drag/select  |  Corners scale  |  RMB to exit")
     elseif self.selectedFieldId == nil then
         setTextColor(unpack(HUDOverlay.COLOR_DIM_TEXT))
         renderText(px + pad, py + pad, 0.010 * s,
-            (g_i18n ~= nil and g_i18n:getText("cs_hud_click_forecast")) or "Click row for 5-day forecast")
+            (g_i18n ~= nil and g_i18n:getText("cs_hud_click_forecast")) or "RMB = select row / edit mode")
     end
 
     -- Scroll indicator (show when there are more fields than visible)
