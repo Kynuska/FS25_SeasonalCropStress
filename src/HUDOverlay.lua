@@ -988,6 +988,17 @@ function HUDOverlay:rebuildDisplayRows()
     -- — silently wrong on custom maps, renumbered fields, or non-sequential farmlands.
     local fieldById = (self.manager ~= nil) and self.manager.fieldById or {}
 
+    -- Determine the local player's farmId for ownership filtering.
+    -- SP is always farm 1; MP uses g_currentMission.player.farmId.
+    local localFarmId = nil
+    if g_currentMission ~= nil then
+        if not g_currentMission.missionDynamicInfo.isMultiplayer then
+            localFarmId = 1
+        elseif g_currentMission.player ~= nil then
+            localFarmId = g_currentMission.player.farmId
+        end
+    end
+
     -- Filter and collect all valid fields
     local allValidFields = {}
     for _, entry in ipairs(sortedFields) do
@@ -1001,11 +1012,17 @@ function HUDOverlay:rebuildDisplayRows()
 
         local field = fieldById[entry.fieldId]
         if field ~= nil then
-            -- FS25-native crop resolution: getFieldState() → fruitTypeIndex
-            cropName = self:resolveCropName(field)
+            -- Ownership filter: only show fields belonging to the local player's farm
+            local fl = field.farmland
+            if localFarmId ~= nil and (fl == nil or fl.farmId ~= localFarmId) then
+                -- skip unowned / other-farm fields
+            else
+                -- FS25-native crop resolution: getFieldState() → fruitTypeIndex
+                cropName = self:resolveCropName(field)
 
-            -- Growth stage (FS25: field.fieldState.growthState — confirmed from rtmnet/sdk)
-            growthStage = field.fieldState and field.fieldState.growthState
+                -- Growth stage (FS25: field.fieldState.growthState — confirmed from rtmnet/sdk)
+                growthStage = field.fieldState and field.fieldState.growthState
+            end
         end
 
         -- Only show crops tracked for stress (fallow, greenhouse, carrots etc. = irrelevant noise)
