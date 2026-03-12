@@ -130,6 +130,38 @@ do
 end
 
 -- ============================================================
+-- VEHICLE INPUT HOOK
+-- Register CS_TOGGLE_HUD and CS_EDIT_HUD in the vehicle input context so
+-- Shift+M and Shift+H work while driving (PlayerInputComponent context is
+-- on-foot only; vehicles require a separate registration via Vehicle).
+-- ============================================================
+do
+    if Vehicle ~= nil and type(Vehicle.registerActionEvents) == "function" then
+        Vehicle.registerActionEvents = Utils.appendedFunction(
+            Vehicle.registerActionEvents,
+            function(vehicle, isActiveForInput, isSelected)
+                if not isActiveForInput then return end
+                if not g_inputBinding then return end
+
+                local function regV(actionId, callback)
+                    if actionId == nil then return end
+                    g_inputBinding:registerActionEvent(
+                        actionId, CropStressManager, callback,
+                        false, true, false, true
+                    )
+                end
+
+                regV(InputAction.CS_TOGGLE_HUD, csToggleHUDCallback)
+                regV(InputAction.CS_EDIT_HUD,   csEditHUDCallback)
+            end
+        )
+        print("[CropStress] Vehicle action hook installed for in-vehicle HUD keys")
+    else
+        print("[CropStress] WARNING: Vehicle.registerActionEvents not available — in-vehicle keybinds disabled")
+    end
+end
+
+-- ============================================================
 -- Lifecycle reference -- set in Mission00.load, cleared in FSBaseMission.delete
 -- ============================================================
 local g_csManager = nil

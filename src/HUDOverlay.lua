@@ -518,16 +518,38 @@ function HUDOverlay:onMouseEvent(posX, posY, isDown, isUp, button)
         return
     end
 
-    -- ── RMB: toggle edit mode; selects row on the way in ──
+    -- ── RMB ──────────────────────────────────────────────────────────────────
+    -- On foot: RMB on HUD enters edit mode (and selects the clicked row).
+    -- In vehicle: RMB is captured by the vehicle camera, so we only allow it
+    --   to EXIT edit mode (cursor is visible when in edit mode, suppressing
+    --   the vehicle camera, so this is safe). Entering edit mode in a vehicle
+    --   must be done via the CS_EDIT_HUD keybind (Shift+H).
     if isDown and button == 3 then
         if self:isPointerOverHUD(posX, posY) then
             if self.editMode then
                 self:exitEditMode()
-            else
+            elseif not self:isPlayerInVehicle() then
                 self:selectRowAtPosition(posX, posY)
                 self:enterEditMode()
             end
         end
+        return
+    end
+
+    -- ── LMB without edit mode: row selection while in a vehicle ──────────────
+    -- Allows the player to select a field for the forecast panel without
+    -- needing to enter full edit mode (which requires Shift+H in a vehicle).
+    if isDown and button == 1 and not self.editMode then
+        if self:isPlayerInVehicle() and self:isPointerOverHUD(posX, posY) then
+            self.lmbDownOnHUD = true
+        end
+        return
+    end
+    if isUp and button == 1 and not self.editMode then
+        if self.lmbDownOnHUD and self:isPlayerInVehicle() then
+            self:selectRowAtPosition(posX, posY)
+        end
+        self.lmbDownOnHUD = false
         return
     end
 
@@ -690,49 +712,6 @@ function HUDOverlay:draw()
         end
     end
 
-    -- ── In-vehicle mode: show a minimal panel with a red disabled notice ──
-    if self:isPlayerInVehicle() then
-        -- Drop shadow
-        local shadowOff = 0.002 * s
-        setOverlayColor(self.fillOverlay, 0, 0, 0, 0.35)
-        renderOverlay(self.fillOverlay, px + shadowOff, py - shadowOff, panelW, panelH)
-
-        -- Background panel
-        setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_BG))
-        renderOverlay(self.fillOverlay, px, py, panelW, panelH)
-
-        -- Subtle border
-        local bwN = 0.001
-        setOverlayColor(self.fillOverlay, 0.30, 0.40, 0.55, 0.50)
-        renderOverlay(self.fillOverlay, px,                 py + panelH - bwN, panelW, bwN)
-        renderOverlay(self.fillOverlay, px,                 py,                panelW, bwN)
-        renderOverlay(self.fillOverlay, px,                 py,                bwN,    panelH)
-        renderOverlay(self.fillOverlay, px + panelW - bwN,  py,                bwN,    panelH)
-
-        -- Header bar
-        setOverlayColor(self.fillOverlay, unpack(HUDOverlay.COLOR_HEADER_BG))
-        renderOverlay(self.fillOverlay, px, py + panelH - headerH, panelW, headerH)
-
-        -- Header title
-        setTextColor(unpack(HUDOverlay.COLOR_HEADER_TEXT))
-        setTextBold(true)
-        renderText(px + pad, py + panelH - headerH + pad, HUDOverlay.HEADER_TEXT_SIZE * s,
-            (g_i18n ~= nil and g_i18n:getText("cs_hud_title")) or "CROP MOISTURE")
-        renderText(px + panelW - 0.028 * s, py + panelH - headerH + pad, HUDOverlay.TEXT_SIZE * s, "[M]")
-        setTextBold(false)
-
-        -- Red "overlay disabled" message centred in the body area
-        local bodyH   = panelH - headerH
-        local msgSize = HUDOverlay.TEXT_SIZE * s
-        setTextColor(0.95, 0.15, 0.15, 1.00)
-        setTextAlignment(RenderText.ALIGN_CENTER)
-        renderText(px + panelW * 0.5, py + bodyH * 0.5 - msgSize * 0.5, msgSize,
-            (g_i18n ~= nil and g_i18n:getText("cs_hud_vehicle_disabled")) or "Overlay disabled in vehicle")
-        setTextAlignment(RenderText.ALIGN_LEFT)
-        setTextColor(1, 1, 1, 1)
-        return
-    end
-
     -- Forecast strip BELOW the main panel
     if self.forecastCache ~= nil then
         self:drawForecastStrip(px, py - HUDOverlay.FORECAST_H * s - pad)
@@ -816,12 +795,19 @@ function HUDOverlay:draw()
     -- Footer hint
     if self.editMode then
         setTextColor(0.60, 0.80, 1.00, 0.85)
-        renderText(px + pad, py + pad, HUDOverlay.TEXT_SIZE * s * 0.85,
-            "LMB drag/select  |  Corners scale  |  RMB to exit")
+        local editHint = self:isPlayerInVehicle()
+            and "LMB drag  |  Corners scale  |  Shift+H to exit"
+            or  "LMB drag/select  |  Corners scale  |  RMB to exit"
+        renderText(px + pad, py + pad, HUDOverlay.TEXT_SIZE * s * 0.85, editHint)
     elseif self.selectedFieldId == nil then
         setTextColor(unpack(HUDOverlay.COLOR_DIM_TEXT))
-        renderText(px + pad, py + pad, 0.010 * s,
-            (g_i18n ~= nil and g_i18n:getText("cs_hud_click_forecast")) or "RMB = select row / edit mode")
+        local hintText
+        if self:isPlayerInVehicle() then
+            hintText = "Click row to select • Shift+H = move"
+        else
+            hintText = (g_i18n ~= nil and g_i18n:getText("cs_hud_click_forecast")) or "RMB = select row / edit mode"
+        end
+        renderText(px + pad, py + pad, 0.010 * s, hintText)
     end
 
     -- Scroll indicator (show when there are more fields than visible)
