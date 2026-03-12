@@ -44,6 +44,23 @@ local function csLog(msg)
 end
 
 -- ============================================================
+-- OWNERSHIP HELPER
+-- Returns the local player's farmId, or nil if unavailable.
+-- In singleplayer farmId is always 1; MP uses g_currentMission.player.farmId.
+-- ============================================================
+local function getLocalFarmId()
+    if g_currentMission == nil then return nil end
+    if not g_currentMission.missionDynamicInfo.isMultiplayer then
+        return 1
+    end
+    local player = g_currentMission.player
+    if player ~= nil and player.farmId ~= nil then
+        return player.farmId
+    end
+    return nil
+end
+
+-- ============================================================
 -- CONSTRUCTOR
 -- ============================================================
 function CropConsultant.new(manager)
@@ -91,6 +108,23 @@ function CropConsultant:enableNPCFavorMode()
 end
 
 -- ============================================================
+-- OWNERSHIP CHECK
+-- Returns true if the field is owned by the local player's farm.
+-- Unowned fields (farmId == 0 or nil) and other-farm fields in MP
+-- always return false.
+-- ============================================================
+function CropConsultant:isOwnedByLocalPlayer(fieldId)
+    if self.manager == nil then return false end
+    local field = self.manager.fieldById and self.manager.fieldById[fieldId]
+    if field == nil then return false end
+    local fl = field.farmland
+    if fl == nil then return false end
+    local farmId = getLocalFarmId()
+    if farmId == nil then return false end
+    return fl.farmId == farmId
+end
+
+-- ============================================================
 -- HOURLY EVALUATE
 -- Called by CropStressManager:onHourlyTick().
 -- Proactively checks fields for INFO-level alerts (40-50% moisture
@@ -113,24 +147,27 @@ function CropConsultant:hourlyEvaluate()
     local cooldownHours = self.alertCooldown or CropConsultant.COOLDOWN_HOURS
 
     for fieldId, data in pairs(self.manager.soilSystem.fieldData) do
-        local moisture = data.moisture
+        -- Only alert for fields the local player owns
+        if self:isOwnedByLocalPlayer(fieldId) then
+            local moisture = data.moisture
 
-        -- Only evaluate INFO range here (WARNING covered by band-crossing in onMoistureUpdated)
-        if moisture >= CropConsultant.SEVERITY_WARNING_MAX
-        and moisture <= CropConsultant.SEVERITY_INFO_MAX then
-            -- Only alert if stress is actively accumulating (crop in critical window)
-            local stress = 0
-            if self.manager.stressModifier ~= nil then
-                stress = self.manager.stressModifier:getStress(fieldId)
-            end
+            -- Only evaluate INFO range here (WARNING covered by band-crossing in onMoistureUpdated)
+            if moisture >= CropConsultant.SEVERITY_WARNING_MAX
+            and moisture <= CropConsultant.SEVERITY_INFO_MAX then
+                -- Only alert if stress is actively accumulating (crop in critical window)
+                local stress = 0
+                if self.manager.stressModifier ~= nil then
+                    stress = self.manager.stressModifier:getStress(fieldId)
+                end
 
-            if stress > 0.01 then
-                local cooldownKey = fieldId .. "_info"
-                local lastAlert   = self.alertCooldowns[cooldownKey] or -999
-                if (hourKey - lastAlert) >= cooldownHours then
-                    self.alertCooldowns[cooldownKey] = hourKey
-                    local cropName = self:getCropName(fieldId)
-                    self:showAlert(fieldId, moisture, "INFO", cropName)
+                if stress > 0.01 then
+                    local cooldownKey = fieldId .. "_info"
+                    local lastAlert   = self.alertCooldowns[cooldownKey] or -999
+                    if (hourKey - lastAlert) >= cooldownHours then
+                        self.alertCooldowns[cooldownKey] = hourKey
+                        local cropName = self:getCropName(fieldId)
+                        self:showAlert(fieldId, moisture, "INFO", cropName)
+                    end
                 end
             end
         end
@@ -147,6 +184,7 @@ function CropConsultant:onCriticalThreshold(data)
     if data == nil or data.fieldId == nil then return end
 
     local fieldId = data.fieldId
+    if not self:isOwnedByLocalPlayer(fieldId) then return end
     local env     = g_currentMission and g_currentMission.environment
     local hourKey = 0
     if env ~= nil then
@@ -175,6 +213,7 @@ function CropConsultant:onMoistureUpdated(data)
     if data == nil then return end
 
     local fieldId  = data.fieldId
+    if not self:isOwnedByLocalPlayer(fieldId) then return end
     local previous = data.previous or 1.0
     local current  = data.current  or 1.0
 
