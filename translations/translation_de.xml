@@ -8,7 +8,7 @@
     <text name="cs_hud_critical"      text="KRITISCH — Jetzt bewässern!"/>
     <text name="cs_hud_no_crop"       text="Keine Frucht"/>
     <text name="cs_hud_forecast"      text="5-Tage-Prognose"/>
-    <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.0.0 geladen. Shift+M öffnet das Feuchte-HUD. Neu dabei? Öffne das Hilfe-Menü (ESC → Hilfe) und suche nach Seasonal Crop Stress, um alles zu erfahren."/>
+    <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.5.0 geladen. Shift+M öffnet das Feuchte-HUD. Neu dabei? Öffne das Hilfe-Menü (ESC → Hilfe) und suche nach Seasonal Crop Stress, um alles zu erfahren."/>
     <text name="cs_hud_click_forecast" text="Zeile anklicken für 5-Tage-Prognose"/>
     <text name="cs_hud_vehicle_disabled" text="Overlay im Fahrzeug deaktiviert"/>
 
@@ -225,7 +225,7 @@
 
     <!-- Mod-Informationen: Seite 1 — Über diesen Mod -->
     <text name="helpLine_cs_i1_title"           text="Über diesen Mod"/>
-    <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.0.0"/>
+    <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.5.0"/>
     <text name="helpLine_cs_i1_about_text"      text="Erstellt von TisonK. Fügt eine realistische Bodenfeuchtesimulation, saisonalen Pflanzenstress und Bewässerungsinfrastrukturverwaltung zu Farming Simulator 25 hinzu. Entwickelt, um das Feldmanagement strategischer zu gestalten — jedes Feld, jede Saison, jede Entscheidung zählt."/>
     <text name="helpLine_cs_i1_community_title" text="Community &amp; Support"/>
     <text name="helpLine_cs_i1_community_text"  text="Diesen Mod findest du im Farming Simulator ModHub. Für Fragen, Fehlerberichte und Updates besuche die Mod-Seite im ModHub oder das GitHub-Repository. Schau in die Community-Foren, um Tipps mit anderen Spielern zu teilen."/>
@@ -237,7 +237,13 @@
     <text name="helpLine_cs_i2_vehicle_title"  text="CoursePlay, AutoDrive &amp; Precision Farming"/>
     <text name="helpLine_cs_i2_vehicle_text"   text="Bei aktivem CoursePlay wird die Anzahl autonomer Fahrzeuge auf einem gestressten Feld in der Feldwarnung angezeigt. AutoDrive ergänzt kritische Dürrealarme um verfügbare Wasserzielpunkte und einen Hinweis zur Wasserroute. Mit FS25_UsedPlus werden stündliche Betriebskosten abgerechnet und Maschinenverschleiß akkumuliert realistisch. Mit dem Precision Farming DLC werden Bodenfeuchtedaten direkt in der PF-Bodenkartenansicht angezeigt."/>
 
-    <!-- ========== OPTIONALE MOD-INTEGRATIONEN ========== -->
+    <!-- Tips & Tricks: Seite 3 — Spritzen & Bewässern -->
+    <text name="helpLine_cs_t3_title"          text="Spritzen &amp; Bewässern"/>
+    <text name="helpLine_cs_t3_sprayer_title"  text="Feldspritzen zur Bewässerung nutzen"/>
+    <text name="helpLine_cs_t3_sprayer_text"   text="Standard-Feldspritzen können als manuelle Alternative zu fest installierten Bewässerungssystemen verwendet werden. Wenn Sie eine Spritze mit WASSER füllen, erhält jeder Bereich, den Sie besprühen, einen sofortigen Feuchtigkeitsschub. Dies ist nützlich für kleine Felder oder als Übergangsmaßnahme, bis Sie sich eine Kreis- oder Tröpfchenbewässerung leisten können."/>
+
+    <!-- ========== OPTIONAL MOD INTEGRATIONS ========== -->
+
     <text name="cs_cp_vehicle_on_field"  text="CoursePlay: %d Fahrzeug arbeitet auf diesem Feld"/>
     <text name="cs_cp_vehicles_on_field" text="CoursePlay: %d Fahrzeuge arbeiten auf diesem Feld"/>
     <text name="cs_ad_water_hint"    text="AutoDrive: %d Wasserpunkt(e) verfügbar — Wasserroute einrichten"/>
