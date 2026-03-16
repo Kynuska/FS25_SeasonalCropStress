@@ -152,6 +152,13 @@ function CropStressManager.new()
         self.autoDriveIntegration = makeNoop({"initialize","delete","enableAutoDriveMode","hourlyRefresh","isActive","getDestinationCount","getWaterDestinationCount","getCriticalAlertHint"})
     end
 
+    if SprayerIntegration ~= nil then
+        self.sprayerIntegration = SprayerIntegration.new(self)
+    else
+        csLog("WARNING: SprayerIntegration class not loaded — check main.lua source() order")
+        self.sprayerIntegration = makeNoop({"initialize","delete"})
+    end
+
     self.saveLoad           = SaveLoadHandler.new(self)
 
     return self
@@ -181,6 +188,7 @@ function CropStressManager:initialize()
     self.soilFertilizerIntegration:initialize()
     self.coursePlayIntegration:initialize()
     self.autoDriveIntegration:initialize()
+    self.sprayerIntegration:initialize()
 
     -- Persistence handler
     self.saveLoad:initialize()
@@ -502,6 +510,15 @@ function CropStressManager:detectOptionalMods()
         self.soilSystem:setRWMoistureSystem(rwMs)
         self.stressModifier:setRWMode(true)
     end
+
+    -- FS25_MoistureSystem (by Ozz) detection
+    -- We check for the mod name and its likely global/manager.
+    -- Ozz's mod also uses Shift+M, so we log a warning for the user.
+    if g_modIsLoaded ~= nil and g_modIsLoaded["FS25_MoistureSystem"] then
+        csLog("FS25_MoistureSystem (Ozz) detected — WARNING: Keybind conflict detected (Shift+M). You may need to rebind your keys in the options menu.")
+        -- If it also provides a moisture system, we should ideally sync with it,
+        -- but since we don't have its API yet, we at least warn the user.
+    end
 end
 
 -- ============================================================
@@ -556,6 +573,7 @@ function CropStressManager:delete()
     CropEventBus.listeners = {}
 
     -- Subsystem cleanup (reverse order of init)
+    self.sprayerIntegration:delete()
     self.autoDriveIntegration:delete()
     self.coursePlayIntegration:delete()
     self.soilFertilizerIntegration:delete()

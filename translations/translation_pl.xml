@@ -8,7 +8,7 @@
     <text name="cs_hud_critical"      text="KRYTYCZNE — Nawadniaj teraz!"/>
     <text name="cs_hud_no_crop"       text="Brak uprawy"/>
     <text name="cs_hud_forecast"      text="Prognoza 5-dniowa"/>
-    <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.0.0 załadowany. Shift+M otwiera HUD wilgotności. Nowy użytkownik? Otwórz menu Pomoc (ESC → Pomoc) i znajdź Seasonal Crop Stress, aby dowiedzieć się wszystkiego."/>
+    <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.5.0 załadowany. Shift+M otwiera HUD wilgotności. Nowy użytkownik? Otwórz menu Pomoc (ESC → Pomoc) i znajdź Seasonal Crop Stress, aby dowiedzieć się wszystkiego."/>
     <text name="cs_hud_click_forecast" text="Kliknij wiersz aby zobaczyć prognozę 5-dniową"/>
     <text name="cs_hud_vehicle_disabled" text="Nakładka wyłączona w pojeździe"/>
 
@@ -225,7 +225,7 @@
 
     <!-- Informacje o modzie: Strona 1 — O modzie -->
     <text name="helpLine_cs_i1_title"           text="O tym modzie"/>
-    <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.0.0"/>
+    <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.5.0"/>
     <text name="helpLine_cs_i1_about_text"      text="Stworzony przez TisonK. Dodaje realistyczną symulację wilgotności gleby, sezonowy stres upraw i zarządzanie infrastrukturą nawadniania do Farming Simulator 25. Zaprojektowany, aby zarządzanie uprawami było bardziej strategiczne — każde pole, każdy sezon, każda decyzja ma znaczenie."/>
     <text name="helpLine_cs_i1_community_title" text="Społeczność &amp; pomoc"/>
     <text name="helpLine_cs_i1_community_text"  text="Znajdź ten mod w Farming Simulator ModHub. W przypadku pytań, zgłoszeń błędów i aktualizacji odwiedź stronę moda w ModHub lub repozytorium GitHub. Dołącz do forów społecznościowych, aby dzielić się wskazówkami z innymi graczami."/>

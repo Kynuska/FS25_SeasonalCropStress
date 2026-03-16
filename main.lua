@@ -41,6 +41,7 @@ source(modDir .. "src/PrecisionFarmingOverlay.lua")
 source(modDir .. "src/SoilFertilizerIntegration.lua")
 source(modDir .. "src/CoursePlayIntegration.lua")
 source(modDir .. "src/AutoDriveIntegration.lua")
+source(modDir .. "src/SprayerIntegration.lua")
 
 -- Event bus
 source(modDir .. "src/events/CropStressSettingsSyncEvent.lua")
@@ -170,7 +171,7 @@ local g_csManager = nil
 Mission00.load = Utils.appendedFunction(Mission00.load, function(self, ...)
     g_csManager = CropStressManager.new()
     getfenv(0)["g_cropStressManager"] = g_csManager
-    print("[CropStress] CropStressManager created (v1.0.0.0)")
+    print("[CropStress] CropStressManager created (v1.0.5.0)")
 end)
 
 -- 2. Mission fully loaded: initialize all systems
