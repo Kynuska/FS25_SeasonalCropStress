@@ -8,7 +8,7 @@
     <text name="cs_hud_critical"      text="CRITIQUE — Irriguer maintenant !"/>
     <text name="cs_hud_no_crop"       text="Pas de culture"/>
     <text name="cs_hud_forecast"      text="Prévisions 5 jours"/>
-    <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.0.0 chargé. Maj+M pour ouvrir le HUD d'humidité. Nouveau ? Ouvrez le menu Aide (ESC → Aide) et cherchez Seasonal Crop Stress pour tout apprendre."/>
+    <text name="cs_hud_first_run"      text="Seasonal Crop Stress v1.0.5.0 chargé. Maj+M pour ouvrir le HUD d'humidité. Nouveau ? Ouvrez le menu Aide (ESC → Aide) et cherchez Seasonal Crop Stress pour tout apprendre."/>
     <text name="cs_hud_click_forecast" text="Cliquez sur une ligne pour la prévision 5 jours"/>
     <text name="cs_hud_vehicle_disabled" text="Overlay désactivé en véhicule"/>
 
@@ -225,7 +225,7 @@
 
     <!-- Informations sur le Mod : Page 1 — À propos -->
     <text name="helpLine_cs_i1_title"           text="À propos de ce mod"/>
-    <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.0.0"/>
+    <text name="helpLine_cs_i1_about_title"     text="Seasonal Crop Stress v1.0.5.0"/>
     <text name="helpLine_cs_i1_about_text"      text="Créé par TisonK. Ajoute une simulation réaliste de l'humidité du sol, du stress saisonnier des cultures et de la gestion de l'infrastructure d'irrigation à Farming Simulator 25. Conçu pour rendre la gestion des cultures plus stratégique — chaque champ, chaque saison, chaque décision compte."/>
     <text name="helpLine_cs_i1_community_title" text="Communauté &amp; Support"/>
     <text name="helpLine_cs_i1_community_text"  text="Retrouvez ce mod sur le ModHub de Farming Simulator. Pour les questions, rapports de bugs et mises à jour, visitez la page du mod sur le ModHub ou le dépôt GitHub. Rejoignez les forums communautaires pour partager des conseils avec d'autres joueurs."/>

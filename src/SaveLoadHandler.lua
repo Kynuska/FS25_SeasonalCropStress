@@ -98,6 +98,7 @@ function SaveLoadHandler:saveToXMLFile(xmlFile)
             setInt(   key .. "#id",       fieldId)
             setFloat( key .. "#moisture", data.moisture)
             setFloat( key .. "#stress",   self.manager.stressModifier:getStress(fieldId))
+            setString(key .. "#soilType", data.soilType or "loamy")
             i = i + 1
         end
     end
@@ -195,10 +196,14 @@ function SaveLoadHandler:loadFromXMLFile()
             if fieldId == nil then break end
             local moisture = getFloat(key .. "#moisture", 0.50)
             local stress   = getFloat(key .. "#stress",   0.0)
+            local soilType = getString(key .. "#soilType", nil)
             if soilSystem.fieldData[fieldId] ~= nil then
                 soilSystem.fieldData[fieldId].moisture = math.max(0.0, math.min(1.0, moisture))
                 if stressModifier ~= nil then
                     stressModifier.fieldStress[fieldId] = math.max(0.0, math.min(1.0, stress))
+                end
+                if soilType ~= nil and SoilMoistureSystem.SOIL_PARAMS[soilType] ~= nil then
+                    soilSystem.fieldData[fieldId].soilType = soilType
                 end
             end
             i = i + 1

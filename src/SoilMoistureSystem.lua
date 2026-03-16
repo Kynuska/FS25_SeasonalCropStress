@@ -272,7 +272,7 @@ end
 
 -- Detect soil type from FS25 map metadata.
 -- FS25 maps vary widely in what metadata they expose.
--- This uses a best-effort hierarchy; defaults to "loamy".
+-- This uses a best-effort hierarchy; falls back to weighted random per field.
 function SoilMoistureSystem:detectSoilType(field)
     -- 1. Try field's custom attribute if map author set it
     if field.soilType ~= nil then
@@ -285,10 +285,15 @@ function SoilMoistureSystem:detectSoilType(field)
     -- NOTE: If FS25 LUADOC documents getTerrainAttributeAtWorldPos, implement here.
 
     -- 3. Heuristic: use field position's biome/map region if available
-    -- (Placeholder for future map-specific support)
+    -- (Placeholder for future PF soil map support)
 
-    -- 4. Default
-    return "loamy"
+    -- 4. Weighted random seeded by field ID — consistent per field, no save needed.
+    --    Distribution: sandy 20%, loamy 70%, clay 10% (realistic temperate farmland).
+    local fid = (field.farmland and field.farmland.id) or 0
+    local r = ((fid * 2654435761) % 1000) / 1000.0
+    if r < 0.20 then return "sandy"
+    elseif r < 0.90 then return "loamy"
+    else return "clay" end
 end
 
 -- ============================================================
