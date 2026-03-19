@@ -38,6 +38,7 @@ function SaveLoadHandler.new(manager)
     local self = setmetatable({}, SaveLoadHandler)
     self.manager = manager
     self.isInitialized = false
+    self._saveDataLoaded = false  -- set true once we successfully read from xmlFile
     return self
 end
 
@@ -137,17 +138,24 @@ end
 -- xmlFile is the XMLFile OBJECT on missionInfo (method API, not globals).
 -- Fallback to global functions if object methods don't exist.
 -- ============================================================
-function SaveLoadHandler:loadFromXMLFile()
+-- Optional xmlFile argument: if provided, use it directly instead of reading
+-- from missionInfo. This is used by the bootstrap path in main.lua where the
+-- save hook passes the xmlFile object it already holds (missionInfo.xmlFile
+-- may still be a legacy integer handle at that point and cannot be indexed).
+function SaveLoadHandler:loadFromXMLFile(xmlFile)
     if not self.isInitialized then return end
 
-    local xmlFile = nil
-    if g_currentMission ~= nil and g_currentMission.missionInfo ~= nil then
-        xmlFile = g_currentMission.missionInfo.xmlFile
-    end
     if xmlFile == nil then
+        if g_currentMission ~= nil and g_currentMission.missionInfo ~= nil then
+            xmlFile = g_currentMission.missionInfo.xmlFile
+        end
+    end
+    if xmlFile == nil or type(xmlFile) == "number" then
         csLog("SaveLoadHandler: no xmlFile available — skipping load (fresh game)")
         return
     end
+
+    self._saveDataLoaded = true
 
     local root = "careerSavegame.cropStress"
 

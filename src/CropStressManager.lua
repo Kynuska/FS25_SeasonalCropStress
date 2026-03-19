@@ -254,6 +254,20 @@ function CropStressManager:installFieldReadyUpdater()
                 csLog("CropStressManager fieldReady: WARNING — enumerateFields returned 0. Check g_fieldManager.fields.")
             end
 
+            -- Signal that fieldData is now populated.
+            -- Two possible orderings depending on map/machine load time:
+            --   A) updater fires BEFORE onStartMission  → xmlFile not available yet,
+            --      so we set the flag and let onStartMission call loadFromXMLFile().
+            --   B) updater fires AFTER onStartMission   → onStartMission already ran
+            --      but skipped the load (fields weren't ready), so we call it now.
+            manager._fieldsEnumerated = true
+            if manager._onStartMissionRan then
+                manager:loadFromXMLFile()
+                csLog("CropStressManager fieldReady: save data restored (post-onStartMission)")
+            else
+                csLog("CropStressManager fieldReady: fields ready, awaiting onStartMission for xmlFile")
+            end
+
             return true  -- remove updater
         end
     }

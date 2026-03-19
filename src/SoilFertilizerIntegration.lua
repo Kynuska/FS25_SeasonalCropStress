@@ -99,6 +99,12 @@ end
 -- Only rebuilds entries that have exceeded the cache TTL.
 -- ============================================================
 function SoilFertilizerIntegration:hourlyRefresh()
+    -- Late detection: SoilFertilizer may finish initializing after our detectOptionalMods() runs.
+    -- On the first hourly tick it will always be ready, so we retry here if still inactive.
+    if not self.sfActive and g_SoilFertilityManager ~= nil then
+        self:enableSoilFertilizerMode()
+        csLog("SoilFertilizerIntegration: late-detected FS25_SoilFertilizer — soil chemistry now active")
+    end
     if not self:isActive() then return end
     if g_SoilFertilityManager == nil then return end
 
