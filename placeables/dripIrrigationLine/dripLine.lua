@@ -155,11 +155,27 @@ function DripIrrigationLine.onDelete(self)
 end
 
 function DripIrrigationLine.onReadStream(self, streamId, connection)
-    self.isActive = streamReadBool(streamId)
+    self.isActive     = streamReadBool(streamId)
+    self.startX       = streamReadFloat32(streamId)
+    self.startZ       = streamReadFloat32(streamId)
+    self.endX         = streamReadFloat32(streamId)
+    self.endZ         = streamReadFloat32(streamId)
+    self.coverageMinX = streamReadFloat32(streamId)
+    self.coverageMaxX = streamReadFloat32(streamId)
+    self.coverageMinZ = streamReadFloat32(streamId)
+    self.coverageMaxZ = streamReadFloat32(streamId)
 end
 
 function DripIrrigationLine.onWriteStream(self, streamId, connection)
-    streamWriteBool(streamId, self.isActive or false)
+    streamWriteBool(streamId,    self.isActive     or false)
+    streamWriteFloat32(streamId, self.startX       or 0)
+    streamWriteFloat32(streamId, self.startZ       or 0)
+    streamWriteFloat32(streamId, self.endX         or 0)
+    streamWriteFloat32(streamId, self.endZ         or 0)
+    streamWriteFloat32(streamId, self.coverageMinX or 0)
+    streamWriteFloat32(streamId, self.coverageMaxX or 0)
+    streamWriteFloat32(streamId, self.coverageMinZ or 0)
+    streamWriteFloat32(streamId, self.coverageMaxZ or 0)
 end
 
 -- ============================================================
