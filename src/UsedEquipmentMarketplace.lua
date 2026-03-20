@@ -9,6 +9,12 @@ local function csLog(msg)
     else print("[CropStress] " .. tostring(msg)) end
 end
 
+-- Primary path: g_currentMission.usedPlusAPI (UP v2.15.4.96+ — the only reliable
+-- cross-mod path in FS25's sandboxed environment). Bare globals kept as fallbacks.
+local function getUPAPI()
+    return (g_currentMission and g_currentMission.usedPlusAPI) or UsedPlusAPI or g_usedPlusManager
+end
+
 UsedEquipmentMarketplace = {}
 UsedEquipmentMarketplace.__index = UsedEquipmentMarketplace
 
@@ -33,12 +39,12 @@ function UsedEquipmentMarketplace:enableUsedPlusMode()
 end
 
 -- Register pre-owned irrigation equipment with UsedPlus marketplace.
--- Uses UsedPlusAPI (confirmed public interface) with g_usedPlusManager as fallback.
+-- Uses getUPAPI() (g_currentMission.usedPlusAPI primary, bare globals as fallback).
 -- registerUsedEquipment() is NOT in the confirmed public API — guarded with nil check
 -- and pcall so this silently no-ops if the method doesn't exist.
 function UsedEquipmentMarketplace:registerUsedEquipment()
     if not self.usedPlusActive then return end
-    local api = UsedPlusAPI or g_usedPlusManager
+    local api = getUPAPI()
     if api == nil or api.registerUsedEquipment == nil then
         csLog("UsedEquipmentMarketplace: registerUsedEquipment not available — marketplace registration skipped")
         return
@@ -113,7 +119,7 @@ end
 -- Register a single piece of equipment with UsedPlus.
 -- Wrapped in pcall: API signature unconfirmed, prevents crash on mismatch.
 function UsedEquipmentMarketplace:registerSingleEquipment(config)
-    local api = UsedPlusAPI or g_usedPlusManager
+    local api = getUPAPI()
     if api == nil or api.registerUsedEquipment == nil then return end
 
     local equipmentData = {

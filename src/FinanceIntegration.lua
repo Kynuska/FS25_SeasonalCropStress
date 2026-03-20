@@ -10,6 +10,12 @@ local function csLog(msg)
     else print("[CropStress] " .. tostring(msg)) end
 end
 
+-- Primary path: g_currentMission.usedPlusAPI (UP v2.15.4.96+ — the only reliable
+-- cross-mod path in FS25's sandboxed environment). Bare globals kept as fallbacks.
+local function getUPAPI()
+    return (g_currentMission and g_currentMission.usedPlusAPI) or UsedPlusAPI or g_usedPlusManager
+end
+
 FinanceIntegration = {}
 FinanceIntegration.__index = FinanceIntegration
 
@@ -67,17 +73,14 @@ end
 function FinanceIntegration:getEquipmentWearLevel(vehicleId)
     if not self.usedPlusActive then return 0.0 end
 
-    -- Try UsedPlusAPI (confirmed public static interface) then g_usedPlusManager (legacy).
-    -- UsedPlusAPI.getVehicleDNA(entity) is a static call; g_usedPlusManager:getVehicleDNA()
-    -- is a method call — both wrapped in pcall to handle either convention safely.
+    -- Use getUPAPI() to reach g_currentMission.usedPlusAPI (v2.15.4.96+ primary path)
+    -- with bare globals as fallback. Wrapped in pcall — API signature varies by version.
     -- Note: UsedPlus DNA tracks vehicles (tractors, combines). Irrigation systems are
     -- placeables and typically have no DNA entry, so dna will be nil → returns 0.0.
+    local api = getUPAPI()
     local dna = nil
-    if UsedPlusAPI ~= nil and UsedPlusAPI.getVehicleDNA ~= nil then
-        local ok, result = pcall(UsedPlusAPI.getVehicleDNA, vehicleId)
-        if ok then dna = result end
-    elseif g_usedPlusManager ~= nil and g_usedPlusManager.getVehicleDNA ~= nil then
-        local ok, result = pcall(function() return g_usedPlusManager:getVehicleDNA(vehicleId) end)
+    if api ~= nil and api.getVehicleDNA ~= nil then
+        local ok, result = pcall(api.getVehicleDNA, vehicleId)
         if ok then dna = result end
     end
     if dna == nil then return 0.0 end
