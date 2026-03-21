@@ -178,36 +178,6 @@ end)
 Mission00.loadMission00Finished = Utils.appendedFunction(Mission00.loadMission00Finished, function(self, ...)
     if g_csManager == nil then return end
 
-    -- ============================================================
-    -- FOCUSMANAGER NIL-NODE GUARD
-    -- Installed here (not at source() load time) because FocusManager
-    -- is a GUI class that isn't available until after mission load.
-    --
-    -- Root cause (FS25 v1.16 regression):
-    --   g_gui:loadGui() calls loadSharedI3DFile for the focus-ring i3d.
-    --   When the file is already cached, the callback fires with i3dNode=nil.
-    --   FocusManager.lua:94 then does elementsByNodeId[nil] = element
-    --   → "table index is nil" crash + corrupt currentFocusElement every frame.
-    -- ============================================================
-    do
-        if type(FocusManager) == "table" and type(FocusManager.loadSharedI3DFileFinished) == "function" then
-            if not FocusManager._csNilNodeGuardInstalled then
-                local origFn = FocusManager.loadSharedI3DFileFinished
-                FocusManager.loadSharedI3DFileFinished = function(fm, i3dNode, failedReason, args)
-                    if i3dNode == nil then
-                        print("[CropStress] FocusManager nil-node guard triggered — suppressed")
-                        return
-                    end
-                    return origFn(fm, i3dNode, failedReason, args)
-                end
-                FocusManager._csNilNodeGuardInstalled = true
-                print("[CropStress] FocusManager nil-node guard applied")
-            end
-        else
-            print("[CropStress] WARNING: FocusManager not available at loadMission00Finished — guard skipped")
-        end
-    end
-
     g_csManager:initialize()
 
     -- Install field-ready updater immediately after initialize (NPCFavor pattern).
@@ -286,6 +256,22 @@ end)
 --    once g_currentMission.isMissionStarted + g_fieldManager.fields are ready.
 Mission00.onStartMission = Utils.appendedFunction(Mission00.onStartMission, function(self, ...)
     if g_csManager == nil then return end
+
+    -- FocusManager nil-node guard — installed here where FocusManager is guaranteed available
+    if type(FocusManager) == "table" and type(FocusManager.loadSharedI3DFileFinished) == "function" then
+        if not FocusManager._csNilNodeGuardInstalled then
+            local origFn = FocusManager.loadSharedI3DFileFinished
+            FocusManager.loadSharedI3DFileFinished = function(fm, i3dNode, failedReason, args)
+                if i3dNode == nil then
+                    print("[CropStress] FocusManager nil-node guard triggered — suppressed")
+                    return
+                end
+                return origFn(fm, i3dNode, failedReason, args)
+            end
+            FocusManager._csNilNodeGuardInstalled = true
+            print("[CropStress] FocusManager nil-node guard applied")
+        end
+    end
 
     -- Load settings first so subsystems get correct thresholds before fields init
     if self.missionInfo ~= nil then
