@@ -68,6 +68,26 @@ function IrrigationManager:registerWaterSource(placeable)
         flowCapacity = placeable.waterFlowCapacity or 1000,
     }
     csLog(string.format("Water source %d registered at (%.1f, %.1f)", placeable.id, x, z))
+
+    -- Re-connect any irrigation systems that registered before this pump was placed.
+    -- Placement order (pivot first, then pump) would otherwise leave systems permanently
+    -- disconnected since findNearestWaterSource() is only called once at system registration.
+    local reconnected = 0
+    for sysId, sys in pairs(self.systems) do
+        if sys.waterSourceId == nil then
+            local sourceId, dist = self:findNearestWaterSource(sys.x, sys.z)
+            if sourceId ~= nil then
+                sys.waterSourceId      = sourceId
+                sys.distanceToSource   = dist
+                sys.pressureMultiplier = self:calculatePressureMultiplier(dist)
+                reconnected = reconnected + 1
+                csLog(string.format("Irrigation system %d reconnected to water source %d (%.1f m)", sysId, sourceId, dist))
+            end
+        end
+    end
+    if reconnected > 0 then
+        csLog(string.format("Reconnected %d irrigation system(s) after pump placement", reconnected))
+    end
 end
 
 function IrrigationManager:deregisterWaterSource(placeableId)

@@ -480,9 +480,11 @@ function CropStressManager:detectOptionalMods()
         self.consultant:enableNPCFavorMode()
     end
 
-    -- UsedPlusAPI is the confirmed public static interface (XelaNull/FS25_UsedPlus).
-    -- g_usedPlusManager is the legacy/internal global from older versions — kept as fallback.
-    if UsedPlusAPI ~= nil or g_usedPlusManager ~= nil then
+    -- UsedPlus detection: primary path is g_currentMission.usedPlusAPI (set in UP v2.15.4.96+
+    -- onStartMission — the only reliable cross-mod path in FS25's sandboxed environment).
+    -- Bare UsedPlusAPI / g_usedPlusManager globals are kept as fallbacks for older versions.
+    local upApi = (g_currentMission and g_currentMission.usedPlusAPI) or UsedPlusAPI or g_usedPlusManager
+    if upApi ~= nil then
         csLog("FS25_UsedPlus detected — enabling finance integration")
         self.financeIntegration:enableUsedPlusMode()
         self.usedEquipmentMarketplace:enableUsedPlusMode()
